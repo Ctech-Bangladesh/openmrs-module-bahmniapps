@@ -94,7 +94,10 @@ angular.module('bahmni.registration')
                 var createPromise = encounterService.create($scope.encounter);
                 spinner.forPromise(createPromise);
                 return createPromise.then(function (response) {
-                    var messageParams = {encounterUuid: response.data.encounterUuid, encounterType: response.data.encounterType};
+                    var messageParams = {
+                        encounterUuid: response.data.encounterUuid,
+                        encounterType: response.data.encounterType
+                    };
                     auditLogService.log(patientUuid, 'EDIT_ENCOUNTER', messageParams, 'MODULE_LABEL_REGISTRATION_KEY');
                     var visitType, visitTypeUuid;
                     visitTypeUuid = response.data.visitTypeUuid;
@@ -297,6 +300,21 @@ angular.module('bahmni.registration')
                 });
                 return forms;
             };
+            var isObjectEmpty = function (obj) {
+                return Object.keys(obj).length === 0;
+            };
+
+            $scope.allowSave = false;
+            $timeout(function () {
+                $(".Select-multi-value-wrapper .Select-input input").keypress(function () {
+                    let value = [];
+                    value = $(this).val().toString();
+                    if (isObjectEmpty(value) != true) {
+                        $scope.allowSave = true;
+                        $timeout();
+                    }
+                }).keypress();
+            }, 3000);
 
             $scope.isFormTemplate = function (data) {
                 return data.formUuid;
