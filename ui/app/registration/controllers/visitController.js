@@ -168,8 +168,12 @@ angular.module('bahmni.registration')
             };
 
             var isObservationFormValid = function () {
+                var opdRoomMandatory = appService.getAppDescriptor().getConfigValue("opdRoom");
                 var valid = true;
+                var isSelectOpd = false;
+                var _value = [];
                 _.each($scope.observationForms, function (observationForm) {
+                    _value = observationForm.component.getValue().observations;
                     if (valid && observationForm.component) {
                         var value = observationForm.component.getValue();
                         if (value.errors) {
@@ -178,6 +182,19 @@ angular.module('bahmni.registration')
                         }
                     }
                 });
+                _.each(_value, function (t) {
+                    if (t.concept.name.includes(opdRoomMandatory.conceptName)) {
+                        isSelectOpd = true;
+                    }
+                });
+
+                if (opdRoomMandatory.isMandatory) {
+                    if (!isSelectOpd) {
+                        messagingService.showMessage('error', "{{'Please input Opd Consultation Room'}}");
+                        valid = false;
+                    }
+                }
+
                 return valid;
             };
 
@@ -300,7 +317,8 @@ angular.module('bahmni.registration')
                 });
                 return forms;
             };
-            var isObjectEmpty = function (obj) {
+
+            /* var isObjectEmpty = function (obj) {
                 return Object.keys(obj).length === 0;
             };
 
@@ -314,7 +332,7 @@ angular.module('bahmni.registration')
                         $timeout();
                     }
                 }).keypress();
-            }, 3000);
+            }, 3000); */
 
             $scope.isFormTemplate = function (data) {
                 return data.formUuid;
