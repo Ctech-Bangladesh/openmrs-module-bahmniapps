@@ -1,11 +1,11 @@
 'use strict';
 
 angular.module('bahmni.clinical').controller('ConsultationController',
-    ['$scope', '$rootScope', '$state', '$location', '$translate', 'clinicalAppConfigService', 'diagnosisService', 'urlHelper', 'contextChangeHandler',
+    ['$scope', '$rootScope', '$state', '$http', '$location', '$translate', 'clinicalAppConfigService', 'diagnosisService', 'urlHelper', 'contextChangeHandler',
         'spinner', 'encounterService', 'messagingService', 'sessionService', 'retrospectiveEntryService', 'patientContext', '$q',
         'patientVisitHistoryService', '$stateParams', '$window', 'visitHistory', 'clinicalDashboardConfig', 'appService',
         'ngDialog', '$filter', 'configurations', 'visitConfig', 'conditionsService', 'configurationService', 'auditLogService',
-        function ($scope, $rootScope, $state, $location, $translate, clinicalAppConfigService, diagnosisService, urlHelper, contextChangeHandler,
+        function ($scope, $rootScope, $state, $http, $location, $translate, clinicalAppConfigService, diagnosisService, urlHelper, contextChangeHandler,
                   spinner, encounterService, messagingService, sessionService, retrospectiveEntryService, patientContext, $q,
                   patientVisitHistoryService, $stateParams, $window, visitHistory, clinicalDashboardConfig, appService,
                   ngDialog, $filter, configurations, visitConfig, conditionsService, configurationService, auditLogService) {
@@ -95,12 +95,24 @@ angular.module('bahmni.clinical').controller('ConsultationController',
                 $rootScope.collapseControlPanel();
                 return buttonClickAction($scope.availableBoards[boardIndex]);
             };
+            var updateQueueStatus = function (identifier) {
+                console.log(identifier);
+                return $http({
+                    method: 'POST',
+                    url: '/openmrs/module/queuemanagement/updateQueue.form?identifier=' + identifier,
+                    headers: {'Content-Type': 'application/json'}
+                });
+            };
 
-           $scope.completeConsultation = function (visitUuid) {
+            $scope.completeConsultation = function (visitUuid) {
+                let identifier = $scope.patient.identifier;
+                console.log(identifier);
+                updateQueueStatus(identifier);
                 if (contextChangeHandler.execute()["allow"]) {
                     $location.path($stateParams.configName + "/patient/" + patientContext.patient.uuid + "/dashboard/visit/" + visitUuid + "/?encounterUuid=active");
                 }
             };
+
             $scope.gotoPatientDashboard = function () {
                 if (!isFormValid()) {
                     $scope.$parent.$parent.$broadcast("event:errorsOnForm");

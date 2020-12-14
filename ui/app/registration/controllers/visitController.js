@@ -1,9 +1,9 @@
 'use strict';
 
 angular.module('bahmni.registration')
-    .controller('VisitController', ['$window', '$scope', '$rootScope', '$state', '$bahmniCookieStore', 'patientService', 'encounterService', '$stateParams', 'spinner', '$timeout', '$q', 'appService', 'openmrsPatientMapper', 'contextChangeHandler', 'messagingService', 'sessionService', 'visitService', '$location', '$translate',
+    .controller('VisitController', ['$window', '$scope', '$http', '$rootScope', '$state', '$bahmniCookieStore', 'patientService', 'encounterService', '$stateParams', 'spinner', '$timeout', '$q', 'appService', 'openmrsPatientMapper', 'contextChangeHandler', 'messagingService', 'sessionService', 'visitService', '$location', '$translate',
         'auditLogService', 'formService',
-        function ($window, $scope, $rootScope, $state, $bahmniCookieStore, patientService, encounterService, $stateParams, spinner, $timeout, $q, appService, openmrsPatientMapper, contextChangeHandler, messagingService, sessionService, visitService, $location, $translate, auditLogService, formService) {
+        function ($window, $scope, $http, $rootScope, $state, $bahmniCookieStore, patientService, encounterService, $stateParams, spinner, $timeout, $q, appService, openmrsPatientMapper, contextChangeHandler, messagingService, sessionService, visitService, $location, $translate, auditLogService, formService) {
             var vm = this;
             var patientUuid = $stateParams.patientUuid;
             var extensions = appService.getAppDescriptor().getExtensions("org.bahmni.registration.conceptSetGroup.observations", "config");
@@ -71,6 +71,16 @@ angular.module('bahmni.registration')
                 return updateImagePromise;
             };
 
+            var generateQueue = function (queueData) {
+                console.log(queueData);
+                return $http({
+                    method: 'POST',
+                    url: '/openmrs/module/queuemanagement/generate.form',
+                    data: JSON.stringify(queueData),
+                    headers: {'Content-Type': 'application/json'}
+                });
+            };
+
             var save = function () {
                 $scope.encounter = {
                     patientUuid: $scope.patient.uuid,
@@ -88,9 +98,7 @@ angular.module('bahmni.registration')
 
                 $scope.encounter.observations = $scope.observations;
                 $scope.encounter.observations = new Bahmni.Common.Domain.ObservationFilter().filter($scope.encounter.observations);
-
                 addFormObservations($scope.encounter.observations);
-
                 var createPromise = encounterService.create($scope.encounter);
                 spinner.forPromise(createPromise);
                 return createPromise.then(function (response) {
@@ -264,8 +272,26 @@ angular.module('bahmni.registration')
                 return _.isEmpty(concept);
             };
             // End :: Registration Page validation
-
             var afterSave = function () {
+                var observations = $scope.observations || [];
+                patientService.get(patientUuid).then(function (openMRSPatient) {
+                    $scope.patient = openmrsPatientMapper.map(openMRSPatient);
+                    observations.forEach(key => {
+                        if (key.complexData != null) {
+                            console.log(key.complexData.data);
+                            let identifier = $scope.patient.primaryIdentifier.identifier;
+                            let visitRoom = key.complexData.data.name;
+                            let roomId = key.complexData.data.id;
+                            let queue = {
+                                identifier: identifier,
+                                visitroom: visitRoom,
+                                status: true
+                            };
+                            generateQueue(queue);
+                            console.log(queue);
+                        }
+                    });
+                });
                 var forwardUrl = appService.getAppDescriptor().getConfigValue("afterVisitSaveForwardUrl");
                 if (forwardUrl != null) {
                     $window.location.href = appService.getAppDescriptor().formatUrl(forwardUrl, {'patientUuid': patientUuid});
