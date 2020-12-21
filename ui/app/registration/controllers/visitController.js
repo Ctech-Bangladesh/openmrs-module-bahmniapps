@@ -71,16 +71,6 @@ angular.module('bahmni.registration')
                 return updateImagePromise;
             };
 
-            var generateQueue = function (queueData) {
-                console.log(queueData);
-                return $http({
-                    method: 'POST',
-                    url: '/openmrs/module/queuemanagement/generate.form',
-                    data: JSON.stringify(queueData),
-                    headers: {'Content-Type': 'application/json'}
-                });
-            };
-
             var save = function () {
                 $scope.encounter = {
                     patientUuid: $scope.patient.uuid,
@@ -272,26 +262,17 @@ angular.module('bahmni.registration')
                 return _.isEmpty(concept);
             };
             // End :: Registration Page validation
-            var afterSave = function () {
-                var observations = $scope.observations || [];
-                patientService.get(patientUuid).then(function (openMRSPatient) {
-                    $scope.patient = openmrsPatientMapper.map(openMRSPatient);
-                    observations.forEach(key => {
-                        if (key.complexData != null) {
-                            console.log(key.complexData.data);
-                            let identifier = $scope.patient.primaryIdentifier.identifier;
-                            let visitRoom = key.complexData.data.name;
-                            let roomId = key.complexData.data.id;
-                            let queue = {
-                                identifier: identifier,
-                                visitroom: visitRoom,
-                                status: true
-                            };
-                            generateQueue(queue);
-                            console.log(queue);
-                        }
-                    });
+            var generateQueue = function (queueData) {
+                console.log(queueData);
+                return $http({
+                    method: 'POST',
+                    url: '/openmrs/module/queuemanagement/generate.form',
+                    data: JSON.stringify(queueData),
+                    headers: {'Content-Type': 'application/json'}
                 });
+            };
+
+            var afterSave = function () {
                 var forwardUrl = appService.getAppDescriptor().getConfigValue("afterVisitSaveForwardUrl");
                 if (forwardUrl != null) {
                     $window.location.href = appService.getAppDescriptor().formatUrl(forwardUrl, {'patientUuid': patientUuid});
@@ -303,6 +284,37 @@ angular.module('bahmni.registration')
                     });
                 }
                 messagingService.showMessage('info', 'REGISTRATION_LABEL_SAVED');
+                $timeout(function () {
+                    $http({
+                        method: "GET",
+                        url: "/openmrs/ws/rest/v1/bahmnicore/observations?concept=Opd+Consultation+Room&patientUuid=" + patientUuid + "&scope=latest",
+                    }).then(function mySuccess(response) {
+                        console.log(response.data);
+                        var obsdata = response.data;
+                        patientService.get(patientUuid).then(function (openMRSPatient) {
+                            $scope.patient = openmrsPatientMapper.map(openMRSPatient);
+                            obsdata.forEach(key => {
+                                if (key.complexData != null) {
+                                    console.log(key.complexData.data);
+                                    let identifier = $scope.patient.primaryIdentifier.identifier;
+                                    let roomName = key.complexData.data.name;
+                                    let roomId = key.complexData.data.id;
+                                    let date = new Date;
+                                    let formatDate = date.toISOString().split("T");
+                                    let queue = {
+                                        identifier: identifier,
+                                        visitroom: roomId,
+                                        roomName: roomName,
+                                        dateCreated: formatDate[0],
+                                        status: true
+                                    };
+                                    generateQueue(queue);
+                                    console.log(queue);
+                                }
+                            });
+                        });
+                    });
+                }, 1000);
             };
 
             $scope.submit = function () {
