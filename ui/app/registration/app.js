@@ -64,7 +64,7 @@ angular
                 views: {
                     'layout': {templateUrl: 'views/layout.html', controller: 'EditPatientController'},
                     'content@patient.edit': {templateUrl: 'views/editpatient.html'},
-                    'headerExtension@patient.edit': {template: '<div print-options></div>'}
+                    'headerExtension@patient.edit': {}
                 }
             })
             .state('patient.visit', {
