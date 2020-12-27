@@ -95,19 +95,26 @@ angular.module('bahmni.clinical').controller('ConsultationController',
                 $rootScope.collapseControlPanel();
                 return buttonClickAction($scope.availableBoards[boardIndex]);
             };
-            var updateQueueStatus = function (identifier) {
-                console.log(identifier);
+            var updateQueueStatus = function (identifier, visitRoom) {
+                console.log(identifier, visitRoom);
                 return $http({
                     method: 'POST',
-                    url: '/openmrs/module/queuemanagement/updateQueue.form?identifier=' + identifier,
+                    url: '/openmrs/module/queuemanagement/updateQueue.form?identifier=' + identifier + "&visitroom" + visitRoom,
                     headers: {'Content-Type': 'application/json'}
                 });
             };
-
             $scope.completeConsultation = function (visitUuid) {
                 let identifier = $scope.patient.identifier;
+                let date = new Date;
+                let formatDate = date.toISOString().split("T");
                 console.log(identifier);
-                updateQueueStatus(identifier);
+                $http({
+                    method: "GET",
+                    url: "/openmrs/module/queuemanagement/getToken.form?identifier=" + identifier + "&dateCreated=" + formatDate[0],
+                }).then(function mySuccess(response) {
+                    let room = response.data.visitroom;
+                    updateQueueStatus(identifier, room);
+                });
                 if (contextChangeHandler.execute()["allow"]) {
                     $location.path($stateParams.configName + "/patient/" + patientContext.patient.uuid + "/dashboard/visit/" + visitUuid + "/?encounterUuid=active");
                 }

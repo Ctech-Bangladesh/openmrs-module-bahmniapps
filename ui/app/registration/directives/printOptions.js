@@ -17,9 +17,11 @@ angular.module('bahmni.registration')
                         observation.groupMembers.forEach(getValue);
                     };
                     let identifier = $scope.patient.primaryIdentifier.identifier;
+                    let date = new Date;
+                    let formatDate = date.toISOString().split("T");
                     $http({
                         method: "GET",
-                        url: "/openmrs/module/queuemanagement/getToken.form?identifier=" + identifier,
+                        url: "/openmrs/module/queuemanagement/getToken.form?identifier=" + identifier + "&dateCreated=" + formatDate[0],
                     }).then(function mySuccess(response) {
                         var newData = response.data.token;
                         $scope.serial.push(newData);
