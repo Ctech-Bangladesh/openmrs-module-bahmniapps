@@ -314,7 +314,7 @@ angular.module('bahmni.registration')
                             });
                         });
                     });
-                }, 1000);
+                }, 500);
             };
 
             $scope.submit = function () {
