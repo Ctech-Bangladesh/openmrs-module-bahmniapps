@@ -303,8 +303,8 @@ angular.module('bahmni.registration')
                                     let formatDate = date.toISOString().split("T");
                                     let queue = {
                                         identifier: identifier,
-                                        visitroom: roomId,
-                                        roomName: roomName,
+                                        visitroom: roomName,
+                                        roomId:  roomId,
                                         dateCreated: formatDate[0],
                                         status: true
                                     };

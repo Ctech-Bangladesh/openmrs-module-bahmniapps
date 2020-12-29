@@ -99,7 +99,7 @@ angular.module('bahmni.clinical').controller('ConsultationController',
                 console.log(identifier, visitRoom);
                 return $http({
                     method: 'POST',
-                    url: '/openmrs/module/queuemanagement/updateQueue.form?identifier=' + identifier + "&visitroom" + visitRoom,
+                    url: '/openmrs/module/queuemanagement/updateQueue.form?identifier=' + identifier + "&visitroom=" + visitRoom,
                     headers: {'Content-Type': 'application/json'}
                 });
             };
