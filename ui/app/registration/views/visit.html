@@ -63,7 +63,7 @@
                     <div class="right">
                         <button ng-click="back()" accesskey="{{ ::'REGISTRATION_BACK_ACCESS_KEY' | translate}}"
                                 ng-bind-html="::'REGISTRATION_LABEL_BACK' | translate"></button>
-                        <button single-click="submit()" class="confirm"
+                        <button class="confirm" ng-disabled="!allowSave" single-click="submit()"
                                 accesskey="{{ ::'REGISTRATION_SAVE_ACCESS_KEY' | translate}}"
                                 ng-bind-html="::'REGISTRATION_LABEL_SAVE' | translate"></button>
                     </div>

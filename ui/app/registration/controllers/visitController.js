@@ -318,9 +318,9 @@ angular.module('bahmni.registration')
                 return forms;
             };
 
-            /* var isObjectEmpty = function (obj) {
-                return Object.keys(obj).length === 0;
-            };
+             var isObjectEmpty = function (obj) {
+                 return Object.keys(obj).length === 0;
+             };
 
             $scope.allowSave = false;
             $timeout(function () {
@@ -332,7 +332,7 @@ angular.module('bahmni.registration')
                         $timeout();
                     }
                 }).keypress();
-            }, 3000); */
+            }, 3000);
 
             $scope.isFormTemplate = function (data) {
                 return data.formUuid;
