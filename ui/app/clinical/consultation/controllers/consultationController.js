@@ -96,12 +96,11 @@ angular.module('bahmni.clinical').controller('ConsultationController',
                 return buttonClickAction($scope.availableBoards[boardIndex]);
             };
 
-        /*    $scope.completeConsultation = function (visitUuid) {
+            $scope.completeConsultation = function (visitUuid) {
                 if (contextChangeHandler.execute()["allow"]) {
                     $location.path($stateParams.configName + "/patient/" + patientContext.patient.uuid + "/dashboard/visit/" + visitUuid + "/?encounterUuid=active");
                 }
             };
-*/
             $scope.gotoPatientDashboard = function () {
                 if (!isFormValid()) {
                     $scope.$parent.$parent.$broadcast("event:errorsOnForm");
