@@ -263,7 +263,7 @@ angular.module('bahmni.registration')
             };
             // End :: Registration Page validation
             var generateQueue = function (queueData) {
-                console.log(queueData);
+                console.log("Queue Generated :: " + queueData);
                 return $http({
                     method: 'POST',
                     url: '/openmrs/module/queuemanagement/generate.form',
@@ -274,6 +274,7 @@ angular.module('bahmni.registration')
 
             var afterSave = function () {
                 var forwardUrl = appService.getAppDescriptor().getConfigValue("afterVisitSaveForwardUrl");
+                var queueManagement = appService.getAppDescriptor().getConfigValue("queueManagement");
                 if (forwardUrl != null) {
                     $window.location.href = appService.getAppDescriptor().formatUrl(forwardUrl, {'patientUuid': patientUuid});
                 } else {
@@ -289,13 +290,11 @@ angular.module('bahmni.registration')
                         method: "GET",
                         url: "/openmrs/ws/rest/v1/bahmnicore/observations?concept=Opd+Consultation+Room&patientUuid=" + patientUuid + "&scope=latest",
                     }).then(function mySuccess(response) {
-                        console.log(response.data);
                         var obsdata = response.data;
                         patientService.get(patientUuid).then(function (openMRSPatient) {
                             $scope.patient = openmrsPatientMapper.map(openMRSPatient);
                             obsdata.forEach(key => {
                                 if (key.complexData != null) {
-                                    console.log(key.complexData.data);
                                     let identifier = $scope.patient.primaryIdentifier.identifier;
                                     let roomName = key.complexData.data.name;
                                     let roomId = key.complexData.data.id;
@@ -304,12 +303,16 @@ angular.module('bahmni.registration')
                                     let queue = {
                                         identifier: identifier,
                                         visitroom: roomName,
-                                        roomId:  roomId,
+                                        roomId: roomId,
                                         dateCreated: formatDate[0],
                                         status: true
                                     };
-                                    generateQueue(queue);
-                                    console.log(queue);
+                                    if (queueManagement.willUse == true) {
+                                        generateQueue(queue);
+                                        console.log("Queue Management Started... Queue Submitted :: " + queue);
+                                    } else {
+                                        console.log("Queue Management Not Started");
+                                    }
                                 }
                             });
                         });
@@ -356,7 +359,7 @@ angular.module('bahmni.registration')
                 return forms;
             };
 
-            /* var isObjectEmpty = function (obj) {
+            var isObjectEmpty = function (obj) {
                 return Object.keys(obj).length === 0;
             };
 
@@ -370,7 +373,7 @@ angular.module('bahmni.registration')
                         $timeout();
                     }
                 }).keypress();
-            }, 3000); */
+            }, 3000);
 
             $scope.isFormTemplate = function (data) {
                 return data.formUuid;
