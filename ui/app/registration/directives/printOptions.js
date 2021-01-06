@@ -21,7 +21,7 @@ angular.module('bahmni.registration')
                 };
 
                 $scope.print = function (option) {
-                    return registrationCardPrinter.print(option.templateUrl, $scope.patient, mapRegistrationObservations(), $scope.encounterDateTime, $scope.observations);
+                    return registrationCardPrinter.print(option.templateUrl, $scope.patient, mapRegistrationObservations(), $scope.encounterDateTime, $scope.observations, $scope.serial);
                 };
 
                 $scope.buttonText = function (option, type) {

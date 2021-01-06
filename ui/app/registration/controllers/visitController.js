@@ -1,9 +1,9 @@
 'use strict';
 
 angular.module('bahmni.registration')
-    .controller('VisitController', ['$window', '$scope', '$rootScope', '$state', '$bahmniCookieStore', 'patientService', 'encounterService', '$stateParams', 'spinner', '$timeout', '$q', 'appService', 'openmrsPatientMapper', 'contextChangeHandler', 'messagingService', 'sessionService', 'visitService', '$location', '$translate',
+    .controller('VisitController', ['$window', '$scope', '$http', '$rootScope', '$state', '$bahmniCookieStore', 'patientService', 'encounterService', '$stateParams', 'spinner', '$timeout', '$q', 'appService', 'openmrsPatientMapper', 'contextChangeHandler', 'messagingService', 'sessionService', 'visitService', '$location', '$translate',
         'auditLogService', 'formService',
-        function ($window, $scope, $rootScope, $state, $bahmniCookieStore, patientService, encounterService, $stateParams, spinner, $timeout, $q, appService, openmrsPatientMapper, contextChangeHandler, messagingService, sessionService, visitService, $location, $translate, auditLogService, formService) {
+        function ($window, $scope, $http, $rootScope, $state, $bahmniCookieStore, patientService, encounterService, $stateParams, spinner, $timeout, $q, appService, openmrsPatientMapper, contextChangeHandler, messagingService, sessionService, visitService, $location, $translate, auditLogService, formService) {
             var vm = this;
             var patientUuid = $stateParams.patientUuid;
             var extensions = appService.getAppDescriptor().getExtensions("org.bahmni.registration.conceptSetGroup.observations", "config");
@@ -88,13 +88,14 @@ angular.module('bahmni.registration')
 
                 $scope.encounter.observations = $scope.observations;
                 $scope.encounter.observations = new Bahmni.Common.Domain.ObservationFilter().filter($scope.encounter.observations);
-
                 addFormObservations($scope.encounter.observations);
-
                 var createPromise = encounterService.create($scope.encounter);
                 spinner.forPromise(createPromise);
                 return createPromise.then(function (response) {
-                    var messageParams = {encounterUuid: response.data.encounterUuid, encounterType: response.data.encounterType};
+                    var messageParams = {
+                        encounterUuid: response.data.encounterUuid,
+                        encounterType: response.data.encounterType
+                    };
                     auditLogService.log(patientUuid, 'EDIT_ENCOUNTER', messageParams, 'MODULE_LABEL_REGISTRATION_KEY');
                     var visitType, visitTypeUuid;
                     visitTypeUuid = response.data.visitTypeUuid;
@@ -165,8 +166,12 @@ angular.module('bahmni.registration')
             };
 
             var isObservationFormValid = function () {
+                var opdRoomMandatory = appService.getAppDescriptor().getConfigValue("opdRoom");
                 var valid = true;
+                var isSelectOpd = false;
+                var _value = [];
                 _.each($scope.observationForms, function (observationForm) {
+                    _value = observationForm.component.getValue().observations;
                     if (valid && observationForm.component) {
                         var value = observationForm.component.getValue();
                         if (value.errors) {
@@ -175,6 +180,19 @@ angular.module('bahmni.registration')
                         }
                     }
                 });
+                _.each(_value, function (t) {
+                    if (t.concept.name.includes(opdRoomMandatory.conceptName)) {
+                        isSelectOpd = true;
+                    }
+                });
+
+                if (opdRoomMandatory.isMandatory) {
+                    if (!isSelectOpd) {
+                        messagingService.showMessage('error', "{{'Please input Opd Consultation Room'}}");
+                        valid = false;
+                    }
+                }
+
                 return valid;
             };
 
@@ -244,9 +262,19 @@ angular.module('bahmni.registration')
                 return _.isEmpty(concept);
             };
             // End :: Registration Page validation
+            var generateQueue = function (queueData) {
+                console.log("Queue Generated :: " + queueData);
+                return $http({
+                    method: 'POST',
+                    url: '/openmrs/module/queuemanagement/generate.form',
+                    data: JSON.stringify(queueData),
+                    headers: {'Content-Type': 'application/json'}
+                });
+            };
 
             var afterSave = function () {
                 var forwardUrl = appService.getAppDescriptor().getConfigValue("afterVisitSaveForwardUrl");
+                var queueManagement = appService.getAppDescriptor().getConfigValue("queueManagement");
                 if (forwardUrl != null) {
                     $window.location.href = appService.getAppDescriptor().formatUrl(forwardUrl, {'patientUuid': patientUuid});
                 } else {
@@ -257,6 +285,39 @@ angular.module('bahmni.registration')
                     });
                 }
                 messagingService.showMessage('info', 'REGISTRATION_LABEL_SAVED');
+                $timeout(function () {
+                    $http({
+                        method: "GET",
+                        url: "/openmrs/ws/rest/v1/bahmnicore/observations?concept=Opd+Consultation+Room&patientUuid=" + patientUuid + "&scope=latest",
+                    }).then(function mySuccess(response) {
+                        var obsdata = response.data;
+                        patientService.get(patientUuid).then(function (openMRSPatient) {
+                            $scope.patient = openmrsPatientMapper.map(openMRSPatient);
+                            obsdata.forEach(key => {
+                                if (key.complexData != null) {
+                                    let identifier = $scope.patient.primaryIdentifier.identifier;
+                                    let roomName = key.complexData.data.name;
+                                    let roomId = key.complexData.data.id;
+                                    let date = new Date;
+                                    let formatDate = date.toISOString().split("T");
+                                    let queue = {
+                                        identifier: identifier,
+                                        visitroom: roomName,
+                                        roomId: roomId,
+                                        dateCreated: formatDate[0],
+                                        status: true
+                                    };
+                                    if (queueManagement.willUse == true) {
+                                        generateQueue(queue);
+                                        console.log("Queue Management Started... Queue Submitted :: " + queue);
+                                    } else {
+                                        console.log("Queue Management Not Started");
+                                    }
+                                }
+                            });
+                        });
+                    });
+                }, 500);
             };
 
             $scope.submit = function () {
@@ -297,6 +358,22 @@ angular.module('bahmni.registration')
                 });
                 return forms;
             };
+
+            var isObjectEmpty = function (obj) {
+                return Object.keys(obj).length === 0;
+            };
+
+            $scope.allowSave = false;
+            $timeout(function () {
+                $(".Select-multi-value-wrapper .Select-input input").keypress(function () {
+                    let value = [];
+                    value = $(this).val().toString();
+                    if (isObjectEmpty(value) != true) {
+                        $scope.allowSave = true;
+                        $timeout();
+                    }
+                }).keypress();
+            }, 3000);
 
             $scope.isFormTemplate = function (data) {
                 return data.formUuid;

@@ -159,7 +159,8 @@ button[disabled], button[disabled]:hover, button.disabled, button.disabled:hover
 body {
   width: 100%;
   max-width: 100%;
-  font-size: 12px !important;
+  font-size: 14px;
+  font-family: 'Siyam Rupali', Fallback, sans-serif;
 }
 
 .reg-header {
@@ -285,20 +286,18 @@ body {
   li {
     display: inline-block;
     a {
-      padding: 20px 10px !important;
-      width: 144px;
-      max-height: 90px !important;
-      vertical-align: top !important;
-      line-height: 1.1em !important;
-      margin: 8px !important;
-      text-align: center !important;
-      font-size: 1.4em !important;
-
+      padding: 20px 10px;
+      width: 130px;
+      max-height: 90px;
+      vertical-align: top;
+      line-height: 1.3em;
+      margin: 10px;
+      text-align: center;
+      font-size: 1.3em;
       &:hover {
         background: $lightestGray;
         border: 1px solid $lightGray;
       }
-
       i {
         display: block;
         font-size: 50px;
