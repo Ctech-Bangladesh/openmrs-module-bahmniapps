@@ -1,8 +1,8 @@
 'use strict';
 
 angular.module('bahmni.registration')
-    .directive('printOptions', ['$rootScope', 'registrationCardPrinter', 'spinner', 'appService', '$filter',
-        function ($rootScope, registrationCardPrinter, spinner, appService, $filter) {
+    .directive('printOptions', ['$rootScope', '$http', 'registrationCardPrinter', 'spinner', 'appService', '$filter',
+        function ($rootScope, $http, registrationCardPrinter, spinner, appService, $filter) {
             var controller = function ($scope) {
                 $scope.printOptions = appService.getAppDescriptor().getConfigValue("printOptions");
                 $scope.defaultPrint = $scope.printOptions && $scope.printOptions[0];
@@ -10,12 +10,24 @@ angular.module('bahmni.registration')
                 var mapRegistrationObservations = function () {
                     var obs = {};
                     $scope.observations = $scope.observations || [];
+                    $scope.serial = $scope.serial || [];
                     var getValue = function (observation) {
                         obs[observation.concept.name] = obs[observation.concept.name] || [];
                         observation.value && obs[observation.concept.name].push(observation.value);
                         observation.groupMembers.forEach(getValue);
                     };
-
+                    let identifier = $scope.patient.primaryIdentifier.identifier;
+                    let date = new Date;
+                    let formatDate = date.toISOString().split("T");
+                    $http({
+                        method: "GET",
+                        url: "/openmrs/module/queuemanagement/getToken.form?identifier=" + identifier + "&dateCreated=" + formatDate[0],
+                    }).then(function mySuccess(response) {
+                        var newData = response.data.token;
+                        $scope.serial.push(newData);
+                        console.log($scope.serial, response.data);
+                    });
+                    console.log($scope.serial);
                     $scope.observations.forEach(getValue);
                     return obs;
                 };
