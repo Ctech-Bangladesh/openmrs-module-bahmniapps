@@ -96,7 +96,6 @@ angular.module('bahmni.clinical').controller('ConsultationController',
                 return buttonClickAction($scope.availableBoards[boardIndex]);
             };
             var updateQueueStatus = function (identifier, visitRoom) {
-                console.log(identifier, visitRoom);
                 return $http({
                     method: 'POST',
                     url: '/openmrs/module/queuemanagement/updateQueue.form?identifier=' + identifier + "&visitroom=" + visitRoom,
@@ -107,7 +106,6 @@ angular.module('bahmni.clinical').controller('ConsultationController',
                 let identifier = $scope.patient.identifier;
                 let date = new Date;
                 let formatDate = date.toISOString().split("T");
-                console.log(identifier);
                 $http({
                     method: "GET",
                     url: "/openmrs/module/queuemanagement/getToken.form?identifier=" + identifier + "&dateCreated=" + formatDate[0],
