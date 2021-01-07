@@ -483,8 +483,8 @@ body {
 .emr-login-text {
   text-align: center;
   font-size: 22px;
-  font-weight: 900;
-  color: $bahmniSecondaryColor;
+  font-weight: bolder !important;
+  color: $bahmniPrimaryColor;
   position: absolute;
   top: -25px;
   left: 0;
