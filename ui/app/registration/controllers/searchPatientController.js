@@ -2,17 +2,44 @@
 
 angular.module('bahmni.registration')
     .controller('SearchPatientController', ['$rootScope', '$scope', '$location', '$window', 'spinner', 'patientService', 'appService',
-        'messagingService', '$translate', '$filter',
-        function ($rootScope, $scope, $location, $window, spinner, patientService, appService, messagingService, $translate, $filter) {
+        'messagingService', '$translate', '$filter', '$state', '$http',
+        function ($rootScope, $scope, $location, $window, spinner, patientService, appService, messagingService, $translate, $filter, $state, $http) {
             $scope.results = [];
             $scope.extraIdentifierTypes = _.filter($rootScope.patientConfiguration.identifierTypes, function (identifierType) {
                 return !identifierType.primary;
             });
+            var openmrsUrl = Bahmni.Registration.Constants.openmrsUrl;
+            $scope.CounterList = [];
+            $scope.CounterList = [];
             var searching = false;
             var maxAttributesFromConfig = 5;
             var allSearchConfigs = appService.getAppDescriptor().getConfigValue("patientSearch") || {};
             var patientSearchResultConfigs = appService.getAppDescriptor().getConfigValue("patientSearchResults") || {};
             maxAttributesFromConfig = !_.isEmpty(allSearchConfigs.programAttributes) ? maxAttributesFromConfig - 1 : maxAttributesFromConfig;
+
+            angular.element(document).ready(function () {
+                if ($state.current.data.position === 'search') {
+                    getCounterList("Registration Counter", "lastNo");
+                }
+            });
+
+            function getCounterList (counterName, status) {
+                $http.get(openmrsUrl + '/module/tokenqueue/counter/getCounterList.htm?counterName=' + counterName + "&status=" + status).success(function (d) {
+                    $scope.CounterList = d;
+                }).error(function (data, status, headers) {
+                    console.log(status);
+                });
+            }
+
+            $scope.userCounterSelect = function (counter) {
+                console.log(counter);
+                $http.get(openmrsUrl + '/module/tokenqueue/reg/tokenNo.htm?counter=' + counter.counterPrefix).success(function (d) {
+                    console.log(d);
+                    $scope.selectCounterInfo = d;
+                }).error(function (data, status, headers) {
+                    console.log(status);
+                });
+            };
 
             $scope.getAddressColumnName = function (column) {
                 var columnName = "";
@@ -20,7 +47,9 @@ angular.module('bahmni.registration')
                     return $1.toUpperCase().replace(/[-_]/, '');
                 });
                 _.each($scope.addressLevels, function (addressLevel) {
-                    if (addressLevel.addressField === columnCamelCase) { columnName = addressLevel.name; }
+                    if (addressLevel.addressField === columnCamelCase) {
+                        columnName = addressLevel.name;
+                    }
                 });
                 return columnName;
             };
@@ -364,7 +393,7 @@ angular.module('bahmni.registration')
             };
 
             $scope.doExtensionAction = function (extension) {
-                var forwardTo = appService.getAppDescriptor().formatUrl(extension.url, { 'patientUuid': $scope.selectedPatient.uuid });
+                var forwardTo = appService.getAppDescriptor().formatUrl(extension.url, {'patientUuid': $scope.selectedPatient.uuid});
                 if (extension.label === 'Print') {
                     var params = identifyParams(forwardTo);
                     if (params.launch === 'dialog') {

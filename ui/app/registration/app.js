@@ -25,6 +25,7 @@ angular
             .state('search', {
                 url: '/search',
                 reloadOnSearch: false,
+                data: { position: 'search' },
                 views: {
                     'layout': {templateUrl: 'views/layout.html', controller: 'SearchPatientController'},
                     'content@search': {templateUrl: 'views/search.html'}
