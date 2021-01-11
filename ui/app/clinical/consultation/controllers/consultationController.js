@@ -103,16 +103,21 @@ angular.module('bahmni.clinical').controller('ConsultationController',
                 });
             };
             $scope.completeConsultation = function (visitUuid) {
+                let queueMng = appService.getAppDescriptor().getConfigValue("queueManagement");
                 let identifier = $scope.patient.identifier;
                 let date = new Date;
                 let formatDate = date.toISOString().split("T");
-                $http({
-                    method: "GET",
-                    url: "/openmrs/module/queuemanagement/getToken.form?identifier=" + identifier + "&dateCreated=" + formatDate[0],
-                }).then(function mySuccess(response) {
-                    let room = response.data.roomId;
-                    updateQueueStatus(identifier, room);
-                });
+                if (queueMng.willUse == true) {
+                    $http({
+                        method: "GET",
+                        url: "/openmrs/module/queuemanagement/getToken.form?identifier=" + identifier + "&dateCreated=" + formatDate[0],
+                    }).then(function mySuccess(response) {
+                        let room = response.data.roomId;
+                        updateQueueStatus(identifier, room);
+                    });
+                } else {
+                    console.log("Queue management is not running");
+                }
                 if (contextChangeHandler.execute()["allow"]) {
                     $location.path($stateParams.configName + "/patient/" + patientContext.patient.uuid + "/dashboard/visit/" + visitUuid + "/?encounterUuid=active");
                 }
