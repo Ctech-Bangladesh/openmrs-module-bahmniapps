@@ -1,18 +1,17 @@
 <div class="clint-logo-wrapper">
-    <img class="implementor-logo" src={{logo}}>
+    <img class="implementor-logo" src={{logo}} >
     <span ng-if="titleText" class="title_text"> {{'LOGIN_PAGE_TITLE_TEXT' | translate }} </span>
 </div>
 
 <div class="login" ng-hide="showOTP">
-    <div ng-if="headerText" class="emr-login-text">
+    <div class="emr-login-text font-weight-bold" ng-if="headerText">
         <b>{{'LOGIN_PAGE_HEADER_TEXT'| translate}} </b>
     </div>
     <header class="reg-header">
         <div class="left">{{'LOGIN_LABEL_LOGIN_KEY' | translate}}</div>
         <div class="right locale-wrapper">
             <span class="locale-text">{{'LOGIN_LABEL_SELECT_LOCALE_KEY' | translate}} </span>
-            <select id="locale" ng-model="selectedLocale" ng-options="item.code as item.nativeName for item in locales"
-                    required/>
+            <select id="locale" ng-model="selectedLocale" ng-options="item.code as item.nativeName for item in locales" required/>
         </div>
     </header>
 
@@ -21,7 +20,7 @@
             <div class="note-container">
                 <div class="note error" ng-if="!isChrome()">
                     <div class="text">
-                        {{ 'LOGIN_UNSUPPORTED_BROWSER_KEY' | translate }}
+                    {{ 'LOGIN_UNSUPPORTED_BROWSER_KEY'  | translate }}
                     </div>
                 </div>
                 <div class="note error" ng-show="errorMessageTranslateKey">
@@ -62,8 +61,7 @@
                 </div>
                 <div class="field-value">
                     <select id="location" ng-model="loginInfo.currentLocation"
-                            ng-options="item as (item.display | translate) for item in locations | orderBy:'display'"
-                            required>
+                            ng-options="item as (item.display | translate) for item in locations | orderBy:'display'" required>
                         <option value="">{{'LOGIN_LABEL_SELECT_LOCATION_KEY' | translate}}</option>
                     </select>
                 </div>
@@ -126,7 +124,7 @@
 </div>
 
 <div class="power-by">
-    <!-- <img src="./../images/bahmniLogoFull.png" alt="Bahmni" />
-     <a href={{helpLink}}> Bahmni Help</a>-->
-    <a href="https://ctechbd.com/contact/"> Powered By Crystal Technology Bangladesh LTD</a>
+    <p><b> Powered by :
+        <a class="helper_url" href="https://ctechbd.com/" target="_blank">Crystal Technology Bangladesh Ltd.</a> </b>
+    </p>
 </div>

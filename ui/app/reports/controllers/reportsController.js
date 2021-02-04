@@ -39,8 +39,8 @@ angular.module('bahmni.reports')
                 }
                 report.reportTemplateLocation = report.config.macroTemplatePath;
             }
-            report.startDate = Bahmni.Common.Util.DateUtil.getDateWithoutTime(report.startDate);
-            report.stopDate = Bahmni.Common.Util.DateUtil.getDateWithoutTime(report.stopDate);
+            report.startDate = Bahmni.Common.Util.DateUtil.getDateWitTime(report.startDate);
+            report.stopDate = Bahmni.Common.Util.DateUtil.getDateWitTime(report.stopDate);
             if (isDateRangeRequiredFor(report) && (!report.startDate || !report.stopDate)) {
                 var msg = [];
                 if (!report.startDate) {
