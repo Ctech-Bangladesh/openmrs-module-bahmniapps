@@ -304,8 +304,7 @@ angular.module('bahmni.registration')
                                         identifier: identifier,
                                         visitroom: roomName,
                                         roomId: roomId,
-                                        dateCreated: formatDate[0],
-                                        status: true
+                                        dateCreated: formatDate[0]
                                     };
                                     if (queueManagement.willUse == true) {
                                         generateQueue(queue);
