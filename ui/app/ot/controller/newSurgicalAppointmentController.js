@@ -3,10 +3,21 @@
 angular.module('bahmni.ot')
     .controller('NewSurgicalAppointmentController', ['$scope', '$q', '$window', 'patientService', 'surgicalAppointmentService', 'messagingService', 'programService', 'appService', 'ngDialog', 'spinner', 'queryService', 'programHelper',
         function ($scope, $q, $window, patientService, surgicalAppointmentService, messagingService, programService, appService, ngDialog, spinner, queryService, programHelper) {
+            function containsString(stringValue) {
+
+            }
+
             var init = function () {
                 $scope.selectedPatient = $scope.ngDialogData && $scope.ngDialogData.patient;
                 $scope.patient = $scope.ngDialogData && $scope.ngDialogData.patient && ($scope.ngDialogData.patient.value || $scope.ngDialogData.patient.display);
-                $scope.otherSurgeons = _.cloneDeep($scope.surgeons);
+                var surgeons = [];
+                for (let i = 0; i < $scope.surgeons.length; i++) {
+                    if ($scope.surgeons[i].person.display.match('Dr.')) {
+                        surgeons.push($scope.surgeons[i]);
+                        $scope.otherSurgeons = _.cloneDeep(surgeons);
+                    }
+                }
+                console.log($scope.otherSurgeons);
                 return $q.all([surgicalAppointmentService.getSurgicalAppointmentAttributeTypes()]).then(function (response) {
                     $scope.attributeTypes = response[0].data.results;
                     var attributes = {};

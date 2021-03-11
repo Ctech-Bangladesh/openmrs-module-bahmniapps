@@ -17,10 +17,10 @@
             <div class="appointment-block">
                 <p class="surgeon-block">
                     <label class="surgeon-block surgeon-text">{{'SURGEON' | translate}}<sup>*</sup></label>
-                    <select ng-options="surgeon as surgeon.person.display for surgeon in ::surgeons track by surgeon.uuid"
+                    <select ng-options="surgeon as surgeon.person.display for surgeon in ::unitNames track by surgeon.uuid"
                             ng-model="surgicalForm.provider"
                             required>
-                        <option value=""> {{'OT_SELECT_SURGEON_KEY' | translate}} </option>
+                        <option value=""> {{'OT_SELECT_SURGEON_KEY' | translate}}</option>
                     </select>
                 </p>
                 <p class="location-block">

@@ -12,6 +12,14 @@ angular.module('bahmni.ot')
                     $scope.surgeons = surgicalAppointmentHelper.filterProvidersByName(providerNamesFromConfig, response[0].data.results);
                     $scope.locations = response[1].data.results;
                     $scope.attributeTypes = response[2].data.results;
+                    $scope.unitNames = [];
+                    for (let i = 0; i < $scope.surgeons.length; i++) {
+                        if (!$scope.surgeons[i].person.display.match('Dr.')) {
+                            $scope.unitNames.push($scope.surgeons[i]);
+                        }
+                    }
+                    console.log($scope.unitNames);
+
                     if ($stateParams.surgicalBlockUuid) {
                         return surgicalAppointmentService.getSurgicalBlockFor($stateParams.surgicalBlockUuid).then(function (response) {
                             $scope.surgicalForm = new Bahmni.OT.SurgicalBlockMapper().map(response.data, $scope.attributeTypes, $scope.surgeons);
