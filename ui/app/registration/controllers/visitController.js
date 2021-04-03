@@ -2,8 +2,8 @@
 
 angular.module('bahmni.registration')
     .controller('VisitController', ['$window', '$scope', '$http', '$rootScope', '$state', '$bahmniCookieStore', 'patientService', 'encounterService', '$stateParams', 'spinner', '$timeout', '$q', 'appService', 'openmrsPatientMapper', 'contextChangeHandler', 'messagingService', 'sessionService', 'visitService', '$location', '$translate',
-        'auditLogService', 'formService',
-        function ($window, $scope, $http, $rootScope, $state, $bahmniCookieStore, patientService, encounterService, $stateParams, spinner, $timeout, $q, appService, openmrsPatientMapper, contextChangeHandler, messagingService, sessionService, visitService, $location, $translate, auditLogService, formService) {
+        'auditLogService', 'formService', 'registrationCardPrinter',
+        function ($window, $scope, $http, $rootScope, $state, $bahmniCookieStore, patientService, encounterService, $stateParams, spinner, $timeout, $q, appService, openmrsPatientMapper, contextChangeHandler, messagingService, sessionService, visitService, $location, $translate, auditLogService, formService, registrationCardPrinter) {
             var vm = this;
             var patientUuid = $stateParams.patientUuid;
             var extensions = appService.getAppDescriptor().getExtensions("org.bahmni.registration.conceptSetGroup.observations", "config");
@@ -88,6 +88,7 @@ angular.module('bahmni.registration')
 
                 $scope.encounter.observations = $scope.observations;
                 $scope.encounter.observations = new Bahmni.Common.Domain.ObservationFilter().filter($scope.encounter.observations);
+
                 addFormObservations($scope.encounter.observations);
                 var createPromise = encounterService.create($scope.encounter);
                 spinner.forPromise(createPromise);
@@ -272,25 +273,32 @@ angular.module('bahmni.registration')
                 });
             };
 
+            /*  // print
+              var print = function () {
+                  return registrationCardPrinter.print($scope.defaultPrint.templateUrl, $scope.patient, mapRegistrationObservations(), $scope.encounterDateTime);
+              };*/
+
+
             var afterSave = function () {
                 var forwardUrl = appService.getAppDescriptor().getConfigValue("afterVisitSaveForwardUrl");
+                var afterSave = appService.getAppDescriptor().getConfigValue("afterSavePrint");
                 var queueManagement = appService.getAppDescriptor().getConfigValue("queueManagement");
-                if (forwardUrl != null) {
-                    $window.location.href = appService.getAppDescriptor().formatUrl(forwardUrl, {'patientUuid': patientUuid});
-                } else {
-                    $state.transitionTo($state.current, $state.params, {
-                        reload: true,
-                        inherit: false,
-                        notify: true
-                    });
-                }
+                $scope.serial = $scope.serial || [];
+
+                $state.transitionTo($state.current, $state.params, {
+                    reload: true,
+                    inherit: false,
+                    notify: true
+                });
                 messagingService.showMessage('info', 'REGISTRATION_LABEL_SAVED');
+
                 $timeout(function () {
                     $http({
                         method: "GET",
                         url: "/openmrs/ws/rest/v1/bahmnicore/observations?concept=Opd+Consultation+Room&patientUuid=" + patientUuid + "&scope=latest",
                     }).then(function mySuccess(response) {
                         var obsdata = response.data;
+                        $scope.obsData = obsdata;
                         patientService.get(patientUuid).then(function (openMRSPatient) {
                             $scope.patient = openmrsPatientMapper.map(openMRSPatient);
                             obsdata.forEach(key => {
@@ -309,12 +317,26 @@ angular.module('bahmni.registration')
                                     if (queueManagement.willUse == true) {
                                         generateQueue(queue);
                                         console.log("Queue Management Started... Queue Submitted :: " + queue);
+                                        $http({
+                                            method: "GET",
+                                            url: "/openmrs/module/queuemanagement/getToken.form?identifier=" + identifier + "&dateCreated=" + formatDate[0],
+                                        }).then(function mySuccess(response) {
+                                            var newData = response.data.token;
+                                            $scope.serial.push(newData);
+                                        });
                                     } else {
                                         console.log("Queue Management Not Started");
                                     }
                                 }
                             });
                         });
+                        if (afterSave.print === true) {
+                            $scope.observations = $scope.obsData || $scope.observations;
+                            registrationCardPrinter.print(afterSave.templateUrl, $scope.patient, $scope.obs, $scope.encounterDateTime, $scope.observations, $scope.serial);
+                            if (afterSave.createNew === true) {
+                                $state.go('newpatient');
+                            }
+                        }
                     });
                 }, 500);
             };
