@@ -1,3 +1,7 @@
+<div class="text-right">
+    <span class="regCount"
+          style="float: right; font-size: 16px;">User : <b>{{userName}}</b> | Paid : <b>{{totalReg[1] || 0}}</b> | Free : <b>{{totalReg[2] || 0}}</b> | Total : <b>{{totalReg[0] || 0}}</b></span>
+</div>
 <div class="reg-body-wrapper">
     <div class="simple-form-ui new-patient">
         <form name="myForm" class="form-horizontal well" single-submit="create()">
@@ -8,7 +12,8 @@
                 <section class="clearfix">
                     <div class="photo-container-wrapper" ng-if="!disablePhotoCapture">
                         <span class="pull-right photo-container">
-                            <img class="patient-image" ng-src="{{patient.image}}" fallback-src="../images/blank-user.gif">
+                            <img class="patient-image" ng-src="{{patient.image}}"
+                                 fallback-src="../images/blank-user.gif">
                             <div ng-model="patient.image" capture-photo="" class="capture-photo-btn"></div>
                         </span>
                     </div>
@@ -16,28 +21,37 @@
                 <section>
                     <article class="form-field existing-patient">
                         <div class="field-attribute">
-                            <label class="control-label" for="patientID">{{:: patient.primaryIdentifier.identifierType.name}}
-                                <span ng-show="::patient.primaryIdentifier.identifierType.required && !patient.primaryIdentifier.hasIdentifierSources()" class="asterick">*</span>
+                            <label class="control-label" for="patientID">{{::
+                                patient.primaryIdentifier.identifierType.name}}
+                                <span ng-show="::patient.primaryIdentifier.identifierType.required && !patient.primaryIdentifier.hasIdentifierSources()"
+                                      class="asterick">*</span>
                             </label>
                         </div>
-                        <div ng-show="::(patient.primaryIdentifier.hasIdentifierSources() && !patient.primaryIdentifier.hasIdentifierSourceWithEmptyPrefix())" class="field-value" id="patientID">
+                        <div ng-show="::(patient.primaryIdentifier.hasIdentifierSources() && !patient.primaryIdentifier.hasIdentifierSourceWithEmptyPrefix())"
+                             class="field-value" id="patientID">
                             <select id="identifierPrefix" ng-model="patient.primaryIdentifier.selectedIdentifierSource"
-                                    ng-options="identifierSource.prefix for identifierSource in ::patient.primaryIdentifier.identifierType.identifierSources" ng-change="patient.primaryIdentifier.generate()"
+                                    ng-options="identifierSource.prefix for identifierSource in ::patient.primaryIdentifier.identifierType.identifierSources"
+                                    ng-change="patient.primaryIdentifier.generate()"
                                     required>
                             </select>
                         </div>
 
                         <div class="field-value field-value-has-identifier">
-                            <input type="text" id="registrationNumber" ng-model="patient.primaryIdentifier.registrationNumber"
-                                   placeholder="{{:: patient.primaryIdentifier.identifierType.description}}" non-blank="patient.primaryIdentifier.isIdentifierRequired()" pattern-validate
-                                   ng-change="patient.primaryIdentifier.generate()" focus-on="patient.primaryIdentifier.hasOldIdentifier"
-                                   ng-show="patient.primaryIdentifier.hasOldIdentifier || !patient.primaryIdentifier.hasIdentifierSources()" >
+                            <input type="text" id="registrationNumber"
+                                   ng-model="patient.primaryIdentifier.registrationNumber"
+                                   placeholder="{{:: patient.primaryIdentifier.identifierType.description}}"
+                                   non-blank="patient.primaryIdentifier.isIdentifierRequired()" pattern-validate
+                                   ng-change="patient.primaryIdentifier.generate()"
+                                   focus-on="patient.primaryIdentifier.hasOldIdentifier"
+                                   ng-show="patient.primaryIdentifier.hasOldIdentifier || !patient.primaryIdentifier.hasIdentifierSources()">
                             <div ng-show="::patient.primaryIdentifier.hasIdentifierSources() && showEnterID" class="fl">
                                 <div class="field-attribute hasOldIdentifier-field-attribute">
-                                    <label for="hasOldIdentifier" class="control-label">{{::'REGISTRATION_LABEL_ENTER_ID' | translate}}</label>
+                                    <label for="hasOldIdentifier" class="control-label">{{::'REGISTRATION_LABEL_ENTER_ID'
+                                        | translate}}</label>
                                 </div>
                                 <div class="field-value">
-                                    <input class="input-label-inline" ng-show="::showEnterID" type="checkbox" id="hasOldIdentifier" ng-model="patient.primaryIdentifier.hasOldIdentifier"
+                                    <input class="input-label-inline" ng-show="::showEnterID" type="checkbox"
+                                           id="hasOldIdentifier" ng-model="patient.primaryIdentifier.hasOldIdentifier"
                                            ng-change="patient.primaryIdentifier.clearRegistrationNumber()">
                                 </div>
                             </div>

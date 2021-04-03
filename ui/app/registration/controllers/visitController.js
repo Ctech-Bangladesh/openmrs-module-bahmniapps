@@ -293,9 +293,15 @@ angular.module('bahmni.registration')
                 messagingService.showMessage('info', 'REGISTRATION_LABEL_SAVED');
 
                 $timeout(function () {
+                    var apiURL ="/openmrs/ws/rest/v1/bahmnicore/observations?" +
+                        "concept=Registration+Fee+Type&concept=Free+Type&" +
+                        "concept=Temporary+Categories&concept=Opd+Consultation+Room&" +
+                        "patientUuid=" +
+                        patientUuid +
+                        "&scope=latest";
                     $http({
                         method: "GET",
-                        url: "/openmrs/ws/rest/v1/bahmnicore/observations?concept=Opd+Consultation+Room&patientUuid=" + patientUuid + "&scope=latest",
+                        url: apiURL,
                     }).then(function mySuccess(response) {
                         var obsdata = response.data;
                         $scope.obsData = obsdata;
