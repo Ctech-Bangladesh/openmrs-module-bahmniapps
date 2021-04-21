@@ -2,9 +2,9 @@
     <span ng-switch="forwardActionKey">
         <span data-ng-switch-when="enterVisitDetails">
             <button type="submit" class="right confirm"
-                ng-click="setSubmitSource('enterVisitDetails')"
-                accesskey="{{ ::'REGISTRATION_ENTER_VISIT_DETAILS_ACCESS_KEY' | translate }}"
-                ng-bind-html="::'REGISTRATION_LABEL_ENTER_VISIT' | translate">
+                    accesskey="{{ ::'REGISTRATION_ENTER_VISIT_DETAILS_ACCESS_KEY' | translate }}"
+                    ng-bind-html="::'REGISTRATION_LABEL_ENTER_VISIT' | translate"
+                    ng-click="setSubmitSource('enterVisitDetails')">
             </button>
         </span>
         <span data-ng-switch-when="forwardAction">
@@ -30,5 +30,11 @@
         </span>
     </span>
     <button type="submit" class="right submit-btn" ng-click="setSubmitSource('save')"
-            accesskey="{{ ::'REGISTRATION_SAVE_ACCESS_KEY' | translate}}" ng-bind-html="::'REGISTRATION_LABEL_SAVE' | translate"></button>
+            accesskey="{{ ::'REGISTRATION_SAVE_ACCESS_KEY' | translate}}"
+            ng-bind-html="::'REGISTRATION_LABEL_SAVE' | translate"></button>
+    <button accesskey="{{ ::'REGISTRATION_SAVE_ACCESS_KEY' | translate}}" class="left submit-btn"
+            ng-bind-html="::'NITOR_REGISTRATION_LABEL_REPRINT' | translate"
+            ng-click="reprint()"
+            ng-show="allowRePrint === true"
+            style="float: left; background: #2ca02c; color: white; font-weight: bold;"></button>
 </div>

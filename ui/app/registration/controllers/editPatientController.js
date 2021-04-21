@@ -1,12 +1,13 @@
 'use strict';
 
 angular.module('bahmni.registration')
-    .controller('EditPatientController', ['$scope', 'patientService', 'encounterService', '$stateParams', 'openmrsPatientMapper',
-        '$window', '$q', 'spinner', 'appService', 'messagingService', '$rootScope', 'auditLogService',
-        function ($scope, patientService, encounterService, $stateParams, openmrsPatientMapper, $window, $q, spinner,
-                  appService, messagingService, $rootScope, auditLogService) {
+    .controller('EditPatientController', ['$scope', '$timeout', '$http', 'patientService', 'encounterService', '$stateParams', 'openmrsPatientMapper',
+        '$window', '$q', 'spinner', 'appService', 'messagingService', '$rootScope', 'auditLogService', 'registrationCardPrinter',
+        function ($scope, $timeout, $http, patientService, encounterService, $stateParams, openmrsPatientMapper, $window, $q, spinner,
+                  appService, messagingService, $rootScope, auditLogService, registrationCardPrinter) {
             var dateUtil = Bahmni.Common.Util.DateUtil;
             var uuid = $stateParams.patientUuid;
+            $scope.allowRePrint = false;
             $scope.patient = {};
             $scope.actions = {};
             $scope.addressHierarchyConfigs = appService.getAppDescriptor().getConfigValue("addressHierarchy");
@@ -22,6 +23,38 @@ angular.module('bahmni.registration')
                         $scope.readOnlyFields[readOnlyField] = true;
                     }
                 });
+            };
+
+            $timeout(function () {
+                let apiURL = "/openmrs/ws/rest/v1/bahmnicore/observations?" +
+                    "concept=Registration+Fee+Type&concept=Free+Type&" +
+                    "concept=Temporary+Categories&concept=Opd+Consultation+Room&" +
+                    "patientUuid=" +
+                    uuid +
+                    "&scope=latest";
+                $http({
+                    method: "GET",
+                    url: apiURL,
+                }).then(function mySuccess(response) {
+                    let obsData = response.data;
+                    $scope.obsData = obsData;
+                    obsData.forEach(key => {
+                        console.log(key);
+                        $scope.allowRePrint = false;
+                        if (key.complexData != null) {
+                            if (key.encounterDateTime != '') {
+                                console.log(key.encounterDateTime);
+                                $scope.allowRePrint = true;
+                            }
+                        }
+                    });
+                });
+            }, 500);
+
+            $scope.reprint = function () {
+                let reprint = appService.getAppDescriptor().getConfigValue("afterSavePrint");
+                $scope.observations = $scope.obsData || $scope.observations;
+                registrationCardPrinter.print(reprint.templateUrl, $scope.patient, $scope.obs, $scope.encounterDateTime, $scope.observations);
             };
 
             var successCallBack = function (openmrsPatient) {
