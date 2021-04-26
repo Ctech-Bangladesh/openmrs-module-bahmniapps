@@ -76,10 +76,49 @@ angular.module('bahmni.common.domain')
             this.create = function (encounter) {
                 encounter = this.buildEncounter(encounter);
 
-                return $http.post(Bahmni.Common.Constants.bahmniEncounterUrl, encounter, {
+                let newEncounter = $http.post(Bahmni.Common.Constants.bahmniEncounterUrl, encounter, {
                     withCredentials: true
+                }).then(function mySuccess(response) {
+                    sendDataToPACS(response.data);
+                    return response;
                 });
+                return newEncounter;
             };
+            let sendDataToPACS = function (resData) {
+                console.log(resData);
+                let patientUUID = resData.patientUuid || "";
+                let providerName = resData.providers[0].name || "";
+                let locationName = resData.locationName || "";
+                if (resData.orders.length > 0) {
+                    resData.orders.forEach(result => {
+                        if (result.orderType == "Radiology Order") {
+                            let orderAction = result.action || "";
+                            let conceptName = result.concept.name || "";
+                            let conceptUUID = result.concept.uuid || "";
+                            let dateCreated = result.dateCreated || "";
+                            let dateStopped = result.dateStopped || "";
+
+                            let apiUrl = "/openmrs/module/bahmnicustomutil/pacs/orderRequest.form?" +
+                                "patientUUID=" + patientUUID +
+                                "&providerName=" + providerName +
+                                "&locationName=" + locationName +
+                                "&orderAction=" + orderAction +
+                                "&conceptName=" + conceptName +
+                                "&conceptUUID=" + conceptUUID +
+                                "&dateCreated=" + dateCreated +
+                                "&dateStopped=" + dateStopped;
+                            $http({
+                                method: 'POST',
+                                url: apiUrl,
+                                headers: {'Content-Type': 'application/json'}
+                            }).then(function mySuccess(response) {
+                                console.log(response);
+                            });
+                        }
+                    });
+                }
+            };
+
 
             this.delete = function (encounterUuid, reason) {
                 return $http.delete(Bahmni.Common.Constants.bahmniEncounterUrl + "/" + encounterUuid, {
@@ -87,7 +126,7 @@ angular.module('bahmni.common.domain')
                 });
             };
 
-            function isObsConceptClassVideoOrImage (obs) {
+            function isObsConceptClassVideoOrImage(obs) {
                 return (obs.concept.conceptClass === 'Video' || obs.concept.conceptClass === 'Image');
             }
 
