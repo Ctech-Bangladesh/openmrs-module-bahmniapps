@@ -107,13 +107,16 @@ angular.module('bahmni.common.domain')
                                 "&conceptUUID=" + conceptUUID +
                                 "&dateCreated=" + dateCreated +
                                 "&dateStopped=" + dateStopped;
-                            $http({
-                                method: 'POST',
-                                url: apiUrl,
-                                headers: {'Content-Type': 'application/json'}
-                            }).then(function mySuccess(response) {
-                                console.log(response);
-                            });
+
+                            if (dateStopped == "") {
+                                $http({
+                                    method: 'POST',
+                                    url: apiUrl,
+                                    headers: {'Content-Type': 'application/json'}
+                                }).then(function mySuccess(response) {
+                                    console.log(response);
+                                });
+                            }
                         }
                     });
                 }
