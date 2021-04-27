@@ -95,8 +95,8 @@ angular.module('bahmni.common.domain')
                             let orderAction = result.action || "";
                             let conceptName = result.concept.name || "";
                             let conceptUUID = result.concept.uuid || "";
-                            let dateCreated = result.dateCreated || "";
-                            let dateStopped = result.dateStopped || "";
+                            let dateCreated = result.dateCreated?.replace(/T/, ' ').replace(/\..+/, '') || "";
+                            let dateStopped = result.dateStopped?.replace(/T/, ' ').replace(/\..+/, '') || "";
 
                             let apiUrl = "/openmrs/module/bahmnicustomutil/pacs/orderRequest.form?" +
                                 "patientUUID=" + patientUUID +
@@ -115,6 +115,7 @@ angular.module('bahmni.common.domain')
                                     headers: {'Content-Type': 'application/json'}
                                 }).then(function mySuccess(response) {
                                     console.log(response);
+                                    return response;
                                 });
                             }
                         }
