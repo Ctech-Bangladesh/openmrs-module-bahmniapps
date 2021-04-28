@@ -90,18 +90,14 @@ angular.module('bahmni.common.domain')
                 console.log(res);
                 let encounterUuid = res.encounterUuid;
                 if (res.orders.length > 0) {
-                    res.orders.forEach(result => {
-                        if (result.orderType == "Radiology Order") {
-                            let apiUrl = "/openmrs/module/bahmnicustomutil/hisOrder.form?" + "encounterUuid=" + encounterUuid;
-                            $http({
-                                method: 'POST',
-                                url: apiUrl,
-                                headers: {'Content-Type': 'application/json'}
-                            }).then(function mySuccess(response) {
-                                console.log(response);
-                                return response;
-                            });
-                        }
+                    let apiUrl = "/openmrs/module/bahmnicustomutil/hisOrder.form?" + "encounterUuid=" + encounterUuid;
+                    $http({
+                        method: 'POST',
+                        url: apiUrl,
+                        headers: {'Content-Type': 'application/json'}
+                    }).then(function mySuccess(response) {
+                        console.log(response);
+                        return response;
                     });
                 }
             };
