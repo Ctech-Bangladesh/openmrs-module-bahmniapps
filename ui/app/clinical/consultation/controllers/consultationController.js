@@ -113,10 +113,14 @@ angular.module('bahmni.clinical').controller('ConsultationController',
                         url: "/openmrs/module/queuemanagement/getToken.form?identifier=" + identifier + "&dateCreated=" + formatDate[0],
                     }).then(function mySuccess(response) {
                         let room = response.data.roomId;
-                        updateQueueStatus(identifier, room);
+                        if (room != undefined || room != null) {
+                            updateQueueStatus(identifier, room);
+                        } else {
+                            console.log("Patient Room Id is undefined for the queue");
+                        }
                     });
                 } else {
-                    console.log("Queue management is not running");
+                    console.log("Queue management module is not being used now");
                 }
                 if (contextChangeHandler.execute()["allow"]) {
                     $location.path($stateParams.configName + "/patient/" + patientContext.patient.uuid + "/dashboard/visit/" + visitUuid + "/?encounterUuid=active");

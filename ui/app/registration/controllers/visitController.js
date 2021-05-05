@@ -322,7 +322,7 @@ angular.module('bahmni.registration')
                                     };
                                     if (queueManagement.willUse == true) {
                                         generateQueue(queue);
-                                        console.log("Queue Management Started... Queue Submitted :: " + queue);
+                                        console.log(queue);
                                         $http({
                                             method: "GET",
                                             url: "/openmrs/module/queuemanagement/getToken.form?identifier=" + identifier + "&dateCreated=" + formatDate[0],
@@ -331,7 +331,7 @@ angular.module('bahmni.registration')
                                             $scope.serial.push(newData);
                                         });
                                     } else {
-                                        console.log("Queue Management Not Started");
+                                        console.log("Queue management module is not being used now");
                                     }
                                 }
                             });
