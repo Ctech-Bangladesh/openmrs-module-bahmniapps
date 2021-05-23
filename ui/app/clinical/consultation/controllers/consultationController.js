@@ -113,7 +113,9 @@ angular.module('bahmni.clinical').controller('ConsultationController',
                         url: "/openmrs/module/queuemanagement/getToken.form?identifier=" + identifier + "&dateCreated=" + formatDate[0],
                     }).then(function mySuccess(response) {
                         let room = response.data.roomId;
-                        updateQueueStatus(identifier, room);
+                        if (room != undefined) {
+                            updateQueueStatus(identifier, room);
+                        }
                     });
                 } else {
                     console.log("Queue management is not running");
