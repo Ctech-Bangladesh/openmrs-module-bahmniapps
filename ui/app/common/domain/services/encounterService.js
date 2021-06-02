@@ -76,70 +76,10 @@ angular.module('bahmni.common.domain')
             this.create = function (encounter) {
                 encounter = this.buildEncounter(encounter);
 
-                let newEncounter = $http.post(Bahmni.Common.Constants.bahmniEncounterUrl, encounter, {
+                return $http.post(Bahmni.Common.Constants.bahmniEncounterUrl, encounter, {
                     withCredentials: true
-                }).then(function mySuccess(response) {
-                    // sendDataToPACS(response.data);
-                    sendToPACS(response.data);
-                    return response;
                 });
-                return newEncounter;
             };
-
-            let sendToPACS = function (res) {
-                console.log(res);
-                let encounterUuid = res.encounterUuid;
-                if (res.orders.length > 0) {
-                    let apiUrl = "/openmrs/module/bahmnicustomutil/hisOrder.form?" + "encounterUuid=" + encounterUuid;
-                    $http({
-                        method: 'POST',
-                        url: apiUrl,
-                        headers: {'Content-Type': 'application/json'}
-                    }).then(function mySuccess(response) {
-                        console.log(response);
-                        return response;
-                    });
-                }
-            };
-            /* let sendDataToPACS = function (resData) {
-                 console.log(resData);
-                 let patientUUID = resData.patientUuid || "";
-                 let providerName = resData.providers[0].name || "";
-                 let locationName = resData.locationName || "";
-                 if (resData.orders.length > 0) {
-                     resData.orders.forEach(result => {
-                         if (result.orderType == "Radiology Order") {
-                             let orderAction = result.action || "";
-                             let conceptName = result.concept.name || "";
-                             let conceptUUID = result.concept.uuid || "";
-                             let dateCreated = result.dateCreated?.replace(/T/, ' ').replace(/\..+/, '') || "";
-                             let dateStopped = result.dateStopped?.replace(/T/, ' ').replace(/\..+/, '') || "";
-
-                             let apiUrl = "/openmrs/module/bahmnicustomutil/pacs/orderRequest.form?" +
-                                 "patientUUID=" + patientUUID +
-                                 "&providerName=" + providerName +
-                                 "&locationName=" + locationName +
-                                 "&orderAction=" + orderAction +
-                                 "&conceptName=" + conceptName +
-                                 "&conceptUUID=" + conceptUUID +
-                                 "&dateCreated=" + dateCreated +
-                                 "&dateStopped=" + dateStopped;
-
-                             if (dateStopped == "") {
-                                 $http({
-                                     method: 'POST',
-                                     url: apiUrl,
-                                     headers: {'Content-Type': 'application/json'}
-                                 }).then(function mySuccess(response) {
-                                     console.log(response);
-                                     return response;
-                                 });
-                             }
-                         }
-                     });
-                 }
-             };*/
-
 
             this.delete = function (encounterUuid, reason) {
                 return $http.delete(Bahmni.Common.Constants.bahmniEncounterUrl + "/" + encounterUuid, {
