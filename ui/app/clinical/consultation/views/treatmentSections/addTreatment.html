@@ -16,6 +16,7 @@
                                 ng-model="treatment.selectedItem" ng-change="selectFromDefaultDrugList()" required>
                             <option value="">{{ ::treatmentConfig.translate('drugNamePlaceHolder', 'MEDICATION_DRUG_NAME_PLACEHOLDER') }} </option>
                         </select>
+                        <!--                        ng-readonly="treatment.isBeingEdited"-->
                         <div ng-if="treatmentConfig.isAutoComplete()">
                             <input id="drug-name" type="text" bahmni-autocomplete focus-on="startNewDrugEntry"
                                    source="getDrugs" response-map="getDataResults" ng-required="!treatment.drugNameDisplay"
@@ -24,9 +25,9 @@
                        }"
                                    ng-change="onChange()"
                                    ng-model="treatment.drugNameDisplay" on-select="onSelect" autofocus
-                                   ng-disabled="treatment.previousOrderUuid" ng-readonly="treatment.isBeingEdited"/>
+                                   ng-disabled="treatment.previousOrderUuid"/>
 
-                <span ng-if="treatmentConfig.allowNonCodedDrugs()">
+                            <span ng-if="treatmentConfig.allowNonCodedDrugs()">
                     <button type="button" ng-model="treatment.isNonCodedDrug"
                             class="fl accept-btn" id="accept-button"
                             ng-click="onAccept()"
@@ -232,7 +233,7 @@
                                 ng-class="{active: treatment.asNeeded}" ng-click="toggleAsNeeded(treatment)"
                                 accesskey="{{ ::treatmentConfig.translate('asNeededButtonAccessKey', 'MEDICATION_AS_NEEDED_ACCESS_KEY') }} ">
                             <i class="fa fa-ok"></i>
-                        <span ng-bind-html="::treatmentConfig.translate('asNeededButton', 'MEDICATION_AS_NEEDED_BUTTON_PLACEHOLDER')">
+                            <span ng-bind-html="::treatmentConfig.translate('asNeededButton', 'MEDICATION_AS_NEEDED_BUTTON_PLACEHOLDER')">
                         </span>
                         </button>
                     </div>
@@ -316,8 +317,8 @@
                             <button class="add-orderSet-btn secondary-button fl" ng-disabled="newOrderSet.uuid" ng-show="newOrderSet.uuid !== orderSet.uuid" ng-click="addOrderSet(orderSet)">Add</button>
                             <button class="add-orderSet-btn secondary-button remove-orderSet-btn fl" ng-show="newOrderSet.uuid === orderSet.uuid" ng-click="removeOrderSet()">Remove</button>
                             <!--<div toggle="showOrderSetDetails" class="fr showOrderSet">-->
-                                <!--<i class="fa fa-plus-square" ng-show="showOrderSetDetails"></i>-->
-                                <!--<i class="fa fa-minus-square" ng-hide="showOrderSetDetails"></i>-->
+                            <!--<i class="fa fa-plus-square" ng-show="showOrderSetDetails"></i>-->
+                            <!--<i class="fa fa-minus-square" ng-hide="showOrderSetDetails"></i>-->
                             <!--</div>-->
 
                         </div>
