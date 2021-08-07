@@ -17,13 +17,14 @@ angular.module('bahmni.registration')
                         observation.value && obs[observation.concept.name].push(observation.value);
                         observation.groupMembers.forEach(getValue);
                     };
-                    if (queueMng.willUse == true) {
+                    if (queueMng.willUse === true) {
                         let identifier = $scope.patient.primaryIdentifier.identifier;
-                        let date = new Date;
+                        let date = new Date();
                         let formatDate = date.toISOString().split("T");
                         $http({
                             method: "GET",
-                            url: "/openmrs/module/queuemanagement/getToken.form?identifier=" + identifier + "&dateCreated=" + formatDate[0],
+                            url: "/openmrs/module/queuemanagement/getToken.form?identifier="
+                                + identifier + "&dateCreated=" + formatDate[0]
                         }).then(function mySuccess(response) {
                             var newData = response.data.token;
                             $scope.serial.push(newData);
