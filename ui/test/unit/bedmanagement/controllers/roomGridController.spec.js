@@ -160,8 +160,7 @@ describe('RoomGridController', function () {
             status: "OCCUPIED"
         };
         rootScope.patient = {name: "patientName", uuid: "patientUuid"};
-        rootScope.bedTagsColorConfig =
-        state.current = {name: "bedManagement"};
+        rootScope.bedTagsColorConfig = state.current = {name: "bedManagement"};
         initController(rootScope, state);
         scope.getColorForTheTag(bed);
         expect(translate.instant).toHaveBeenCalled();

@@ -211,11 +211,11 @@
   }
   .room-info-wrapper {
     background: #e8e8e8;
-    position: fixed;
-    top: 138px;
+    position: relative;
+    top: 145px;
     z-index: 10;
     box-sizing: border-box;
-    width: calc(100% - 320px);
+    width: 100%;
     @media all and (max-width: 1299px) {
       width: calc(100% - 310px);
     }
@@ -280,10 +280,10 @@
     margin-bottom: 10px;
     overflow: hidden;
     box-sizing: border-box;
-    position: fixed;
-    width: calc(100% - 320px);
+    position: relative;
+    width: 100%;
     z-index: 10;
-    top: 193px;
+    top: 145px;
     @media all and (max-width: 1299px) {
       width: calc(100% - 310px);
     }
@@ -328,7 +328,7 @@
   .bed-layout-wrapper {
     overflow: auto;
     text-align: center;
-    margin-top: 195px;
+    margin-top: 150px;
     position: relative;
     .bed-layout-row {
       display: inline-block;
@@ -343,7 +343,6 @@
           position: relative;
           text-align: center;
         }
-
       }
     }
     .highlight-bed:after {

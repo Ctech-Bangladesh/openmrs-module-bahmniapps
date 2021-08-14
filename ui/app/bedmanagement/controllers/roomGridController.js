@@ -10,7 +10,11 @@ angular.module('bahmni.ipd')
                             bed.bedTagMaps[0].bedTag.color = tagConfig.color;
                         }
                     } else if (angular.isDefined(bed.bedTagMaps[0]) && $translate.instant(tagConfig.name) === bed.bedTagMaps[0].bedTag.name) {
-                        bed.bedTagMaps[0].bedTag.color = tagConfig.color;
+                        if(bed.status === "OCCUPIED"){
+                            bed.bedTagMaps[0].bedTag.color = "#0cbc3d";
+                        }else{
+                            bed.bedTagMaps[0].bedTag.color = tagConfig.color;
+                        }
                     }
                 });
                 setDefaultTagColor(bed);

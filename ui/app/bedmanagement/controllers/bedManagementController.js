@@ -6,7 +6,6 @@ angular.module('bahmni.ipd')
             $scope.wards = null;
             $scope.ward = {};
             $scope.editTagsPrivilege = Bahmni.IPD.Constants.editTagsPrivilege;
-
             var links = {
                 "dashboard": {
                     "name": "inpatient",
@@ -14,6 +13,7 @@ angular.module('bahmni.ipd')
                     "url": "../bedmanagement/#/patient/{{patientUuid}}/visit/{{visitUuid}}/dashboard"
                 }
             };
+            var patientForwardUrl = appService.getAppDescriptor().getConfigValue("patientForwardUrl") || links.dashboard.url;
 
             var isDepartmentPresent = function (department) {
                 if (!department) return false;
@@ -79,13 +79,13 @@ angular.module('bahmni.ipd')
             var loadBedsInfoForWard = function (department) {
                 return wardService.bedsForWard(department.uuid).then(function (response) {
                     var wardDetails = getWardDetails(department);
-                    var rooms = getRoomsForWard(response?.data?.bedLayouts);
+                    var rooms = getRoomsForWard(response.data.bedLayouts);
                     $scope.ward = {
                         rooms: rooms,
-                        uuid: department?.uuid,
-                        name: department?.name,
-                        totalBeds: wardDetails[0]?.totalBeds,
-                        occupiedBeds: wardDetails[0]?.occupiedBeds
+                        uuid: department.uuid,
+                        name: department.name,
+                        totalBeds: wardDetails[0].totalBeds,
+                        occupiedBeds: wardDetails[0].occupiedBeds
                     };
                     $scope.departmentSelected = true;
                     $rootScope.selectedBedInfo.wardName = department.name;
@@ -174,7 +174,7 @@ angular.module('bahmni.ipd')
             $scope.goToAdtPatientDashboard = function () {
                 getVisitInfoByPatientUuid($scope.patient.uuid).then(function (visitUuid) {
                     var options = {patientUuid: $scope.patient.uuid, visitUuid: visitUuid};
-                    var url = appService.getAppDescriptor().formatUrl(links.dashboard.url, options);
+                    var url = appService.getAppDescriptor().formatUrl(patientForwardUrl, options);
                     window.open(url);
                 });
                 if (window.scrollY > 0) {
