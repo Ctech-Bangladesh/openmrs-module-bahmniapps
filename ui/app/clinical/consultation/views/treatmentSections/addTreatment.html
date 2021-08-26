@@ -132,16 +132,18 @@
                                 <div class="field-value">
                                     <input id="morning-dose" type="number" min="0" step="any"
                                         ng-model="treatment.variableDosingType.morningDose"
-                                        ng-focus="treatment.setFrequencyType('variable')"
-                                        focus-on="editDrugEntryVariableFrequency" value="0" placeholder="0" />
+                                        ng-focus="treatment.setFrequencyType('variable')" required="required"
+                                        focus-on="editDrugEntryVariableFrequency" placeholder="&mdash;" />
                                     <input id="afternoon-dose" type="number" min="0" step="any"
                                         ng-model="treatment.variableDosingType.afternoonDose"
                                         ng-focus="treatment.setFrequencyType('variable')"
-                                        focus-on="editDrugEntryVariableFrequency" value="0" placeholder="0" />
+                                        focus-on="editDrugEntryVariableFrequency" required="required"
+                                        placeholder="&mdash;" />
                                     <input id="evening-dose" type="number" min="0" step="any"
                                         ng-model="treatment.variableDosingType.eveningDose"
                                         ng-focus="treatment.setFrequencyType('variable')"
-                                        focus-on="editDrugEntryVariableFrequency" value="0" placeholder="0" />
+                                        focus-on="editDrugEntryVariableFrequency" required="required"
+                                        placeholder="&mdash;" />
                                 </div>
                             </div>
                         </article>
