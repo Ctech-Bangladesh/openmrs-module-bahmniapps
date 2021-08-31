@@ -134,19 +134,25 @@
                                         ng-model="treatment.variableDosingType.morningDose"
                                         ng-focus="treatment.setFrequencyType('variable')" required="required"
                                         focus-on="editDrugEntryVariableFrequency" placeholder="&mdash;"
+                                        ng-click="treatment.variableDosingType.morningDose = (treatment.variableDosingType.morningDose == 0 ? undefined : treatment.variableDosingType.morningDose )"
+                                        ng-blur="treatment.variableDosingType.morningDose = (treatment.variableDosingType.morningDose == undefined ? 0 : treatment.variableDosingType.morningDose )"
                                         ng-init="treatment.variableDosingType.morningDose = 0" />
                                     <input id="afternoon-dose" type="number" min="0" step="any"
                                         ng-model="treatment.variableDosingType.afternoonDose"
                                         ng-focus="treatment.setFrequencyType('variable')"
                                         focus-on="editDrugEntryVariableFrequency"
-                                        ng-init="treatment.variableDosingType.afternoonDose = 0" required="required"
-                                        placeholder="&mdash;" />
+                                        ng-click="treatment.variableDosingType.afternoonDose = (treatment.variableDosingType.afternoonDose == 0 ? undefined : treatment.variableDosingType.afternoonDose )"
+                                        ng-init="treatment.variableDosingType.afternoonDose = 0"
+                                        ng-blur="treatment.variableDosingType.afternoonDose = (treatment.variableDosingType.afternoonDose == undefined ? 0 : treatment.variableDosingType.afternoonDose )"
+                                        required="required" placeholder="&mdash;" />
                                     <input id="evening-dose" type="number" min="0" step="any"
                                         ng-model="treatment.variableDosingType.eveningDose"
                                         ng-focus="treatment.setFrequencyType('variable')"
                                         focus-on="editDrugEntryVariableFrequency"
-                                        ng-init="treatment.variableDosingType.eveningDose = 0" required="required"
-                                        placeholder="&mdash;" />
+                                        ng-click="treatment.variableDosingType.eveningDose = (treatment.variableDosingType.eveningDose == 0 ? undefined : treatment.variableDosingType.eveningDose )"
+                                        ng-init="treatment.variableDosingType.eveningDose = 0"
+                                        ng-blur="treatment.variableDosingType.eveningDose = (treatment.variableDosingType.eveningDose == undefined ? 0 : treatment.variableDosingType.eveningDose )"
+                                        required="required" placeholder="&mdash;" />
                                 </div>
                             </div>
                         </article>
