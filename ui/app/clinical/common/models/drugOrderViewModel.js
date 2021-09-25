@@ -120,7 +120,10 @@ Bahmni.Clinical.DrugOrderViewModel = function (config, proto, encounterDate) {
         this.effectiveStartDate = this.effectiveStartDate || this.encounterDate;
     }
 
-    this.isUniformFrequency = true;
+    this.isUniformFrequency = false;
+    this.variableDosingType.morningDose = this.variableDosingType.morningDose || 0;
+    this.variableDosingType.afternoonDose = this.variableDosingType.afternoonDose || 0;
+    this.variableDosingType.eveningDose = this.variableDosingType.eveningDose || 0;
     this.showExtraInfo = false;
 
     this.overlappingScheduledWith = function (otherDrugOrder) {
@@ -558,14 +561,14 @@ Bahmni.Clinical.DrugOrderViewModel = function (config, proto, encounterDate) {
 
     this.isUniformDoseUnitRequired = function () {
         return (this.uniformDosingType.dose) ||
-               (this.uniformDosingType.doseFraction) ||
-               (this.isUniformFrequency && this.isDoseMandatory());
+            (this.uniformDosingType.doseFraction) ||
+            (this.isUniformFrequency && this.isDoseMandatory());
     };
 
     this.isUniformDoseRequired = function () {
         return this.isUniformFrequency &&
-               this.isDoseMandatory() &&
-               !this.uniformDosingType.doseFraction;
+            this.isDoseMandatory() &&
+            !this.uniformDosingType.doseFraction;
     };
 
     this.isVariableDoseRequired = function () {
@@ -613,7 +616,7 @@ Bahmni.Clinical.DrugOrderViewModel = function (config, proto, encounterDate) {
                     uuid: orderAttribute.obsUuid,
                     value: orderAttribute.value ? true : false,
                     orderUuid: self.uuid,
-                    concept: {uuid: orderAttribute.conceptUuid }
+                    concept: { uuid: orderAttribute.conceptUuid }
                 };
             });
         }
@@ -654,7 +657,7 @@ Bahmni.Clinical.DrugOrderViewModel = function (config, proto, encounterDate) {
         if (this.durationInDays) {
             this.effectiveStopDate = DateUtil
                 .addDays(
-                DateUtil.parse(this.effectiveStartDate), this.durationInDays);
+                    DateUtil.parse(this.effectiveStartDate), this.durationInDays);
         }
     };
 };
