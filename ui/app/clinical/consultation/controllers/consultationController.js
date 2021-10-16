@@ -11,6 +11,7 @@ angular.module('bahmni.clinical').controller('ConsultationController',
                   ngDialog, $filter, configurations, visitConfig, conditionsService, configurationService, auditLogService) {
             var DateUtil = Bahmni.Common.Util.DateUtil;
             var getPreviousActiveCondition = Bahmni.Common.Domain.Conditions.getPreviousActiveCondition;
+            console.log(getPreviousActiveCondition);
             $scope.togglePrintList = false;
             $scope.patient = patientContext.patient;
             $scope.showDashboardMenu = false;
@@ -97,26 +98,34 @@ angular.module('bahmni.clinical').controller('ConsultationController',
             };
             var updateQueueStatus = function (identifier, roomId) {
                 return $http({
-                    method: 'POST',
-                    url: '/openmrs/module/queuemanagement/updateQueue.form?identifier=' + identifier + "&roomId=" + roomId,
+                    method: 'PUT',
+                    url: '/openmrs/module/queuemanagement/updateQueue.form?identifier='
+                        + identifier + "&roomId=" + roomId,
                     headers: {'Content-Type': 'application/json'}
                 });
             };
             $scope.completeConsultation = function (visitUuid) {
-                let queueMng = appService.getAppDescriptor().getConfigValue("queueManagement");
-                let identifier = $scope.patient.identifier;
-                let date = new Date;
-                let formatDate = date.toISOString().split("T");
-                if (queueMng.willUse == true) {
+                const queueMng = appService.getAppDescriptor().getConfigValue(
+                    "queueManagement");
+                const identifier = $scope.patient.identifier;
+                const date = new Date;
+                const formatDate = date.toISOString().split("T");
+                if (queueMng.willUse === true) {
                     $http({
                         method: "GET",
-                        url: "/openmrs/module/queuemanagement/getToken.form?identifier=" + identifier + "&dateCreated=" + formatDate[0],
+                        url: "/openmrs/module/queuemanagement/getToken.form?identifier="
+                            + identifier + "&dateCreated=" + formatDate[0],
                     }).then(function mySuccess(response) {
-                        let room = response.data.roomId;
-                        updateQueueStatus(identifier, room);
+                        const room = response.data.roomId;
+                        if (room !== undefined) {
+                            updateQueueStatus(identifier, room);
+                        } else {
+                            console.log(
+                                "Patient Room Id is undefined for the queue");
+                        }
                     });
                 } else {
-                    console.log("Queue management is not running");
+                    console.log("Queue management module is not being used now");
                 }
                 if (contextChangeHandler.execute()["allow"]) {
                     $location.path($stateParams.configName + "/patient/" + patientContext.patient.uuid + "/dashboard/visit/" + visitUuid + "/?encounterUuid=active");
@@ -456,8 +465,9 @@ angular.module('bahmni.clinical').controller('ConsultationController',
                     var errorMessage = contxChange["errorMessage"] ? contxChange["errorMessage"] : "{{'CLINICAL_FORM_ERRORS_MESSAGE_KEY' | translate }}";
                     messagingService.showMessage('error', errorMessage);
                 } else if (discontinuedDrugOrderValidationMessage) {
-                    var errorMessage = discontinuedDrugOrderValidationMessage;
-                    messagingService.showMessage('error', errorMessage);
+                    // var error = discontinuedDrugOrderValidationMessage;
+                    messagingService.showMessage('error',
+                        discontinuedDrugOrderValidationMessage);
                 }
                 return shouldAllow && !discontinuedDrugOrderValidationMessage && isObservationFormValid();
             };
