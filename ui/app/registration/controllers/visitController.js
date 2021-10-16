@@ -372,7 +372,7 @@ angular.module('bahmni.registration')
                         $timeout();
                     }
                 }).keypress();
-            }, 3000);
+            }, 1000);
 
             $scope.isFormTemplate = function (data) {
                 return data.formUuid;
