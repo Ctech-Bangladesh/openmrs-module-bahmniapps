@@ -681,7 +681,7 @@ angular.module('bahmni.clinical')
                     drugOrderViewModel.orderSetUuid = orderSet.uuid;
                     var conflictingDrugOrder = getConflictingDrugOrder(drugOrderViewModel);
                     if (!conflictingDrugOrder) {
-                        drugOrderViewModel.include = true;
+                        drugOrderViewModel.include = false;
                     } else {
                         conflictingDrugOrders.push(conflictingDrugOrder);
                     }
