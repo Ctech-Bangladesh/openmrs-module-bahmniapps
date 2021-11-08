@@ -1,9 +1,9 @@
 'use strict';
 
 angular.module('bahmni.registration')
-    .controller('VisitController', ['$window', '$scope', '$rootScope', '$state', '$bahmniCookieStore', 'patientService', 'encounterService', '$stateParams', 'spinner', '$timeout', '$q', 'appService', 'openmrsPatientMapper', 'contextChangeHandler', 'messagingService', 'sessionService', 'visitService', '$location', '$translate',
+    .controller('VisitController', ['$window', '$scope', '$rootScope', '$state', '$bahmniCookieStore', 'patientService', 'encounterService', '$stateParams', 'spinner', '$timeout', '$q', 'appService', 'openmrsPatientMapper', 'contextChangeHandler', 'messagingService', 'sessionService', 'visitService', '$location', '$translate','$http',
         'auditLogService', 'formService',
-        function ($window, $scope, $rootScope, $state, $bahmniCookieStore, patientService, encounterService, $stateParams, spinner, $timeout, $q, appService, openmrsPatientMapper, contextChangeHandler, messagingService, sessionService, visitService, $location, $translate, auditLogService, formService) {
+        function ($window, $scope, $rootScope, $state, $bahmniCookieStore, patientService, encounterService, $stateParams, spinner, $timeout, $q, appService, openmrsPatientMapper, contextChangeHandler, messagingService, sessionService, visitService, $location, $translate, $http, auditLogService, formService) {
             var vm = this;
             var patientUuid = $stateParams.patientUuid;
             var extensions = appService.getAppDescriptor().getExtensions("org.bahmni.registration.conceptSetGroup.observations", "config");
@@ -23,6 +23,21 @@ angular.module('bahmni.registration')
                 });
                 return deferred.promise;
             };
+
+            console.log($rootScope.currentUser.username);
+            if($rootScope.currentUser.username==='musfiqur'){
+                getData('01', patientUuid);
+            }else if($rootScope.currentUser.username==='kader'){
+                getData('02', patientUuid);
+            }
+
+            function getData(counter, patientUuid) {
+                $http.get("https://192.168.7.1/openmrs/module/tokenqueue/reg/done/removeRegToken.htm?counter="+counter+"&patientUuid="+patientUuid).success(function (d) {
+                    console.log(d);
+                }).error(function (data, status, headers) {
+                    console.log(status);
+                });
+            }
 
             var getActiveEncounter = function () {
                 var deferred = $q.defer();

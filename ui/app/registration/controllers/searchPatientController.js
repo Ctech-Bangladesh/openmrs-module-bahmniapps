@@ -2,8 +2,8 @@
 
 angular.module('bahmni.registration')
     .controller('SearchPatientController', ['$rootScope', '$scope', '$location', '$window', 'spinner', 'patientService', 'appService',
-        'messagingService', '$translate', '$filter',
-        function ($rootScope, $scope, $location, $window, spinner, patientService, appService, messagingService, $translate, $filter) {
+        'messagingService', '$translate', '$filter', '$http',
+        function ($rootScope, $scope, $location, $window, spinner, patientService, appService, messagingService, $translate, $filter, $http) {
             $scope.results = [];
             $scope.extraIdentifierTypes = _.filter($rootScope.patientConfiguration.identifierTypes, function (identifierType) {
                 return !identifierType.primary;
@@ -24,6 +24,23 @@ angular.module('bahmni.registration')
                 });
                 return columnName;
             };
+
+            console.log($rootScope.currentUser.username);
+            if($rootScope.currentUser.username==='musfiqur'){
+                getData('01');
+            }else if($rootScope.currentUser.username==='kader'){
+                getData('02');
+            }
+
+            $scope.ObjectCurrentSerial={};
+            function getData(counter) {
+                $http.get("https://192.168.7.1/openmrs/module/tokenqueue/reg/getFirstNo.htm?counter=" + counter).success(function (d) {
+                    console.log(d);
+                    $scope.ObjectCurrentSerial=d;
+                }).error(function (data, status, headers) {
+                    console.log(status);
+                });
+            }
 
             var hasSearchParameters = function () {
                 return $scope.searchParameters.name.trim().length > 0 ||
