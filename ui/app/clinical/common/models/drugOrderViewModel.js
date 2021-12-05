@@ -120,7 +120,10 @@ Bahmni.Clinical.DrugOrderViewModel = function (config, proto, encounterDate) {
         this.effectiveStartDate = this.effectiveStartDate || this.encounterDate;
     }
 
-    this.isUniformFrequency = true;
+    this.isUniformFrequency = false;
+    this.variableDosingType.morningDose = this.variableDosingType.morningDose || 0;
+    this.variableDosingType.afternoonDose = this.variableDosingType.afternoonDose || 0;
+    this.variableDosingType.eveningDose = this.variableDosingType.eveningDose || 0;
     this.showExtraInfo = false;
 
     this.overlappingScheduledWith = function (otherDrugOrder) {
