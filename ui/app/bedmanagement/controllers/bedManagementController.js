@@ -79,11 +79,11 @@ angular.module('bahmni.ipd')
             var loadBedsInfoForWard = function (department) {
                 return wardService.bedsForWard(department.uuid).then(function (response) {
                     var wardDetails = getWardDetails(department);
-                    var rooms = getRoomsForWard(response?.data?.bedLayouts);
+                    var rooms = getRoomsForWard(response.data.bedLayouts);
                     $scope.ward = {
                         rooms: rooms,
-                        uuid: department?.uuid,
-                        name: department?.name,
+                        uuid: department.uuid,
+                        name: department.name,
                         totalBeds: wardDetails[0]?.totalBeds,
                         occupiedBeds: wardDetails[0]?.occupiedBeds
                     };
