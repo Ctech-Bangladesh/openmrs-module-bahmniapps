@@ -84,8 +84,8 @@ angular.module('bahmni.ipd')
                         rooms: rooms,
                         uuid: department.uuid,
                         name: department.name,
-                        totalBeds: wardDetails[0]?.totalBeds,
-                        occupiedBeds: wardDetails[0]?.occupiedBeds
+                        totalBeds: wardDetails[0].totalBeds,
+                        occupiedBeds: wardDetails[0].occupiedBeds
                     };
                     $scope.departmentSelected = true;
                     $rootScope.selectedBedInfo.wardName = department.name;
