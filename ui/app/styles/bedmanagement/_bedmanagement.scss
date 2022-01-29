@@ -211,11 +211,12 @@
   }
   .room-info-wrapper {
     background: #e8e8e8;
-    position: fixed;
+    position: relative;
+    overflow: auto;
+    width: 100%;
     top: 138px;
     z-index: 10;
     box-sizing: border-box;
-    width: calc(100% - 320px);
     @media all and (max-width: 1299px) {
       width: calc(100% - 310px);
     }
@@ -278,10 +279,10 @@
     border-bottom: 1px solid #d3d4d5;
     border-top: 1px solid #d3d4d5;
     margin-bottom: 10px;
-    overflow: hidden;
     box-sizing: border-box;
-    position: fixed;
-    width: calc(100% - 320px);
+    position: relative;
+    overflow: auto;
+    width: 100%;
     z-index: 10;
     top: 193px;
     @media all and (max-width: 1299px) {
@@ -330,6 +331,7 @@
     text-align: center;
     margin-top: 195px;
     position: relative;
+    width: 100%;
     .bed-layout-row {
       display: inline-block;
       .bed-layout-cells {
@@ -741,6 +743,5 @@ div[ng-app="adt"] {
 }
 .table-wrapper {
   height: calc(100vh - 240px);
-  overflow-x: hidden;
-  overflow-y: auto;
+  overflow: auto;
 }

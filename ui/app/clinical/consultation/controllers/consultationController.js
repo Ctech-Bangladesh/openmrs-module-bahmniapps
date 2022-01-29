@@ -11,7 +11,6 @@ angular.module('bahmni.clinical').controller('ConsultationController',
                   ngDialog, $filter, configurations, visitConfig, conditionsService, configurationService, auditLogService) {
             var DateUtil = Bahmni.Common.Util.DateUtil;
             var getPreviousActiveCondition = Bahmni.Common.Domain.Conditions.getPreviousActiveCondition;
-            console.log(getPreviousActiveCondition);
             $scope.togglePrintList = false;
             $scope.patient = patientContext.patient;
             $scope.showDashboardMenu = false;
@@ -465,7 +464,6 @@ angular.module('bahmni.clinical').controller('ConsultationController',
                     var errorMessage = contxChange["errorMessage"] ? contxChange["errorMessage"] : "{{'CLINICAL_FORM_ERRORS_MESSAGE_KEY' | translate }}";
                     messagingService.showMessage('error', errorMessage);
                 } else if (discontinuedDrugOrderValidationMessage) {
-                    // var error = discontinuedDrugOrderValidationMessage;
                     messagingService.showMessage('error',
                         discontinuedDrugOrderValidationMessage);
                 }
