@@ -5,7 +5,7 @@ angular.module('bahmni.registration')
         function ($rootScope, $http, registrationCardPrinter, spinner, appService, $filter) {
             var controller = function ($scope) {
                 $scope.printOptions = appService.getAppDescriptor().getConfigValue("printOptions");
-                let queueMng = appService.getAppDescriptor().getConfigValue("queueManagement");
+                $scope.queueMng = appService.getAppDescriptor().getConfigValue("queueManagement");
                 $scope.defaultPrint = $scope.printOptions && $scope.printOptions[0];
 
                 var mapRegistrationObservations = function () {
@@ -17,7 +17,7 @@ angular.module('bahmni.registration')
                         observation.value && obs[observation.concept.name].push(observation.value);
                         observation.groupMembers.forEach(getValue);
                     };
-                    if (queueMng.willUse === true) {
+                    if ($scope.queueMng.willUse === true) {
                         let identifier = $scope.patient.primaryIdentifier.identifier;
                         let date = new Date();
                         let formatDate = date.toISOString().split("T");
@@ -25,7 +25,7 @@ angular.module('bahmni.registration')
                             method: "GET",
                             url: "/openmrs/module/queuemanagement/getToken.form?identifier="
                                 + identifier + "&dateCreated=" + formatDate[0]
-                        }).then(function mySuccess(response) {
+                        }).then(function mySuccess (response) {
                             var newData = response.data.token;
                             $scope.serial.push(newData);
                         });

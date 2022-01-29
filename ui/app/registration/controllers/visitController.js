@@ -288,8 +288,8 @@ angular.module('bahmni.registration')
                 $timeout(function () {
                     $http({
                         method: "GET",
-                        url: "/openmrs/ws/rest/v1/bahmnicore/observations?concept=Opd+Consultation+Room&patientUuid=" + patientUuid + "&scope=latest",
-                    }).then(function mySuccess(response) {
+                        url: "/openmrs/ws/rest/v1/bahmnicore/observations?concept=Opd+Consultation+Room&patientUuid=" + patientUuid + "&scope=latest"
+                    }).then(function mySuccess (response) {
                         var obsdata = response.data;
                         patientService.get(patientUuid).then(function (openMRSPatient) {
                             $scope.patient = openmrsPatientMapper.map(openMRSPatient);
@@ -298,7 +298,7 @@ angular.module('bahmni.registration')
                                     let identifier = $scope.patient.primaryIdentifier.identifier;
                                     let roomName = key.complexData.data.name;
                                     let roomId = key.complexData.data.id;
-                                    let date = new Date;
+                                    let date = new Date();
                                     let formatDate = date.toISOString().split("T");
                                     let queue = {
                                         identifier: identifier,
