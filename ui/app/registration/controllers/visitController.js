@@ -1,9 +1,9 @@
 'use strict';
 
 angular.module('bahmni.registration')
-    .controller('VisitController', ['$http', '$window', '$scope', '$rootScope', '$state', '$bahmniCookieStore', 'patientService', 'encounterService', '$stateParams', 'spinner', '$timeout', '$q', 'appService', 'openmrsPatientMapper', 'contextChangeHandler', 'messagingService', 'sessionService', 'visitService', '$location', '$translate',
+    .controller('VisitController', ['$window', '$scope', '$rootScope', '$state', '$bahmniCookieStore', 'patientService', 'encounterService', '$stateParams', 'spinner', '$timeout', '$q', 'appService', 'openmrsPatientMapper', 'contextChangeHandler', 'messagingService', 'sessionService', 'visitService', '$location', '$translate',
         'auditLogService', 'formService',
-        function ($http, $window, $scope, $rootScope, $state, $bahmniCookieStore, patientService, encounterService, $stateParams, spinner, $timeout, $q, appService, openmrsPatientMapper, contextChangeHandler, messagingService, sessionService, visitService, $location, $translate, auditLogService, formService) {
+        function ($window, $scope, $rootScope, $state, $bahmniCookieStore, patientService, encounterService, $stateParams, spinner, $timeout, $q, appService, openmrsPatientMapper, contextChangeHandler, messagingService, sessionService, visitService, $location, $translate, auditLogService, formService) {
             var vm = this;
             var patientUuid = $stateParams.patientUuid;
             var extensions = appService.getAppDescriptor().getExtensions("org.bahmni.registration.conceptSetGroup.observations", "config");
@@ -163,18 +163,11 @@ angular.module('bahmni.registration')
                     });
                 }
             };
+
             $scope.getMessage = function () {
                 return $scope.message;
             };
-            var getPrintAccess = function () {
-                return $http.get(`/openmrs/ws/rest/v1/obs?patient=${$stateParams.patientUuid}&concept=Opd%20Consultation%20Room`, {
-                    method: "GET",
-                    withCredentials: true
-                });
-            };
-            $q.all([getPrintAccess()]).then(function (response) {
-                $scope.printAccess = response[0].data.results;
-            });
+
             var isObservationFormValid = function () {
                 var opdRoomMandatory = appService.getAppDescriptor().getConfigValue("opdRoom");
                 var valid = true;
