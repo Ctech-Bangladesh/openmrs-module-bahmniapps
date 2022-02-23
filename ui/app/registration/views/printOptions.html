@@ -1,10 +1,14 @@
 <div ng-show="printAccess.length > 0" >
 	<div
+	ng-show="printOptionsForAdmission"
 	split-button=""
-	options="printOptions"
+	options="printOptionsAdmission"
 	option-text="buttonText"
 	option-click="print"
-	primary-option="defaultPrint"
+	primary-option="defaultPrintAdmission"
 	class="right" >
 	</div>
+		<div ng-show="!printOptionsForAdmission" split-button="" options="printOptions" option-text="buttonText"
+			option-click="print" primary-option="defaultPrint" class="right">
+		</div>
 </div>

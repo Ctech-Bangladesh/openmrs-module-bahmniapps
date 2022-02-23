@@ -163,17 +163,16 @@ angular.module('bahmni.registration')
                     });
                 }
             };
-
             $scope.getMessage = function () {
                 return $scope.message;
             };
-            var getUserRole = function () {
+            var getPrintAccess = function () {
                 return $http.get(`/openmrs/ws/rest/v1/obs?patient=${$stateParams.patientUuid}&concept=Opd%20Consultation%20Room`, {
                     method: "GET",
                     withCredentials: true
                 });
             };
-            $q.all([getUserRole()]).then(function (response) {
+            $q.all([getPrintAccess()]).then(function (response) {
                 $scope.printAccess = response[0].data.results;
             });
             var isObservationFormValid = function () {

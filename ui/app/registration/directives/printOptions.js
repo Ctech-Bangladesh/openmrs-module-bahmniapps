@@ -1,12 +1,23 @@
 'use strict';
 
 angular.module('bahmni.registration')
-    .directive('printOptions', ['$rootScope', 'registrationCardPrinter', 'spinner', 'appService', '$filter',
-        function ($rootScope, registrationCardPrinter, spinner, appService, $filter) {
+    .directive('printOptions', ['$http', '$q', '$stateParams', '$rootScope', 'registrationCardPrinter', 'spinner', 'appService', '$filter',
+        function ($http, $q, $stateParams, $rootScope, registrationCardPrinter, spinner, appService, $filter) {
             var controller = function ($scope) {
-                $scope.printOptions = appService.getAppDescriptor().getConfigValue("printOptions");
-                $scope.defaultPrint = $scope.printOptions && $scope.printOptions[0];
+                var getAdmissionAccess = function () {
+                    return $http.get(`/openmrs/ws/rest/v1/obs?patient=${$stateParams.patientUuid}&concept=Visit%20Type`, {
+                        method: "GET",
+                        withCredentials: true
+                    });
+                };
+                $q.all([getAdmissionAccess()]).then(function (response) {
+                    $scope.printOptionsForAdmission = response[0].data.results.length > 0 ? true : false;
+                });
+                $scope.printOptionsAdmission = appService.getAppDescriptor().getConfigValue("printOptions");
+                $scope.defaultPrintAdmission = $scope.printOptionsAdmission && $scope.printOptionsAdmission[0];
 
+                $scope.printOptions = appService.getAppDescriptor().getConfigValue("printOptions").filter(option => option.translationKey !== "IPD_ADMISSION_FORM_KEY");
+                $scope.defaultPrint = $scope.printOptions && $scope.printOptions[0];
                 var mapRegistrationObservations = function () {
                     var obs = {};
                     $scope.observations = $scope.observations || [];
