@@ -1,10 +1,8 @@
-<div ng-if="printOptions.length > 0">
-	<div
-	split-button=""
-	options="printOptions"
-	option-text="buttonText"
-	option-click="print"
-	primary-option="defaultPrint"
-	class="right" >
-	</div>
+<div ng-show="observations[1]"  >
+<div ng-show="observations[0].groupMembers[2].uuid" split-button="" options="printOptionsAdmission"
+	option-text="buttonText" option-click="print" primary-option="defaultPrintAdmission" class="right">
+</div>
+<div ng-show="!observations[0].groupMembers[2].uuid" split-button="" options="printOptions" option-text="buttonText"
+	option-click="print" primary-option="defaultPrint" class="right">
+</div>
 </div>
