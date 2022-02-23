@@ -8,7 +8,7 @@ angular.module('bahmni.registration')
                 $scope.defaultPrintAdmission = $scope.printOptionsAdmission && $scope.printOptionsAdmission[0];
                 $scope.printOptions = appService.getAppDescriptor().getConfigValue("printOptions").filter(option => option.shortcutKey !== "i");
                 $scope.defaultPrint = $scope.printOptions && $scope.printOptions[0];
-
+             
                 var mapRegistrationObservations = function () {
                     var obs = {};
                     $scope.observations = $scope.observations || [];
@@ -18,9 +18,17 @@ angular.module('bahmni.registration')
                         observation.groupMembers.forEach(getValue);
                     };
                     $scope.observations.forEach(getValue);
+                    var getDispositionNote = function () {
+                        return $http.get(`/openmrs/ws/rest/v1/obs?concepts=Disposition%20Note&patient=${$stateParams.patientUuid}`, {
+                            method: "GET",
+                            withCredentials: true
+                        });
+                    };
+                    $q.all([getDispositionNote()]).then(function (response) {
+                        $scope.observations.dispositionNote = response[0].data.results[0];
+                    });
                     return obs;
                 };
-
                 $scope.print = function (option) {
                     return registrationCardPrinter.print(option.templateUrl, $scope.patient, mapRegistrationObservations(), $scope.encounterDateTime, $scope.observations);
                 };
@@ -33,7 +41,6 @@ angular.module('bahmni.registration')
                     }
                     return '<span>' + optionValue + '</span>' + printHtml;
                 };
-
             };
 
             return {
