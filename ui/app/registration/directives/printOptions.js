@@ -7,7 +7,6 @@ angular.module('bahmni.registration')
                 $scope.printOptionsAdmission = appService.getAppDescriptor().getConfigValue("printOptions");
                 $scope.defaultPrintAdmission = $scope.printOptionsAdmission && $scope.printOptionsAdmission[0];
                 $scope.printOptions = appService.getAppDescriptor().getConfigValue("printOptions").filter(option => option.shortcutKey !== "i");
-                $scope.printOptions = appService.getAppDescriptor().getConfigValue("printOptions");
                 $scope.queueMng = appService.getAppDescriptor().getConfigValue("queueManagement");
                 $scope.defaultPrint = $scope.printOptions && $scope.printOptions[0];
 
