@@ -36,7 +36,7 @@ angular.module('bahmni.registration')
                     }
                     $scope.observations.forEach(getValue);
                     var getDispositionNote = function () {
-                        return $http.get(`/openmrs/ws/rest/v1/obs?concepts=Disposition%20Note&patient=${$stateParams.patientUuid}`, {
+                        return $http.get(`/openmrs/ws/rest/v1/obs?limit=1&patient=${$stateParams.patientUuid}&concept=Disposition%20Set`, {
                             method: "GET",
                             withCredentials: true
                         });
