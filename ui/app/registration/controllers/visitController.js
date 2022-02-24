@@ -37,10 +37,12 @@ angular.module('bahmni.registration')
                     deferred.resolve(response);
                     $scope.encounterUuid = response.data.encounterUuid;
                     $scope.observations = response.data.observations;
+                    if ($scope.observations.length > 0) {
+                        $scope.admissionFromAccess = $scope.observations[0].groupMembers.filter(obs => obs.valueAsString === "IPD Admission");
+                    }
                 });
                 return deferred.promise;
             };
-
             var getAllForms = function () {
                 var deferred = $q.defer();
                 formService.getFormList($scope.encounterUuid)
