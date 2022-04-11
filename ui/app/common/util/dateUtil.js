@@ -74,7 +74,9 @@ Bahmni.Common.Util.DateUtil = {
     getDateWithoutTime: function (datetime) {
         return datetime ? moment(datetime).format("YYYY-MM-DD") : null;
     },
-
+    getDateWitTime: function (datetime) {
+        return datetime ? moment(datetime).format("YYYY-MM-DD HH:mm:ss") : null;
+    },
     getDateInMonthsAndYears: function (date, format) {
         var format = format || "MMM YY";
         var dateRepresentation = isNaN(Number(date)) ? date : Number(date);

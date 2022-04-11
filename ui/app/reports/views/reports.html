@@ -10,14 +10,14 @@
                         <span class="asterick">*</span>
                         <input ng-model="default.reportsRequiringDateRange.startDate" date-converter
                             class="form-field start-date" type="datetime-local"
-                            max="{{default.reportsRequiringDateRange.stopDate | date:'yyyy-MM-dd'}}"
+                            max="{{default.reportsRequiringDateRange.stopDate | date:'YYYY-MM-DD HH:mm:ss'}}"
                             ng-change="setDefault('startDate', 'reportsRequiringDateRange')">
                     </th>
                     <th class="reports-stop-date">{{::'REPORTS_END_DATE_HEADER_KEY' |translate}}
                         <span class="asterick">*</span>
                         <input ng-model="default.reportsRequiringDateRange.stopDate" date-converter
                             class="form-field start-date" type="datetime-local"
-                            min="{{default.reportsRequiringDateRange.startDate | date:'yyyy-MM-dd'}}"
+                            min="{{default.reportsRequiringDateRange.startDate | date:'YYYY-MM-DD HH:mm:ss'}}"
                             ng-change="setDefault('stopDate', 'reportsRequiringDateRange')">
                     </th>
                     <th class="reports-format">
@@ -38,11 +38,11 @@
                     <td>{{:: report.name }}</td>
                     <td class="reports-start-date">
                         <input date-converter class="form-field start-date" type="datetime-local"
-                            max="{{report.stopDate | date:'yyyy-MM-dd'}}" ng-model="report.startDate">
+                            max="{{report.stopDate | date:'YYYY-MM-DD HH:mm:ss'}}" ng-model="report.startDate">
                     </td>
                     <td class="reports-stop-date">
                         <input date-converter class="form-field stop-date" type="datetime-local"
-                            min="{{report.startDate | date:'yyyy-MM-dd'}}" ng-model="report.stopDate">
+                            min="{{report.startDate | date:'YYYY-MM-DD HH:mm:ss'}}" ng-model="report.stopDate">
                     </td>
                     <td class="reports-format">
                         <select ng-model="report.responseType"
