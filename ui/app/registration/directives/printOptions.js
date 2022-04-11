@@ -13,7 +13,6 @@ angular.module('bahmni.registration')
                 var mapRegistrationObservations = function () {
                     var obs = {};
                     $scope.observations = $scope.observations || [];
-                    $scope.serial = $scope.serial || [];
                     var getValue = function (observation) {
                         obs[observation.concept.name] = obs[observation.concept.name] || [];
                         observation.value && obs[observation.concept.name].push(observation.value);
@@ -23,17 +22,19 @@ angular.module('bahmni.registration')
                         let identifier = $scope.patient.primaryIdentifier.identifier;
                         let date = new Date();
                         let formatDate = date.toISOString().split("T");
-                        $http({
-                            method: "GET",
-                            url: "/openmrs/module/queuemanagement/getToken.form?identifier="
-                                + identifier + "&dateCreated=" + formatDate[0]
-                        }).then(function mySuccess (response) {
-                            var newData = response.data.token;
-                            $scope.serial.push(newData);
+                        var getSerial = function () {
+                            return $http.get(`/openmrs/module/queuemanagement/getToken.form?identifier=${identifier}&dateCreated=${formatDate[0]}`, {
+                                method: "GET",
+                                withCredentials: true
+                            });
+                        };
+                        $q.all([getSerial()]).then(function (response) {
+                            $scope.observations.serial = response[0].data.token;
                         });
                     } else {
                         console.log("Queue management is not started");
                     }
+
                     $scope.observations.forEach(getValue);
                     var getDispositionNote = function () {
                         return $http.get(`/openmrs/ws/rest/v1/obs?limit=1&patient=${$stateParams.patientUuid}&concept=Disposition%20Set`, {
