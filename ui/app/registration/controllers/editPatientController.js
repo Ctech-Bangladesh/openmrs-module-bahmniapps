@@ -12,7 +12,7 @@ angular.module('bahmni.registration')
                 var params = {
                     v: "full"
                 };
-                return $http.get('/openmrs/ws/rest/v1/user?limit=500', {
+                return $http.get('/openmrs/ws/rest/v1/user?limit=600', {
                     method: "GET",
                     params: params,
                     withCredentials: true
