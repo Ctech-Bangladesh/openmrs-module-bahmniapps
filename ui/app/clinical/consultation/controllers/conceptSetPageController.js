@@ -1,19 +1,19 @@
 'use strict';
 
 angular.module('bahmni.clinical')
-    .controller('ConceptSetPageController', ['$scope', '$rootScope', '$stateParams', 'conceptSetService',
+    .controller('ConceptSetPageController', ['$scope', '$http', '$rootScope', '$stateParams', 'conceptSetService',
         'clinicalAppConfigService', 'messagingService', 'configurations', '$state', 'spinner',
-        'contextChangeHandler', '$q', '$translate', 'formService',
-        function ($scope, $rootScope, $stateParams, conceptSetService,
-                  clinicalAppConfigService, messagingService, configurations, $state, spinner,
-                  contextChangeHandler, $q, $translate, formService) {
+        'contextChangeHandler', '$q', '$translate', 'formService', '$window',
+        function ($scope, $http, $rootScope, $stateParams, conceptSetService,
+            clinicalAppConfigService, messagingService, configurations, $state, spinner,
+            contextChangeHandler, $q, $translate, formService, $window) {
             $scope.consultation.selectedObsTemplate = $scope.consultation.selectedObsTemplate || [];
             $scope.allTemplates = $scope.allTemplates || [];
             $scope.scrollingEnabled = false;
             var extensions = clinicalAppConfigService.getAllConceptSetExtensions($stateParams.conceptSetGroupName);
             var configs = clinicalAppConfigService.getAllConceptsConfig();
             var visitType = configurations.encounterConfig().getVisitTypeByUuid($scope.consultation.visitTypeUuid);
-            $scope.context = {visitType: visitType, patient: $scope.patient};
+            $scope.context = { visitType: visitType, patient: $scope.patient };
             var numberOfLevels = 2;
             var fields = ['uuid', 'name:(name,display)', 'names:(uuid,conceptNameType,name)'];
             var customRepresentation = Bahmni.ConceptSet.CustomRepresentationBuilder.build(fields, 'setMembers', numberOfLevels);
@@ -48,8 +48,21 @@ angular.module('bahmni.clinical')
 
             var concatObservationForms = function () {
                 $scope.allTemplates = getSelectedObsTemplate(allConceptSections);
-                $scope.uniqueTemplates = _.uniqBy($scope.allTemplates, 'label');
-                $scope.allTemplates = $scope.allTemplates.concat($scope.consultation.observationForms);
+                var role = [$window.localStorage.getItem('role')];
+                var emergency = role.filter(name => name.includes('NITOR:EmergencyModule'));
+                var ipd = role.filter(name => name.includes('NITOR:IPD'));
+                if (emergency.length !== 0) {
+                    $scope.uniqueTemplates = _.uniqBy($scope.allTemplates, 'label');
+                    $scope.allTemplates = $scope.allTemplates.concat($scope.consultation.observationForms).filter(option => option.label.includes("History and Examination") || option.label.includes("Emergency") || option.label.includes("Injury Notes"));
+                }
+                else if (ipd.length !== 0) {
+                    $scope.uniqueTemplates = _.uniqBy($scope.allTemplates, 'label');
+                    $scope.allTemplates = $scope.allTemplates.concat($scope.consultation.observationForms).filter(option => option.label.includes("History and Examination") || option.label.includes("Injury Notes") || option.label.includes("Advice") || option.label.includes("Death Certificate"));
+                }
+                else {
+                    $scope.uniqueTemplates = _.uniqBy($scope.allTemplates, 'label');
+                    $scope.allTemplates = $scope.allTemplates.concat($scope.consultation.observationForms);
+                }
                 if ($scope.consultation.selectedObsTemplate.length == 0) {
                     initializeDefaultTemplates();
                     if ($scope.consultation.observations && $scope.consultation.observations.length > 0) {
@@ -141,7 +154,7 @@ angular.module('bahmni.clinical')
                         });
 
                         _.map(data.results[0].mappings, function (template) {
-                            var matchedTemplate = _.find(allConceptSections, {uuid: template.uuid});
+                            var matchedTemplate = _.find(allConceptSections, { uuid: template.uuid });
                             if (matchedTemplate) {
                                 matchedTemplate.alwaysShow = true;
                             }
@@ -211,7 +224,7 @@ angular.module('bahmni.clinical')
                     $scope.consultation.selectedObsTemplate.push(template);
                 }
                 $scope.consultation.searchParameter = "";
-                messagingService.showMessage("info", $translate.instant("CLINICAL_TEMPLATE_ADDED_SUCCESS_KEY", {label: template.label}));
+                messagingService.showMessage("info", $translate.instant("CLINICAL_TEMPLATE_ADDED_SUCCESS_KEY", { label: template.label }));
             };
 
             $scope.getNormalized = function (conceptName) {
