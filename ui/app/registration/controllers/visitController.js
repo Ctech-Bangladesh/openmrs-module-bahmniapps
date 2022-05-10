@@ -15,6 +15,7 @@ angular.module('bahmni.registration')
 
             var getPatient = function () {
                 var deferred = $q.defer();
+                $window.localStorage.removeItem('refresh');
                 patientService.get(patientUuid).then(function (openMRSPatient) {
                     deferred.resolve(openMRSPatient);
                     $scope.patient = openmrsPatientMapper.map(openMRSPatient);
@@ -36,10 +37,12 @@ angular.module('bahmni.registration')
                     deferred.resolve(response);
                     $scope.encounterUuid = response.data.encounterUuid;
                     $scope.observations = response.data.observations;
+                    if ($scope.observations.length > 0) {
+                        $scope.admissionFromAccess = $scope.observations[0].groupMembers.filter(obs => obs.valueAsString === "IPD Admission");
+                    }
                 });
                 return deferred.promise;
             };
-
             var getAllForms = function () {
                 var deferred = $q.defer();
                 formService.getFormList($scope.encounterUuid)
@@ -94,7 +97,10 @@ angular.module('bahmni.registration')
                 var createPromise = encounterService.create($scope.encounter);
                 spinner.forPromise(createPromise);
                 return createPromise.then(function (response) {
-                    var messageParams = {encounterUuid: response.data.encounterUuid, encounterType: response.data.encounterType};
+                    var messageParams = {
+                        encounterUuid: response.data.encounterUuid,
+                        encounterType: response.data.encounterType
+                    };
                     auditLogService.log(patientUuid, 'EDIT_ENCOUNTER', messageParams, 'MODULE_LABEL_REGISTRATION_KEY');
                     var visitType, visitTypeUuid;
                     visitTypeUuid = response.data.visitTypeUuid;
@@ -141,7 +147,7 @@ angular.module('bahmni.registration')
                     var visitSummary = response.data;
                     if (visitSummary.admissionDetails && !visitSummary.dischargeDetails) {
                         messagingService.showMessage("error", 'REGISTRATION_VISIT_CANNOT_BE_CLOSED');
-                        var messageParams = {visitUuid: vm.visitUuid, visitType: visitSummary.visitType};
+                        var messageParams = { visitUuid: vm.visitUuid, visitType: visitSummary.visitType };
                         auditLogService.log(patientUuid, 'CLOSE_VISIT_FAILED', messageParams, 'MODULE_LABEL_REGISTRATION_KEY');
                     } else {
                         closeVisit(visitSummary.visitType);
@@ -154,7 +160,7 @@ angular.module('bahmni.registration')
                 if (confirmed) {
                     visitService.endVisit(vm.visitUuid).then(function () {
                         $location.url(Bahmni.Registration.Constants.patientSearchURL);
-                        var messageParams = {visitUuid: vm.visitUuid, visitType: visitType};
+                        var messageParams = { visitUuid: vm.visitUuid, visitType: visitType };
                         auditLogService.log(patientUuid, 'CLOSE_VISIT', messageParams, 'MODULE_LABEL_REGISTRATION_KEY');
                     });
                 }
@@ -165,8 +171,12 @@ angular.module('bahmni.registration')
             };
 
             var isObservationFormValid = function () {
+                var opdRoomMandatory = appService.getAppDescriptor().getConfigValue("opdRoom");
                 var valid = true;
+                var isSelectOpd = false;
+                var _value = [];
                 _.each($scope.observationForms, function (observationForm) {
+                    _value = observationForm.component.getValue().observations;
                     if (valid && observationForm.component) {
                         var value = observationForm.component.getValue();
                         if (value.errors) {
@@ -175,6 +185,19 @@ angular.module('bahmni.registration')
                         }
                     }
                 });
+                _.each(_value, function (t) {
+                    if (t.concept.name.includes(opdRoomMandatory.conceptName)) {
+                        isSelectOpd = true;
+                    }
+                });
+
+                if (opdRoomMandatory.isMandatory) {
+                    if (!isSelectOpd) {
+                        messagingService.showMessage('error', "{{'Please input Opd Consultation Room'}}");
+                        valid = false;
+                    }
+                }
+
                 return valid;
             };
 
@@ -248,7 +271,7 @@ angular.module('bahmni.registration')
             var afterSave = function () {
                 var forwardUrl = appService.getAppDescriptor().getConfigValue("afterVisitSaveForwardUrl");
                 if (forwardUrl != null) {
-                    $window.location.href = appService.getAppDescriptor().formatUrl(forwardUrl, {'patientUuid': patientUuid});
+                    $window.location.href = appService.getAppDescriptor().formatUrl(forwardUrl, { 'patientUuid': patientUuid });
                 } else {
                     $state.transitionTo($state.current, $state.params, {
                         reload: true,
@@ -277,7 +300,7 @@ angular.module('bahmni.registration')
 
             var getConceptSet = function () {
                 var visitType = $scope.encounterConfig.getVisitTypeByUuid($scope.visitTypeUuid);
-                $scope.context = {visitType: visitType, patient: $scope.patient};
+                $scope.context = { visitType: visitType, patient: $scope.patient };
             };
 
             var getObservationForms = function (extensions, observationsForms) {
@@ -297,6 +320,22 @@ angular.module('bahmni.registration')
                 });
                 return forms;
             };
+
+            var isObjectEmpty = function (obj) {
+                return Object.keys(obj).length === 0;
+            };
+
+            $scope.allowSave = false;
+            $timeout(function () {
+                $(".Select-multi-value-wrapper .Select-input input").keypress(function () {
+                    let value = [];
+                    value = $(this).val().toString();
+                    if (isObjectEmpty(value) != true) {
+                        $scope.allowSave = true;
+                        $timeout();
+                    }
+                }).keypress();
+            }, 1000);
 
             $scope.isFormTemplate = function (data) {
                 return data.formUuid;
