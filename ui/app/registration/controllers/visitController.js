@@ -1,9 +1,9 @@
 'use strict';
 
 angular.module('bahmni.registration')
-    .controller('VisitController', ['$window', '$scope', '$rootScope', '$state', '$bahmniCookieStore', 'patientService', 'encounterService', '$stateParams', 'spinner', '$timeout', '$q', 'appService', 'openmrsPatientMapper', 'contextChangeHandler', 'messagingService', 'sessionService', 'visitService', '$location', '$translate',
+    .controller('VisitController', ['$window', '$cookies', '$scope', '$rootScope', '$state', '$bahmniCookieStore', 'patientService', 'encounterService', '$stateParams', 'spinner', '$timeout', '$q', 'appService', 'openmrsPatientMapper', 'contextChangeHandler', 'messagingService', 'sessionService', 'visitService', '$location', '$translate',
         'auditLogService', 'formService',
-        function ($window, $scope, $rootScope, $state, $bahmniCookieStore, patientService, encounterService, $stateParams, spinner, $timeout, $q, appService, openmrsPatientMapper, contextChangeHandler, messagingService, sessionService, visitService, $location, $translate, auditLogService, formService) {
+        function ($window, $cookies, $scope, $rootScope, $state, $bahmniCookieStore, patientService, encounterService, $stateParams, spinner, $timeout, $q, appService, openmrsPatientMapper, contextChangeHandler, messagingService, sessionService, visitService, $location, $translate, auditLogService, formService) {
             var vm = this;
             var patientUuid = $stateParams.patientUuid;
             var extensions = appService.getAppDescriptor().getExtensions("org.bahmni.registration.conceptSetGroup.observations", "config");
@@ -53,7 +53,13 @@ angular.module('bahmni.registration')
 
                         $scope.observationForms = getObservationForms(formExtensions, response.data);
                         $scope.conceptSets = $scope.conceptSets.concat($scope.observationForms);
-
+                        var value = $cookies.get("bahmni.user.location");
+                        if (JSON.parse(value).name === "Emergency") {
+                            $scope.conceptSets = $scope.conceptSets.filter(data => data.conceptName !== "Room To Assign");
+                        }
+                        else {
+                            $scope.conceptSets = $scope.conceptSets.filter(data => data.conceptName !== "Room To Assign Emergency");
+                        }
                         $scope.availableConceptSets = $scope.conceptSets.filter(function (conceptSet) {
                             return conceptSet.isAvailable($scope.context);
                         });
@@ -175,6 +181,13 @@ angular.module('bahmni.registration')
                 var valid = true;
                 var isSelectOpd = false;
                 var _value = [];
+                var value = $cookies.get("bahmni.user.location");
+                if (JSON.parse(value).name === "Emergency") {
+                    $scope.observationForms = $scope.observationForms.filter(data => data.conceptName !== "Room To Assign");
+                }
+                else {
+                    $scope.observationForms = $scope.observationForms.filter(data => data.conceptName !== "Room To Assign Emergency");
+                }
                 _.each($scope.observationForms, function (observationForm) {
                     _value = observationForm.component.getValue().observations;
                     if (valid && observationForm.component) {
