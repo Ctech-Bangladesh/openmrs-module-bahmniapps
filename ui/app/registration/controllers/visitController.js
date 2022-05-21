@@ -1,9 +1,9 @@
 'use strict';
 
 angular.module('bahmni.registration')
-    .controller('VisitController', ['$window', '$scope', '$rootScope', '$state', '$bahmniCookieStore', 'patientService', 'encounterService', '$stateParams', 'spinner', '$timeout', '$q', 'appService', 'openmrsPatientMapper', 'contextChangeHandler', 'messagingService', 'sessionService', 'visitService', '$location', '$translate',
+    .controller('VisitController', ['$window', '$http', '$scope', '$rootScope', '$state', '$bahmniCookieStore', 'patientService', 'encounterService', '$stateParams', 'spinner', '$timeout', '$q', 'appService', 'openmrsPatientMapper', 'contextChangeHandler', 'messagingService', 'sessionService', 'visitService', '$location', '$translate',
         'auditLogService', 'formService',
-        function ($window, $scope, $rootScope, $state, $bahmniCookieStore, patientService, encounterService, $stateParams, spinner, $timeout, $q, appService, openmrsPatientMapper, contextChangeHandler, messagingService, sessionService, visitService, $location, $translate, auditLogService, formService) {
+        function ($window, $http, $scope, $rootScope, $state, $bahmniCookieStore, patientService, encounterService, $stateParams, spinner, $timeout, $q, appService, openmrsPatientMapper, contextChangeHandler, messagingService, sessionService, visitService, $location, $translate, auditLogService, formService) {
             var vm = this;
             var patientUuid = $stateParams.patientUuid;
             var extensions = appService.getAppDescriptor().getExtensions("org.bahmni.registration.conceptSetGroup.observations", "config");
@@ -40,6 +40,31 @@ angular.module('bahmni.registration')
                     if ($scope.observations.length > 0) {
                         $scope.admissionFromAccess = $scope.observations[0].groupMembers.filter(obs => obs.valueAsString === "IPD Admission");
                     }
+                    var getUserRole = function () {
+                        var params = {
+                            v: "full"
+                        };
+                        return $http.get('/openmrs/ws/rest/v1/user?limit=500', {
+                            method: "GET",
+                            params: params,
+                            withCredentials: true
+                        });
+                    };
+                    $q.all([getUserRole()]).then(function (response) {
+                        var result = response[0].data.results;
+
+                        var providerUuid = $rootScope.currentUser.person.uuid;
+                        var filterUser = result.filter(user =>
+                            user.person.uuid === providerUuid
+                        );
+                        var roles = filterUser[0].roles;
+                        var verify = roles.filter(role => role.name === "System Developer");
+                        if (verify.length > 0) {
+                            $scope.reprint = true;
+                        } else {
+                            $scope.reprint = false;
+                        }
+                    });
                 });
                 return deferred.promise;
             };
