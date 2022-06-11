@@ -10,13 +10,14 @@ angular.module('bahmni.ot')
             var init = function () {
                 $scope.selectedPatient = $scope.ngDialogData && $scope.ngDialogData.patient;
                 $scope.patient = $scope.ngDialogData && $scope.ngDialogData.patient && ($scope.ngDialogData.patient.value || $scope.ngDialogData.patient.display);
-                var surgeons = [];
-                for (let i = 0; i < $scope.surgeons.length; i++) {
-                    if ($scope.surgeons[i].person.display.match('Dr.')) {
-                        surgeons.push($scope.surgeons[i]);
-                        $scope.otherSurgeons = _.cloneDeep(surgeons);
-                    }
-                }
+                // var surgeons = [];
+                // for (let i = 0; i < $scope.surgeons.length; i++) {
+                //     if ($scope.surgeons[i].person.display.match('Dr.')) {
+                //         surgeons.push($scope.surgeons[i]);
+                //         $scope.otherSurgeons = _.cloneDeep(surgeons);
+                //     }
+                // }
+                $scope.otherSurgeons = $scope.surgeons.filter(res=>res.person.display.includes('Dr.'))
                 console.log($scope.otherSurgeons);
                 return $q.all([surgicalAppointmentService.getSurgicalAppointmentAttributeTypes()]).then(function (response) {
                     $scope.attributeTypes = response[0].data.results;

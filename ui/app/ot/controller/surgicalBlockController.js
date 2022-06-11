@@ -13,12 +13,13 @@ angular.module('bahmni.ot')
                     $scope.locations = response[1].data.results;
                     $scope.attributeTypes = response[2].data.results;
                     $scope.unitNames = [];
-                    for (let i = 0; i < $scope.surgeons.length; i++) {
-                        if (!$scope.surgeons[i].person.display.match('Dr.')) {
-                            $scope.unitNames.push($scope.surgeons[i]);
-                        }
-                    }
-                    console.log($scope.unitNames);
+                    // for (let i = 0; i < $scope.surgeons.length; i++) {
+                    //     if (!$scope.surgeons[i].person.display.match('Dr.')) {
+                    //         $scope.unitNames.push($scope.surgeons[i]);
+                    //     }
+                    // }
+                    $scope.unitNames = $scope.surgeons.filter(res=>!res.person.display.includes('Dr.'))
+                    console.log( $scope.unitNames);
 
                     if ($stateParams.surgicalBlockUuid) {
                         return surgicalAppointmentService.getSurgicalBlockFor($stateParams.surgicalBlockUuid).then(function (response) {
