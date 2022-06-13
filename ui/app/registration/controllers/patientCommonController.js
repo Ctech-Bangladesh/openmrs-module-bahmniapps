@@ -67,39 +67,39 @@ angular.module('bahmni.registration')
                 stateChangeListener();
             });
 
-            $scope.getDeathConcepts = function () {
-                return $http({
-                    url: Bahmni.Common.Constants.globalPropertyUrl,
-                    method: 'GET',
-                    params: {
-                        property: 'concept.reasonForDeath'
-                    },
-                    withCredentials: true,
-                    transformResponse: [function (deathConcept) {
-                        if (_.isEmpty(deathConcept)) {
-                            $scope.deathConceptExists = false;
-                        } else {
-                            $http.get(Bahmni.Common.Constants.conceptSearchByFullNameUrl, {
-                                params: {
-                                    name: deathConcept,
-                                    v: "custom:(uuid,name,set,setMembers:(uuid,display,name:(uuid,name),retired))"
-                                },
-                                withCredentials: true
-                            }).then(function (results) {
-                                $scope.deathConceptExists = !!results.data.results.length;
-                                $scope.deathConcepts = results.data.results[0] ? results.data.results[0].setMembers : [];
-                                $scope.deathConcepts = filterRetireDeathConcepts($scope.deathConcepts);
-                            });
-                        }
-                    }]
-                });
-            };
-            spinner.forPromise($scope.getDeathConcepts());
-            var filterRetireDeathConcepts = function (deathConcepts) {
-                return _.filter(deathConcepts, function (concept) {
-                    return !concept.retired;
-                });
-            };
+            // $scope.getDeathConcepts = function () {
+            //     return $http({
+            //         url: Bahmni.Common.Constants.globalPropertyUrl,
+            //         method: 'GET',
+            //         params: {
+            //             property: 'concept.reasonForDeath'
+            //         },
+            //         withCredentials: true,
+            //         transformResponse: [function (deathConcept) {
+            //             if (_.isEmpty(deathConcept)) {
+            //                 $scope.deathConceptExists = false;
+            //             } else {
+            //                 $http.get(Bahmni.Common.Constants.conceptSearchByFullNameUrl, {
+            //                     params: {
+            //                         name: deathConcept,
+            //                         v: "custom:(uuid,name,set,setMembers:(uuid,display,name:(uuid,name),retired))"
+            //                     },
+            //                     withCredentials: true
+            //                 }).then(function (results) {
+            //                     $scope.deathConceptExists = !!results.data.results.length;
+            //                     $scope.deathConcepts = results.data.results[0] ? results.data.results[0].setMembers : [];
+            //                     $scope.deathConcepts = filterRetireDeathConcepts($scope.deathConcepts);
+            //                 });
+            //             }
+            //         }]
+            //     });
+            // };
+            // spinner.forPromise($scope.getDeathConcepts());
+            // var filterRetireDeathConcepts = function (deathConcepts) {
+            //     return _.filter(deathConcepts, function (concept) {
+            //         return !concept.retired;
+            //     });
+            // };
 
             $scope.isAutoComplete = function (fieldName) {
                 return !_.isEmpty(autoCompleteFields) ? autoCompleteFields.indexOf(fieldName) > -1 : false;

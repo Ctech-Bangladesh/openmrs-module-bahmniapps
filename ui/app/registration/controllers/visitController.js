@@ -143,7 +143,7 @@ angular.module('bahmni.registration')
                     var visitSummary = response.data;
                     if (visitSummary.admissionDetails && !visitSummary.dischargeDetails) {
                         messagingService.showMessage("error", 'REGISTRATION_VISIT_CANNOT_BE_CLOSED');
-                        var messageParams = {visitUuid: vm.visitUuid, visitType: visitSummary.visitType};
+                        var messageParams = { visitUuid: vm.visitUuid, visitType: visitSummary.visitType };
                         auditLogService.log(patientUuid, 'CLOSE_VISIT_FAILED', messageParams, 'MODULE_LABEL_REGISTRATION_KEY');
                     } else {
                         closeVisit(visitSummary.visitType);
@@ -156,7 +156,7 @@ angular.module('bahmni.registration')
                 if (confirmed) {
                     visitService.endVisit(vm.visitUuid).then(function () {
                         $location.url(Bahmni.Registration.Constants.patientSearchURL);
-                        var messageParams = {visitUuid: vm.visitUuid, visitType: visitType};
+                        var messageParams = { visitUuid: vm.visitUuid, visitType: visitType };
                         auditLogService.log(patientUuid, 'CLOSE_VISIT', messageParams, 'MODULE_LABEL_REGISTRATION_KEY');
                     });
                 }
@@ -184,6 +184,9 @@ angular.module('bahmni.registration')
                 _.each(_value, function (t) {
                     if (t.concept.name.includes(opdRoomMandatory.conceptName)) {
                         isSelectOpd = true;
+                    }
+                    if (t.value === undefined) {
+                        isSelectOpd = false;
                     }
                 });
 
@@ -263,15 +266,15 @@ angular.module('bahmni.registration')
                 return _.isEmpty(concept);
             };
             // End :: Registration Page validation
-            var generateQueue = function (queueData) {
-                console.log("Queue Generated :: " + queueData);
-                return $http({
-                    method: 'POST',
-                    url: '/openmrs/module/queuemanagement/generate.form',
-                    data: JSON.stringify(queueData),
-                    headers: {'Content-Type': 'application/json'}
-                });
-            };
+            // var generateQueue = function (queueData) {
+            //     console.log("Queue Generated :: " + queueData);
+            //     return $http({
+            //         method: 'POST',
+            //         url: '/openmrs/module/queuemanagement/generate.form',
+            //         data: JSON.stringify(queueData),
+            //         headers: { 'Content-Type': 'application/json' }
+            //     });
+            // };
 
             /*  // print
               var print = function () {
@@ -280,9 +283,9 @@ angular.module('bahmni.registration')
 
 
             var afterSave = function () {
-                var forwardUrl = appService.getAppDescriptor().getConfigValue("afterVisitSaveForwardUrl");
+                // var forwardUrl = appService.getAppDescriptor().getConfigValue("afterVisitSaveForwardUrl");
                 var afterSave = appService.getAppDescriptor().getConfigValue("afterSavePrint");
-                var queueManagement = appService.getAppDescriptor().getConfigValue("queueManagement");
+                // var queueManagement = appService.getAppDescriptor().getConfigValue("queueManagement");
                 $scope.serial = $scope.serial || [];
 
                 $state.transitionTo($state.current, $state.params, {
@@ -293,7 +296,7 @@ angular.module('bahmni.registration')
                 messagingService.showMessage('info', 'REGISTRATION_LABEL_SAVED');
 
                 $timeout(function () {
-                    var apiURL ="/openmrs/ws/rest/v1/bahmnicore/observations?" +
+                    var apiURL = "/openmrs/ws/rest/v1/bahmnicore/observations?" +
                         "concept=Registration+Fee+Type&concept=Free+Type&" +
                         "concept=Temporary+Categories&concept=Opd+Consultation+Room&" +
                         "patientUuid=" +
@@ -307,34 +310,35 @@ angular.module('bahmni.registration')
                         $scope.obsData = obsdata;
                         patientService.get(patientUuid).then(function (openMRSPatient) {
                             $scope.patient = openmrsPatientMapper.map(openMRSPatient);
-                            obsdata.forEach(key => {
-                                if (key.complexData != null) {
-                                    let identifier = $scope.patient.primaryIdentifier.identifier;
-                                    let roomName = key.complexData.data.name;
-                                    let roomId = key.complexData.data.id;
-                                    let date = new Date;
-                                    let formatDate = date.toISOString().split("T");
-                                    let queue = {
-                                        identifier: identifier,
-                                        visitroom: roomName,
-                                        roomId: roomId,
-                                        dateCreated: formatDate[0]
-                                    };
-                                    if (queueManagement.willUse == true) {
-                                        generateQueue(queue);
-                                        console.log(queue);
-                                        $http({
-                                            method: "GET",
-                                            url: "/openmrs/module/queuemanagement/getToken.form?identifier=" + identifier + "&dateCreated=" + formatDate[0],
-                                        }).then(function mySuccess(response) {
-                                            var newData = response.data.token;
-                                            $scope.serial.push(newData);
-                                        });
-                                    } else {
-                                        console.log("Queue management module is not being used now");
-                                    }
-                                }
-                            });
+                            // obsdata.forEach(key => {
+                            //     if (key.complexData != null) {
+                            //         let identifier = $scope.patient.primaryIdentifier.identifier;
+                            //         let roomName = key.complexData.data.name;
+                            //         let roomId = key.complexData.data.id;
+                            //         let date = new Date;
+                            //         let formatDate = date.toISOString().split("T");
+                            //         let queue = {
+                            //             identifier: identifier,
+                            //             visitroom: roomName,
+                            //             roomId: roomId,
+                            //             dateCreated: formatDate[0]
+                            //         };
+                            //         if (queueManagement.willUse == true) {
+                            //             generateQueue(queue);
+                            //             console.log(queue);
+                            //             $http({
+                            //                 method: "GET",
+                            //                 url: "/openmrs/module/queuemanagement/getToken.form?identifier=" + identifier + "&dateCreated=" + formatDate[0],
+                            //             }).then(function mySuccess(response) {
+                            //                 var newData = response.data.token;
+                            //                 $scope.serial.push(newData);
+                            //             });
+                            //         } else {
+                            //             console.log("Queue management module is not being used now");
+                            //         }
+                            //     }
+                            // }
+                            // );
                         });
                         if (afterSave.print === true) {
                             $scope.observations = $scope.obsData || $scope.observations;
@@ -342,6 +346,7 @@ angular.module('bahmni.registration')
                             if (afterSave.createNew === true) {
                                 $state.go('newpatient');
                             }
+                            window.sessionStorage.removeItem('free');
                         }
                     });
                 }, 500);
@@ -365,7 +370,7 @@ angular.module('bahmni.registration')
 
             var getConceptSet = function () {
                 var visitType = $scope.encounterConfig.getVisitTypeByUuid($scope.visitTypeUuid);
-                $scope.context = {visitType: visitType, patient: $scope.patient};
+                $scope.context = { visitType: visitType, patient: $scope.patient };
             };
 
             var getObservationForms = function (extensions, observationsForms) {
