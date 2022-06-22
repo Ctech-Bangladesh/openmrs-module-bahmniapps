@@ -200,6 +200,9 @@ angular.module('bahmni.registration')
                     if (t.concept.name.includes(opdRoomMandatory.conceptName)) {
                         isSelectOpd = true;
                     }
+                    if (t.value === undefined) {
+                        isSelectOpd = false;
+                    }
                 });
 
                 if (opdRoomMandatory.isMandatory) {
