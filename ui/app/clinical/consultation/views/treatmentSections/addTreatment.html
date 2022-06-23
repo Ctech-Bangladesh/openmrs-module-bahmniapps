@@ -25,19 +25,28 @@
                                    ng-change="onChange()"
                                    ng-model="treatment.drugNameDisplay" on-select="onSelect" autofocus
                                    ng-disabled="treatment.previousOrderUuid" ng-readonly="treatment.isBeingEdited"/>
-
+                     
                 <span ng-if="treatmentConfig.allowNonCodedDrugs()">
-                    <button type="button" ng-model="treatment.isNonCodedDrug"
-                            class="fl accept-btn" id="accept-button"
-                            ng-click="onAccept()"
-                            ng-class="{
-                            illegalValue: treatment.drugNameDisplay && !treatment.isNonCodedDrug,
-                            active: treatment.isNonCodedDrug
-                        }"
-                            ng-disabled="treatment.drug.uuid || treatment.concept.uuid || (treatment.isBeingEdited && treatment.isNonCodedDrug)">
+                  <div >
+                    <div ng-show="drugNotAvailable"  style="position: relative; top: 25px; right: 20px;color: red;">
+                        <span ><b>Drug is not available.</b></span>
+                    </div>
+                    <div ng-show="drugAvailable"  style="position: relative; top: 25px; color: green;">
+                        <span><b>Drug is available.</b></span>
+                    </div>
+               <div>
+                    <button type="button" ng-model="treatment.isNonCodedDrug" class="fl accept-btn" id="accept-button" ng-click="onAccept()"
+                        ng-class="{
+                                                                    illegalValue: treatment.drugNameDisplay && !treatment.isNonCodedDrug,
+                                                                    active: treatment.isNonCodedDrug
+                                                                }"
+                        ng-disabled="treatment.drug.uuid || treatment.concept.uuid || (treatment.isBeingEdited && treatment.isNonCodedDrug)">
                         <span>{{ ::'ACCEPT' | translate }}</span>
                     </button>
+               </div>
+                  </div>
                 </span>
+                
                         </div>
                     </div>
                 </article>
