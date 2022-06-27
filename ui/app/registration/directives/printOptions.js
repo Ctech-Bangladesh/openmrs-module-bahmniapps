@@ -4,10 +4,15 @@ angular.module('bahmni.registration')
     .directive('printOptions', ['$http', '$q', '$stateParams', '$rootScope', 'registrationCardPrinter', 'spinner', 'appService', '$filter',
         function ($http, $q, $stateParams, $rootScope, registrationCardPrinter, spinner, appService, $filter) {
             var controller = function ($scope) {
-                $scope.printOptionsAdmission = appService.getAppDescriptor().getConfigValue("printOptions");
+                $scope.printOptionsAdmission = appService.getAppDescriptor().getConfigValue("printOptions").filter(option => option.shortcutKey !== "r");
                 $scope.defaultPrintAdmission = $scope.printOptionsAdmission && $scope.printOptionsAdmission[0];
-                $scope.printOptions = appService.getAppDescriptor().getConfigValue("printOptions").filter(option => option.shortcutKey !== "i");
+                $scope.printOptions = appService.getAppDescriptor().getConfigValue("printOptions").filter(option => option.shortcutKey !== "i" && option.shortcutKey !== "r");
                 $scope.defaultPrint = $scope.printOptions && $scope.printOptions[0];
+
+                $scope.printOptionsAdmissionForDev = appService.getAppDescriptor().getConfigValue("printOptions");
+                $scope.defaultPrintAdmissionForDev = $scope.printOptionsAdmissionForDev && $scope.printOptionsAdmissionForDev[0];
+                $scope.printOptionsForDev = appService.getAppDescriptor().getConfigValue("printOptions").filter(option => option.shortcutKey !== "i");
+                $scope.defaultPrintForDev = $scope.printOptionsForDev && $scope.printOptionsForDev[0];
 
                 var mapRegistrationObservations = function () {
                     var obs = {};
@@ -26,6 +31,28 @@ angular.module('bahmni.registration')
                     };
                     $q.all([getDispositionNote()]).then(function (response) {
                         $scope.observations.dispositionNote = response[0].data.results[0];
+                    });
+                    var getRoomData = function (url) {
+                        return $http.get(`/openmrs${url}`, {
+                            method: "GET",
+                            withCredentials: true
+                        });
+                    };
+                    var getRoom = function () {
+                        return $http.get(`/openmrs/ws/rest/v1/obs?limit=2&concepts=Opd%20Consultation%20Room&patient=${$stateParams.patientUuid}`, {
+                            method: "GET",
+                            withCredentials: true
+                        });
+                    };
+                    $q.all([getRoom()]).then(function (response) {
+                        if (response[0].data.results.length === 1) {
+                            $scope.observations.previousDate = $scope.observations[1].encounterDateTime;
+                        }
+                        else if (response[0].data.results.length > 1) {
+                            $q.all([getRoomData(response[0].data.results[1].links[0].uri.split('/openmrs')[1])]).then(function (response) {
+                                $scope.observations.previousDate = response[0].data.obsDatetime;
+                            });
+                        }
                     });
                     return obs;
                 };
