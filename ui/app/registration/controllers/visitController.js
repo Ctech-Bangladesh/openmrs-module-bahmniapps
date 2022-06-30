@@ -38,7 +38,9 @@ angular.module('bahmni.registration')
                     $scope.encounterUuid = response.data.encounterUuid;
                     $scope.observations = response.data.observations;
                     if ($scope.observations.length > 0) {
-                        $scope.admissionFromAccess = $scope.observations[0].groupMembers.filter(obs => obs.valueAsString === "IPD Admission");
+                        var visitData = $scope.observations.filter(data => data.conceptSetName !== "Visit Details");
+                        var filterVisit = visitData.filter(data => data.conceptNameToDisplay === 'Visit Details');
+                        $scope.admissionFromAccess = filterVisit[0].groupMembers.filter(obs => obs.valueAsString === "IPD Admission");
                     }
                     var getUserRole = function () {
                         var params = {

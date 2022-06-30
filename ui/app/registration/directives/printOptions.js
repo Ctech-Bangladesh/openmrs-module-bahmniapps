@@ -23,6 +23,47 @@ angular.module('bahmni.registration')
                         observation.groupMembers.forEach(getValue);
                     };
                     $scope.observations.forEach(getValue);
+
+                    var getDispositionProvider = function () {
+                        return $http.get(`/openmrs/ws/rest/v1/obs?limit=1&concepts=Disposition&patient=${$stateParams.patientUuid}`, {
+                            method: "GET",
+                            withCredentials: true
+                        });
+                    };
+                    var getProviderDesignation = function (providerUuid) {
+                        var params = {
+                            q: "bahmni.sqlGet.providerDesignation2",
+                            v: "full",
+                            providerUuid: providerUuid
+                        };
+                        return $http.get('/openmrs/ws/rest/v1/bahmnicore/sql', {
+                            method: "GET",
+                            params: params,
+                            withCredentials: true
+                        });
+                    };
+                    var getApiData = function (url) {
+                        return $http.get(`/openmrs${url}`, {
+                            method: "GET",
+                            withCredentials: true
+                        });
+                    };
+                    $q.all([getDispositionProvider()]).then(function (response) {
+                        $q.all([getApiData(response[0].data.results[0].links[0].uri.split('/openmrs')[1])]).then(function (response) {
+                            $q.all([getApiData(response[0].data.encounter.links[0].uri.split('/openmrs')[1])]).then(function (response) {
+                                $q.all([getApiData(response[0].data.encounterProviders[0].links[0].uri.split('/openmrs')[1])]).then(function (response) {
+                                    $q.all([getApiData(response[0].data.provider.links[0].uri.split('/openmrs')[1])]).then(function (response) {
+                                        $scope.observations.providerName = response[0].data.person.display;
+                                    });
+                                    $q.all([getProviderDesignation(response[0].data.provider.uuid)]).then(function (response) {
+                                        if (response[0].data.length > 0) {
+                                            $scope.observations.providerDesignation = response[0].data[0].value_reference;
+                                        }
+                                    });
+                                });
+                            });
+                        });
+                    });
                     var getDispositionNote = function () {
                         return $http.get(`/openmrs/ws/rest/v1/obs?limit=1&patient=${$stateParams.patientUuid}&concept=Disposition%20Set`, {
                             method: "GET",
