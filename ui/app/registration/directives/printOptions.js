@@ -73,7 +73,12 @@ angular.module('bahmni.registration')
                         });
                     };
                     $q.all([getDispositionNote()]).then(function (response) {
-                        $scope.observations.dispositionNote = response[0].data.results[0];
+                        if (response[0].data.results.length > 0) {
+                            $q.all([getApiData(response[0].data.results[0].links[0].uri.split('/openmrs')[1])]).then(function (response) {
+                                $scope.observations.dispositionSet = response[0].data.groupMembers.filter(data => data.concept.display === 'Disposition');
+                                $scope.observations.dispositionNote = response[0].data.groupMembers.filter(data => data.concept.display === 'Disposition Note');
+                            });
+                        }
                     });
                     var getRoomData = function (url) {
                         return $http.get(`/openmrs${url}`, {
