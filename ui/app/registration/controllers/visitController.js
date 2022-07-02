@@ -40,8 +40,9 @@ angular.module('bahmni.registration')
                     if ($scope.observations.length > 0) {
                         var visitDetails = [];
                         $scope.observations.forEach(function (value) {
-                            if (value.conceptNameToDisplay === "Visit Details")
+                            if (value.conceptNameToDisplay === "Visit Details") {
                                 visitDetails.push(value);
+                            }
                         });
                         $scope.admissionFromAccess = visitDetails[0].groupMembers.filter(obs => obs.valueAsString === "IPD Admission");
                     }
