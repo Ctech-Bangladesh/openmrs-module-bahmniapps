@@ -86,10 +86,26 @@ angular.module('bahmni.registration')
                         $scope.conceptSets = $scope.conceptSets.concat($scope.observationForms);
                         var value = $cookies.get("bahmni.user.location");
                         if (JSON.parse(value).name === "Emergency") {
+                            $scope.opdTicketButton = false;
                             $scope.conceptSets = $scope.conceptSets.filter(data => data.conceptName !== "Room To Assign");
+                            var checking = $scope.observations.filter(data => data.formFieldPath === 'Room To Assign Emergency.1/1-0');
+                            if (checking.length > 0) {
+                                $scope.emergencyTicketButton = true;
+                            }
+                            else {
+                                $scope.emergencyTicketButton = false;
+                            }
                         }
                         else {
+                            $scope.emergencyTicketButton = false;
                             $scope.conceptSets = $scope.conceptSets.filter(data => data.conceptName !== "Room To Assign Emergency");
+                            var checking = $scope.observations.filter(data => data.formFieldPath === 'Room To Assign.2/1-0');
+                            if (checking.length > 0) {
+                                $scope.opdTicketButton = true;
+                            }
+                            else {
+                                $scope.opdTicketButton = false;
+                            }
                         }
                         $scope.availableConceptSets = $scope.conceptSets.filter(function (conceptSet) {
                             return conceptSet.isAvailable($scope.context);

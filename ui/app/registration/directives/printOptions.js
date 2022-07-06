@@ -1,8 +1,8 @@
 'use strict';
 
 angular.module('bahmni.registration')
-    .directive('printOptions', ['$http', '$q', '$stateParams', '$rootScope', 'registrationCardPrinter', 'spinner', 'appService', '$filter',
-        function ($http, $q, $stateParams, $rootScope, registrationCardPrinter, spinner, appService, $filter) {
+    .directive('printOptions', ['$http', '$q', '$cookies', '$stateParams', '$rootScope', 'registrationCardPrinter', 'spinner', 'appService', '$filter',
+        function ($http, $q, $cookies, $stateParams, $rootScope, registrationCardPrinter, spinner, appService, $filter) {
             var controller = function ($scope) {
                 $scope.printOptionsAdmission = appService.getAppDescriptor().getConfigValue("printOptions").filter(option => option.shortcutKey !== "r");
                 $scope.defaultPrintAdmission = $scope.printOptionsAdmission && $scope.printOptionsAdmission[0];
@@ -13,7 +13,6 @@ angular.module('bahmni.registration')
                 $scope.defaultPrintAdmissionForDev = $scope.printOptionsAdmissionForDev && $scope.printOptionsAdmissionForDev[0];
                 $scope.printOptionsForDev = appService.getAppDescriptor().getConfigValue("printOptions").filter(option => option.shortcutKey !== "i");
                 $scope.defaultPrintForDev = $scope.printOptionsForDev && $scope.printOptionsForDev[0];
-
                 var mapRegistrationObservations = function () {
                     var obs = {};
                     $scope.observations = $scope.observations || [];
@@ -23,7 +22,15 @@ angular.module('bahmni.registration')
                         observation.groupMembers.forEach(getValue);
                     };
                     $scope.observations.forEach(getValue);
-
+                    var value = $cookies.get("bahmni.user.location");
+                    if (JSON.parse(value).name === "Emergency") {
+                        $scope.observations = $scope.observations.filter(data => data.formFieldPath !== 'Room To Assign.2/1-0');
+                        $scope.printOptionsForDev = $scope.printOptionsForDev.filter(option => option.shortcutKey !== "l");
+                    }
+                    else {
+                        $scope.observations = $scope.observations.filter(data => data.formFieldPath !== 'Room To Assign Emergency.1/1-0');
+                        $scope.printOptionsForDev = $scope.printOptionsForDev.filter(option => option.shortcutKey !== "e");
+                    }
                     var getDispositionProvider = function () {
                         return $http.get(`/openmrs/ws/rest/v1/obs?limit=1&concepts=Disposition&patient=${$stateParams.patientUuid}`, {
                             method: "GET",
