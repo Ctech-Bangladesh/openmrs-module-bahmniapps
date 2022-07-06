@@ -25,11 +25,9 @@ angular.module('bahmni.registration')
                     var value = $cookies.get("bahmni.user.location");
                     if (JSON.parse(value).name === "Emergency") {
                         $scope.observations = $scope.observations.filter(data => data.formFieldPath !== 'Room To Assign.2/1-0');
-                        $scope.printOptionsForDev = $scope.printOptionsForDev.filter(option => option.shortcutKey !== "l");
                     }
                     else {
                         $scope.observations = $scope.observations.filter(data => data.formFieldPath !== 'Room To Assign Emergency.1/1-0');
-                        $scope.printOptionsForDev = $scope.printOptionsForDev.filter(option => option.shortcutKey !== "e");
                     }
                     var getDispositionProvider = function () {
                         return $http.get(`/openmrs/ws/rest/v1/obs?limit=1&concepts=Disposition&patient=${$stateParams.patientUuid}`, {
