@@ -1,9 +1,9 @@
 'use strict';
 
 angular.module('bahmni.registration')
-    .controller('VisitController', ['$window','$cookies', '$scope', '$http', '$rootScope', '$state', '$bahmniCookieStore', 'patientService', 'encounterService', '$stateParams', 'spinner', '$timeout', '$q', 'appService', 'openmrsPatientMapper', 'contextChangeHandler', 'messagingService', 'sessionService', 'visitService', '$location', '$translate',
+    .controller('VisitController', ['$window', '$http', '$cookies', '$scope', '$rootScope', '$state', '$bahmniCookieStore', 'patientService', 'encounterService', '$stateParams', 'spinner', '$timeout', '$q', 'appService', 'openmrsPatientMapper', 'contextChangeHandler', 'messagingService', 'sessionService', 'visitService', '$location', '$translate',
         'auditLogService', 'formService',
-        function ($window, $cookies, $scope, $http, $rootScope, $state, $bahmniCookieStore, patientService, encounterService, $stateParams, spinner, $timeout, $q, appService, openmrsPatientMapper, contextChangeHandler, messagingService, sessionService, visitService, $location, $translate, auditLogService, formService) {
+        function ($window, $http, $cookies, $scope, $rootScope, $state, $bahmniCookieStore, patientService, encounterService, $stateParams, spinner, $timeout, $q, appService, openmrsPatientMapper, contextChangeHandler, messagingService, sessionService, visitService, $location, $translate, auditLogService, formService) {
             var vm = this;
             var patientUuid = $stateParams.patientUuid;
             var extensions = appService.getAppDescriptor().getExtensions("org.bahmni.registration.conceptSetGroup.observations", "config");
@@ -38,8 +38,39 @@ angular.module('bahmni.registration')
                     $scope.encounterUuid = response.data.encounterUuid;
                     $scope.observations = response.data.observations;
                     if ($scope.observations.length > 0) {
-                        $scope.admissionFromAccess = $scope.observations[0].groupMembers.filter(obs => obs.valueAsString === "IPD Admission");
+                        var visitDetails = [];
+                        $scope.observations.forEach(function (value) {
+                            if (value.conceptNameToDisplay === "Visit Details") {
+                                visitDetails.push(value);
+                            }
+                        });
+                        $scope.admissionFromAccess = visitDetails[0].groupMembers.filter(obs => obs.valueAsString === "IPD Admission");
                     }
+                    var getUserRole = function () {
+                        var params = {
+                            v: "full"
+                        };
+                        return $http.get('/openmrs/ws/rest/v1/user?limit=500', {
+                            method: "GET",
+                            params: params,
+                            withCredentials: true
+                        });
+                    };
+                    $q.all([getUserRole()]).then(function (response) {
+                        var result = response[0].data.results;
+
+                        var providerUuid = $rootScope.currentUser.person.uuid;
+                        var filterUser = result.filter(user =>
+                            user.person.uuid === providerUuid
+                        );
+                        var roles = filterUser[0].roles;
+                        var verify = roles.filter(role => role.name === "System Developer");
+                        if (verify.length > 0) {
+                            $scope.reprint = true;
+                        } else {
+                            $scope.reprint = false;
+                        }
+                    });
                 });
                 return deferred.promise;
             };
@@ -55,10 +86,26 @@ angular.module('bahmni.registration')
                         $scope.conceptSets = $scope.conceptSets.concat($scope.observationForms);
                         var value = $cookies.get("bahmni.user.location");
                         if (JSON.parse(value).name === "Emergency") {
+                            $scope.opdTicketButton = false;
                             $scope.conceptSets = $scope.conceptSets.filter(data => data.conceptName !== "Room To Assign");
+                            var checking = $scope.observations.filter(data => data.formFieldPath === 'Room To Assign Emergency.1/1-0');
+                            if (checking.length > 0) {
+                                $scope.emergencyTicketButton = true;
+                            }
+                            else {
+                                $scope.emergencyTicketButton = false;
+                            }
                         }
                         else {
+                            $scope.emergencyTicketButton = false;
                             $scope.conceptSets = $scope.conceptSets.filter(data => data.conceptName !== "Room To Assign Emergency");
+                            var checking = $scope.observations.filter(data => data.formFieldPath === 'Room To Assign.2/1-0');
+                            if (checking.length > 0) {
+                                $scope.opdTicketButton = true;
+                            }
+                            else {
+                                $scope.opdTicketButton = false;
+                            }
                         }
                         $scope.availableConceptSets = $scope.conceptSets.filter(function (conceptSet) {
                             return conceptSet.isAvailable($scope.context);
@@ -97,7 +144,9 @@ angular.module('bahmni.registration')
 
                 $scope.encounter.observations = $scope.observations;
                 $scope.encounter.observations = new Bahmni.Common.Domain.ObservationFilter().filter($scope.encounter.observations);
+
                 addFormObservations($scope.encounter.observations);
+
                 var createPromise = encounterService.create($scope.encounter);
                 spinner.forPromise(createPromise);
                 return createPromise.then(function (response) {
