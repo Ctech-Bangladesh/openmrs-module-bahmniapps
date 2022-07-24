@@ -12,6 +12,7 @@ angular.module('bahmni.registration')
             $scope.showEnterID = configValueForEnterId === null ? true : configValueForEnterId;
             $scope.today = Bahmni.Common.Util.DateTimeFormatter.getDateWithoutTime(dateUtil.now());
             $window.localStorage.removeItem('refresh');
+            $window.sessionStorage.removeItem('visitUUid');
             var getPersonAttributeTypes = function () {
                 return $rootScope.patientConfiguration.attributeTypes;
             };

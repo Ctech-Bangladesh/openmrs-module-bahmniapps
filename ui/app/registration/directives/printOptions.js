@@ -29,6 +29,20 @@ angular.module('bahmni.registration')
                     else {
                         $scope.observations = $scope.observations.filter(data => data.formFieldPath !== 'Room To Assign Emergency.1/1-0');
                     }
+                    let visitUUid = sessionStorage.getItem('visitUUid');
+                    var getMedicine = function () {
+                        return $http.get(`/openmrs/ws/rest/v1/bahmnicore/drugOrders/prescribedAndActive?getOtherActive=false&patientUuid=${$stateParams.patientUuid}&visitUuids=${visitUUid}`, {
+                            method: "GET",
+                            withCredentials: true
+                        });
+                    };
+
+                    $q.all([getMedicine()]).then(function (response) {
+                        if (response[0].data.visitDrugOrders.length) {
+                            const drugs = response[0].data.visitDrugOrders.filter(drug => drug.dateStopped === null);
+                            $scope.observations.activeDrug = drugs;
+                        }
+                    });
                     var getDispositionProvider = function () {
                         return $http.get(`/openmrs/ws/rest/v1/obs?limit=1&concepts=Disposition&patient=${$stateParams.patientUuid}`, {
                             method: "GET",
@@ -63,7 +77,11 @@ angular.module('bahmni.registration')
                                         });
                                         $q.all([getProviderDesignation(response[0].data.provider.uuid)]).then(function (response) {
                                             if (response[0].data.length > 0) {
-                                                $scope.observations.providerDesignation = response[0].data[0].value_reference;
+                                                for (var i = 0; i < response[0].data.length; i++) {
+                                                    if (response[0].data[i].name == 'Designation') {
+                                                        $scope.observations.providerDesignation = response[0].data[i].value_reference;
+                                                    }
+                                                }
                                             }
                                         });
                                     });

@@ -14,6 +14,7 @@ angular.module('bahmni.registration')
             var patientSearchResultConfigs = appService.getAppDescriptor().getConfigValue("patientSearchResults") || {};
             maxAttributesFromConfig = !_.isEmpty(allSearchConfigs.programAttributes) ? maxAttributesFromConfig - 1 : maxAttributesFromConfig;
             $window.localStorage.removeItem('refresh');
+            $window.sessionStorage.removeItem('visitUUid');
             $scope.getAddressColumnName = function (column) {
                 var columnName = "";
                 var columnCamelCase = column.replace(/([-_][a-z])/g, function ($1) {

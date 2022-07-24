@@ -191,6 +191,7 @@ angular.module('bahmni.registration')
 
                     var hasActiveVisit = activeVisitForCurrentLoginLocation.length > 0;
                     vm.visitUuid = hasActiveVisit ? activeVisitForCurrentLoginLocation[0].uuid : "";
+                    sessionStorage.setItem('visitUUid', vm.visitUuid);
                     $scope.canCloseVisit = isUserPrivilegedToCloseVisit() && hasActiveVisit;
                 });
             };

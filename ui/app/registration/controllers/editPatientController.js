@@ -8,6 +8,7 @@ angular.module('bahmni.registration')
             var dateUtil = Bahmni.Common.Util.DateUtil;
             var uuid = $stateParams.patientUuid;
             $scope.patient = {};
+            $window.sessionStorage.removeItem('visitUUid');
             var getUserRole = function () {
                 var params = {
                     v: "full"
