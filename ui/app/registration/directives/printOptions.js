@@ -29,20 +29,20 @@ angular.module('bahmni.registration')
                     else {
                         $scope.observations = $scope.observations.filter(data => data.formFieldPath !== 'Room To Assign Emergency.1/1-0');
                     }
-                    let visitUUid = sessionStorage.getItem('visitUUid');
-                    var getMedicine = function () {
-                        return $http.get(`/openmrs/ws/rest/v1/bahmnicore/drugOrders/prescribedAndActive?getOtherActive=false&patientUuid=${$stateParams.patientUuid}&visitUuids=${visitUUid}`, {
-                            method: "GET",
-                            withCredentials: true
-                        });
-                    };
+                    // let visitUUid = sessionStorage.getItem('visitUUid');
+                    // var getMedicine = function () {
+                    //     return $http.get(`/openmrs/ws/rest/v1/bahmnicore/drugOrders/prescribedAndActive?getOtherActive=false&patientUuid=${$stateParams.patientUuid}&visitUuids=${visitUUid}`, {
+                    //         method: "GET",
+                    //         withCredentials: true
+                    //     });
+                    // };
 
-                    $q.all([getMedicine()]).then(function (response) {
-                        if (response[0].data.visitDrugOrders.length) {
-                            const drugs = response[0].data.visitDrugOrders.filter(drug => drug.dateStopped === null);
-                            $scope.observations.activeDrug = drugs;
-                        }
-                    });
+                    // $q.all([getMedicine()]).then(function (response) {
+                    //     if (response[0].data.visitDrugOrders.length) {
+                    //         const drugs = response[0].data.visitDrugOrders.filter(drug => drug.dateStopped === null);
+                    //         $scope.observations.activeDrug = drugs;
+                    //     }
+                    // });
                     var getDispositionProvider = function () {
                         return $http.get(`/openmrs/ws/rest/v1/obs?limit=1&concepts=Disposition&patient=${$stateParams.patientUuid}`, {
                             method: "GET",
