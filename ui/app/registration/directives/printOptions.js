@@ -81,7 +81,11 @@ angular.module('bahmni.registration')
                                         });
                                         $q.all([getProviderDesignation(response[0].data.provider.uuid)]).then(function (response) {
                                             if (response[0].data.length > 0) {
-                                                $scope.observations.providerDesignation = response[0].data[0].value_reference;
+                                                for (var i = 0; i < response[0].data.length; i++) {
+                                                    if (response[0].data[i].name == 'Designation') {
+                                                        $scope.observations.providerDesignation = response[0].data[i].value_reference;
+                                                    }
+                                                }
                                             }
                                         });
                                     });
