@@ -36,8 +36,8 @@
                 <div class="button-group">
                     <button ng-click="edit(newTreatment, $index)" ng-disabled="showBulkChangeToggle"><i class="fa fa-edit"></i>
                     </button>
-                    <button ng-confirm-click="remove($index)"
-                            confirm-message="{{ 'REMOVE_CONFIRMATION_KEY' | translate }}"
+                    <button ng-click="remove($index)"
+                            
                             ng-disabled="showBulkChangeToggle"><i class="fa fa-remove"></i></button>
                     <button class="toggle" ng-class="{'has-notes': newTreatment.additionalInstructions}"
                             toggle="newTreatment.showAdditionalInstructions"
