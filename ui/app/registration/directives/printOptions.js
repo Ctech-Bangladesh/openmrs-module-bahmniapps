@@ -53,6 +53,13 @@ angular.module('bahmni.registration')
                             withCredentials: true
                         });
                     };
+                    var getTemporaryCategoryNotes = function () {
+                        return $http.get(`/openmrs/ws/rest/v1/obs?patient=${$stateParams.patientUuid}&concept=Temporary%20Category`, {
+                            method: "GET",
+                            withCredentials: true
+                        });
+                    };
+
                     var getProviderDesignation = function (providerUuid) {
                         var params = {
                             q: "bahmni.sqlGet.providerDesignation2",
@@ -71,6 +78,13 @@ angular.module('bahmni.registration')
                             withCredentials: true
                         });
                     };
+                    $q.all([getTemporaryCategoryNotes()]).then(function (response) {
+                        if (response[0].data.results.length > 0) {
+                            $q.all([getApiData(response[0].data.results[0].links[0].uri.split('/openmrs')[1])]).then(function (response) {
+                                $scope.observations.temporaryCategoryNotes = response[0].data.comment;
+                            });
+                        }
+                    });
                     $q.all([getDispositionProvider()]).then(function (response) {
                         if (response[0].data.results.length > 0) {
                             $q.all([getApiData(response[0].data.results[0].links[0].uri.split('/openmrs')[1])]).then(function (response) {
