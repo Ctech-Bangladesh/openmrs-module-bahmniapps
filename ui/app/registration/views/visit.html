@@ -41,11 +41,20 @@
                                                  obs-scope="::conceptSet.options.scope" show-title="false"
                                                  concept-set-focused="::$index === 0"></concept-set>
                                 </article>
+                                <!-- <article style="width:100%;" ng-if="!isFormTemplate(conceptSet)" class="fl obs-section-form">
+                                    <concept-set concept-set-name="::conceptSet.options.conceptName" required="::conceptSet.options.required"
+                                        patient="patient" observations="observations" obs-scope="::conceptSet.options.scope" show-title="false"
+                                        concept-set-focused="::$index === 0"></concept-set>
+                                </article> -->
                                 <article ng-if="isFormTemplate(conceptSet)" class="fl obs-section-form"
                                          id={{::conceptSet.formUuid}}>
                                     <form-controls id="roomdata" form="conceptSet" patient="patient"
                                                    validate-form="true"></form-controls>
                                 </article>
+                                <!-- <article style="width:79%;margin-left:-100px;" ng-if="isFormTemplate(conceptSet)" class="fl obs-section-form"
+                                    id={{::conceptSet.formUuid}}>
+                                    <form-controls id="roomdata" form="conceptSet" patient="patient" validate-form="true"></form-controls>
+                                </article> -->
                                 <article ng-if="::conceptSet.options.showLatest" class="obs-section fr"
                                          id="observationSection">
                                     <bahmni-observation patient="patient"
