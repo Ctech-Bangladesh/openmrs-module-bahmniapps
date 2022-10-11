@@ -89,10 +89,10 @@ angular.module('bahmni.clinical')
                     var conceptName = $scope.getName(item);
                     $scope.tabs.push({name: conceptName ? conceptName : item.name.name, topLevelConcept: item.name.name});
                 });
-                if ($scope.tabs) {
-                    $scope.activateTab($scope.tabs[0]);
-                    initTestConceptToParentsMapping();
-                }
+                // if ($scope.tabs) {
+                //     $scope.activateTab($scope.tabs[0]);
+                //     initTestConceptToParentsMapping();
+                // }
             };
 
             $scope.isRetrospectiveMode = function () {
