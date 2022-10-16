@@ -2,7 +2,7 @@
 
 angular.module('bahmni.registration')
     .controller('EditPatientController', ['$scope', '$timeout', '$cookies', '$http', 'patientService', 'encounterService', '$stateParams', 'openmrsPatientMapper',
-        '$window', '$q', 'spinner', 'appService', 'messagingService', '$rootScope', 'auditLogService','registrationCardPrinter',
+        '$window', '$q', 'spinner', 'appService', 'messagingService', '$rootScope', 'auditLogService', 'registrationCardPrinter',
         function ($scope, $timeout, $cookies, $http, patientService, encounterService, $stateParams, openmrsPatientMapper, $window, $q, spinner,
             appService, messagingService, $rootScope, auditLogService, registrationCardPrinter) {
             var dateUtil = Bahmni.Common.Util.DateUtil;
@@ -35,7 +35,9 @@ angular.module('bahmni.registration')
                     }
                     $scope.patient.access = true;
                 } else {
-                    $scope.showReprint = appService.getAppDescriptor().getConfigValue("reprint")?.value;
+                    if (appService.getAppDescriptor().getConfigValue("reprint") !== null) {
+                        $scope.showReprint = appService.getAppDescriptor().getConfigValue("reprint").value;
+                    }
                     $scope.patient.access = false;
                 }
             });
@@ -45,7 +47,7 @@ angular.module('bahmni.registration')
 
             $scope.today = dateUtil.getDateWithoutTime(dateUtil.now());
             $scope.allowRePrint = false;
-            
+
             $timeout(function () {
                 let apiURL = "/openmrs/ws/rest/v1/bahmnicore/observations?" +
                     "concept=Visit+Details&concept=Free+Type&" +
@@ -55,8 +57,8 @@ angular.module('bahmni.registration')
                     "&scope=latest";
                 $http({
                     method: "GET",
-                    url: apiURL,
-                }).then(function mySuccess(response) {
+                    url: apiURL
+                }).then(function mySuccess (response) {
                     let obsData = response.data;
                     $scope.obsData = obsData;
                     obsData.forEach(key => {
@@ -77,7 +79,7 @@ angular.module('bahmni.registration')
                 var getValue = function (observation) {
                     obs[observation.concept.name] = obs[observation.concept.name] || [];
                     observation.value && obs[observation.concept.name].push(observation.value);
-                    observation.groupMembers.forEach(getValue);              
+                    observation.groupMembers.forEach(getValue);
                 };
                 $scope.observations.forEach(getValue);
                 $scope.obs = obs;
@@ -149,7 +151,7 @@ angular.module('bahmni.registration')
                     }
                 }));
             };
-    
+
             var addNewRelationships = function () {
                 var newRelationships = _.filter($scope.patient.newlyAddedRelationships, function (relationship) {
                     return relationship.relationshipType && relationship.relationshipType.uuid;
