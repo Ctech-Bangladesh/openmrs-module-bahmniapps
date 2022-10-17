@@ -2,8 +2,8 @@
 
 angular.module('bahmni.registration')
     .controller('VisitController', ['$window', '$scope', '$rootScope', '$state', '$bahmniCookieStore', 'patientService', 'encounterService', '$stateParams', 'spinner', '$timeout', '$q', 'appService', 'openmrsPatientMapper', 'contextChangeHandler', 'messagingService', 'sessionService', 'visitService', '$location', '$translate',
-        'auditLogService', 'formService',
-        function ($window, $scope, $rootScope, $state, $bahmniCookieStore, patientService, encounterService, $stateParams, spinner, $timeout, $q, appService, openmrsPatientMapper, contextChangeHandler, messagingService, sessionService, visitService, $location, $translate, auditLogService, formService) {
+        'auditLogService', 'formService', 'registrationCardPrinter', '$http',
+        function ($window, $scope, $rootScope, $state, $bahmniCookieStore, patientService, encounterService, $stateParams, spinner, $timeout, $q, appService, openmrsPatientMapper, contextChangeHandler, messagingService, sessionService, visitService, $location, $translate, auditLogService, formService, registrationCardPrinter, $http) {
             var vm = this;
             var patientUuid = $stateParams.patientUuid;
             var extensions = appService.getAppDescriptor().getExtensions("org.bahmni.registration.conceptSetGroup.observations", "config");
@@ -94,7 +94,7 @@ angular.module('bahmni.registration')
                 var createPromise = encounterService.create($scope.encounter);
                 spinner.forPromise(createPromise);
                 return createPromise.then(function (response) {
-                    var messageParams = {encounterUuid: response.data.encounterUuid, encounterType: response.data.encounterType};
+                    var messageParams = { encounterUuid: response.data.encounterUuid, encounterType: response.data.encounterType };
                     auditLogService.log(patientUuid, 'EDIT_ENCOUNTER', messageParams, 'MODULE_LABEL_REGISTRATION_KEY');
                     var visitType, visitTypeUuid;
                     visitTypeUuid = response.data.visitTypeUuid;
@@ -141,7 +141,7 @@ angular.module('bahmni.registration')
                     var visitSummary = response.data;
                     if (visitSummary.admissionDetails && !visitSummary.dischargeDetails) {
                         messagingService.showMessage("error", 'REGISTRATION_VISIT_CANNOT_BE_CLOSED');
-                        var messageParams = {visitUuid: vm.visitUuid, visitType: visitSummary.visitType};
+                        var messageParams = { visitUuid: vm.visitUuid, visitType: visitSummary.visitType };
                         auditLogService.log(patientUuid, 'CLOSE_VISIT_FAILED', messageParams, 'MODULE_LABEL_REGISTRATION_KEY');
                     } else {
                         closeVisit(visitSummary.visitType);
@@ -154,7 +154,7 @@ angular.module('bahmni.registration')
                 if (confirmed) {
                     visitService.endVisit(vm.visitUuid).then(function () {
                         $location.url(Bahmni.Registration.Constants.patientSearchURL);
-                        var messageParams = {visitUuid: vm.visitUuid, visitType: visitType};
+                        var messageParams = { visitUuid: vm.visitUuid, visitType: visitType };
                         auditLogService.log(patientUuid, 'CLOSE_VISIT', messageParams, 'MODULE_LABEL_REGISTRATION_KEY');
                     });
                 }
@@ -165,8 +165,12 @@ angular.module('bahmni.registration')
             };
 
             var isObservationFormValid = function () {
+                var opdRoomMandatory = appService.getAppDescriptor().getConfigValue("opdRoom");
                 var valid = true;
+                var isSelectOpd = false;
+                var _value = [];
                 _.each($scope.observationForms, function (observationForm) {
+                    _value = observationForm.component.getValue().observations;
                     if (valid && observationForm.component) {
                         var value = observationForm.component.getValue();
                         if (value.errors) {
@@ -175,6 +179,22 @@ angular.module('bahmni.registration')
                         }
                     }
                 });
+                _.each(_value, function (t) {
+                    if (t.concept.name.includes(opdRoomMandatory.conceptName)) {
+                        isSelectOpd = true;
+                    }
+                    if (t.value === undefined) {
+                        isSelectOpd = false;
+                    }
+                });
+
+                if (opdRoomMandatory.isMandatory) {
+                    if (!isSelectOpd) {
+                        messagingService.showMessage('error', "{{'Please input Opd Consultation Room'}}");
+                        valid = false;
+                    }
+                }
+
                 return valid;
             };
 
@@ -246,17 +266,52 @@ angular.module('bahmni.registration')
             // End :: Registration Page validation
 
             var afterSave = function () {
-                var forwardUrl = appService.getAppDescriptor().getConfigValue("afterVisitSaveForwardUrl");
-                if (forwardUrl != null) {
-                    $window.location.href = appService.getAppDescriptor().formatUrl(forwardUrl, {'patientUuid': patientUuid});
-                } else {
-                    $state.transitionTo($state.current, $state.params, {
-                        reload: true,
-                        inherit: false,
-                        notify: true
-                    });
-                }
+                var afterSave = appService.getAppDescriptor().getConfigValue("afterSavePrint");
+                $scope.serial = $scope.serial || [];
+
+                $state.transitionTo($state.current, $state.params, {
+                    reload: true,
+                    inherit: false,
+                    notify: true
+                });
                 messagingService.showMessage('info', 'REGISTRATION_LABEL_SAVED');
+
+                $timeout(function () {
+                    var apiURL = "/openmrs/ws/rest/v1/bahmnicore/observations?" +
+                        "concept=Visit+Details&concept=Patient+Visit+Details&" +
+                        "concept=Patient+Visit+Type&" +
+                        "concept=Opd+Consultation+Room&" +
+                        "patientUuid=" +
+                        patientUuid +
+                        "&scope=latest";
+                    $http({
+                        method: "GET",
+                        url: apiURL
+                    }).then(function mySuccess (response) {
+                        var obsdata = response.data;
+                        $scope.obsData = obsdata;
+                        patientService.get(patientUuid).then(function (openMRSPatient) {
+                            $scope.patient = openmrsPatientMapper.map(openMRSPatient);
+                        });
+                        if (afterSave.print === true) {
+                            $scope.observations = $scope.obsData || $scope.observations;
+                            var obs = {};
+                            var getValue = function (observation) {
+                                obs[observation.concept.name] = obs[observation.concept.name] || [];
+                                observation.value && obs[observation.concept.name].push(observation.value);
+                                observation.groupMembers.forEach(getValue);
+                            };
+                            $scope.observations.forEach(getValue);
+                            $scope.obs = obs;
+                            $scope.observations.roomData = $scope.observations.filter(data => data.conceptNameToDisplay === 'Consultation Room');
+                            registrationCardPrinter.print(afterSave.templateUrl, $scope.patient, $scope.obs, $scope.encounterDateTime, $scope.observations);
+                            if (afterSave.createNew === true) {
+                                $state.go('newpatient');
+                            }
+                            window.sessionStorage.removeItem('free');
+                        }
+                    });
+                }, 500);
             };
 
             $scope.submit = function () {
@@ -277,7 +332,7 @@ angular.module('bahmni.registration')
 
             var getConceptSet = function () {
                 var visitType = $scope.encounterConfig.getVisitTypeByUuid($scope.visitTypeUuid);
-                $scope.context = {visitType: visitType, patient: $scope.patient};
+                $scope.context = { visitType: visitType, patient: $scope.patient };
             };
 
             var getObservationForms = function (extensions, observationsForms) {
