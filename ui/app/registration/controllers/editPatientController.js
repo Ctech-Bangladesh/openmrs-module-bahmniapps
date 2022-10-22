@@ -83,6 +83,13 @@ angular.module('bahmni.registration')
                 };
                 $scope.observations.forEach(getValue);
                 $scope.obs = obs;
+                var value = $cookies.get("bahmni.user.location");
+                if (JSON.parse(value).name === "Emergency") {
+                    $scope.observations = $scope.observations.filter(data => data.formFieldPath !== 'Room To Assign.2/1-0');
+                }
+                else {
+                    $scope.observations = $scope.observations.filter(data => data.formFieldPath !== 'Room To Assign Emergency.1/1-0');
+                }
                 registrationCardPrinter.print(reprint.templateUrl, $scope.patient, $scope.obs, $scope.encounterDateTime, $scope.observations);
             };
             var setReadOnlyFields = function () {

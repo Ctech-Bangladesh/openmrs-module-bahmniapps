@@ -44,7 +44,7 @@ angular.module('bahmni.registration')
                                 visitDetails.push(value);
                             }
                         });
-                        $scope.admissionFromAccess = visitDetails[0].groupMembers.filter(obs => obs.valueAsString === "IPD Admission");
+                        $scope.admissionFromAccess = visitDetails[0].groupMembers.filter(obs => obs.valueAsString === "Paid" || obs.valueAsString === "Free");
                     }
                     var getUserRole = function () {
                         var params = {
