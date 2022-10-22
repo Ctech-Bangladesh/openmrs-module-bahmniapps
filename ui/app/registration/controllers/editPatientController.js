@@ -61,11 +61,29 @@ angular.module('bahmni.registration')
                 }).then(function mySuccess (response) {
                     let obsData = response.data;
                     $scope.obsData = obsData;
+                    var value = $cookies.get("bahmni.user.location");
+                    if (JSON.parse(value).name === "Emergency") {
+                        $scope.obsData = $scope.obsData.filter(data => data.formFieldPath !== 'Room To Assign.2/1-0');
+                    }
+                    else {
+                        $scope.obsData = $scope.obsData.filter(data => data.formFieldPath !== 'Room To Assign Emergency.1/1-0');
+                    }
                     obsData.forEach(key => {
                         $scope.allowRePrint = false;
                         if (key.complexData != null) {
-                            if (key.encounterDateTime != '') {
-                                $scope.allowRePrint = true;
+                            if (key.encounterDateTime !== '') {
+                                if (JSON.parse(value).name === "Emergency") {
+                                    var filterEmergency = $scope.obsData.filter(data => data.formFieldPath === 'Room To Assign Emergency.1/1-0');
+                                    if (filterEmergency.length > 0) {
+                                        $scope.allowRePrint = true;
+                                    }
+                                }
+                                else {
+                                    var filterWithoutEmergency = $scope.obsData.filter(data => data.formFieldPath === 'Room To Assign.2/1-0');
+                                    if (filterWithoutEmergency.length > 0) {
+                                        $scope.allowRePrint = true;
+                                    }
+                                }
                             }
                         }
                     });
@@ -83,13 +101,6 @@ angular.module('bahmni.registration')
                 };
                 $scope.observations.forEach(getValue);
                 $scope.obs = obs;
-                var value = $cookies.get("bahmni.user.location");
-                if (JSON.parse(value).name === "Emergency") {
-                    $scope.observations = $scope.observations.filter(data => data.formFieldPath !== 'Room To Assign.2/1-0');
-                }
-                else {
-                    $scope.observations = $scope.observations.filter(data => data.formFieldPath !== 'Room To Assign Emergency.1/1-0');
-                }
                 registrationCardPrinter.print(reprint.templateUrl, $scope.patient, $scope.obs, $scope.encounterDateTime, $scope.observations);
             };
             var setReadOnlyFields = function () {
