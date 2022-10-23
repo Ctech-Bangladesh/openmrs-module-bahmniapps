@@ -61,25 +61,27 @@ angular.module('bahmni.registration')
                 }).then(function mySuccess (response) {
                     let obsData = response.data;
                     $scope.obsData = obsData;
-                    var value = $cookies.get("bahmni.user.location");
+                    const value = $cookies.get("bahmni.user.location");
+                    let filterWithoutRoom = $scope.obsData.filter(data => data.conceptNameToDisplay !== 'Opd Consultation Room');
+                    let filterRoom = $scope.obsData.filter(data => data.conceptNameToDisplay === 'Opd Consultation Room');
+                    let filterEmergency = filterRoom.filter(data => data.formFieldPath.includes('Emergency'));
+                    let filterWithoutEmergency = filterRoom.filter(data => !data.formFieldPath.includes('Emergency'));
                     if (JSON.parse(value).name === "Emergency") {
-                        $scope.obsData = $scope.obsData.filter(data => data.formFieldPath !== 'Room To Assign.2/1-0');
+                        $scope.obsData = [...filterWithoutRoom, ...filterEmergency];
                     }
                     else {
-                        $scope.obsData = $scope.obsData.filter(data => data.formFieldPath !== 'Room To Assign Emergency.1/1-0');
+                        $scope.obsData = [...filterWithoutRoom, ...filterWithoutEmergency];
                     }
-                    obsData.forEach(key => {
+                    $scope.obsData.forEach(key => {
                         $scope.allowRePrint = false;
                         if (key.complexData != null) {
                             if (key.encounterDateTime !== '') {
                                 if (JSON.parse(value).name === "Emergency") {
-                                    var filterEmergency = $scope.obsData.filter(data => data.formFieldPath === 'Room To Assign Emergency.1/1-0');
                                     if (filterEmergency.length > 0) {
                                         $scope.allowRePrint = true;
                                     }
                                 }
                                 else {
-                                    var filterWithoutEmergency = $scope.obsData.filter(data => data.formFieldPath === 'Room To Assign.2/1-0');
                                     if (filterWithoutEmergency.length > 0) {
                                         $scope.allowRePrint = true;
                                     }
