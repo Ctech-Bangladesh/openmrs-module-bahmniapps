@@ -72,23 +72,17 @@ angular.module('bahmni.registration')
                     else {
                         $scope.obsData = [...filterWithoutRoom, ...filterWithoutEmergency];
                     }
-                    $scope.obsData.forEach(key => {
-                        $scope.allowRePrint = false;
-                        if (key.complexData != null) {
-                            if (key.encounterDateTime !== '') {
-                                if (JSON.parse(value).name === "Emergency") {
-                                    if (filterEmergency.length > 0) {
-                                        $scope.allowRePrint = true;
-                                    }
-                                }
-                                else {
-                                    if (filterWithoutEmergency.length > 0) {
-                                        $scope.allowRePrint = true;
-                                    }
-                                }
-                            }
+                    $scope.allowRePrint = false;
+                    if (JSON.parse(value).name === "Emergency") {
+                        if (filterEmergency.length > 0) {
+                            $scope.allowRePrint = true;
                         }
-                    });
+                    }
+                    else {
+                        if (filterWithoutEmergency.length > 0) {
+                            $scope.allowRePrint = true;
+                        }
+                    }
                 });
             }, 500);
 
