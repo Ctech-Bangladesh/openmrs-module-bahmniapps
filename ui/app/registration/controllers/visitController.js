@@ -88,7 +88,8 @@ angular.module('bahmni.registration')
                         if (JSON.parse(value).name === "Emergency") {
                             $scope.opdTicketButton = false;
                             $scope.conceptSets = $scope.conceptSets.filter(data => data.conceptName !== "Room To Assign");
-                            var checking = $scope.observations.filter(data => data.formFieldPath === 'Room To Assign Emergency.1/1-0');
+                            let filterRoom = $scope.observations.filter(data => data.conceptNameToDisplay === 'Opd Consultation Room');
+                            let checking = filterRoom.filter(data => data.formFieldPath.includes('Emergency'));
                             if (checking.length > 0) {
                                 $scope.emergencyTicketButton = true;
                             }
@@ -99,7 +100,8 @@ angular.module('bahmni.registration')
                         else {
                             $scope.emergencyTicketButton = false;
                             $scope.conceptSets = $scope.conceptSets.filter(data => data.conceptName !== "Room To Assign Emergency");
-                            var checking = $scope.observations.filter(data => data.formFieldPath === 'Room To Assign.2/1-0');
+                            let filterRoom = $scope.observations.filter(data => data.conceptNameToDisplay === 'Opd Consultation Room');
+                            let checking = filterRoom.filter(data => !data.formFieldPath.includes('Emergency'));
                             if (checking.length > 0) {
                                 $scope.opdTicketButton = true;
                             }
