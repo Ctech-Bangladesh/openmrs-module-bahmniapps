@@ -22,12 +22,16 @@ angular.module('bahmni.registration')
                         observation.groupMembers.forEach(getValue);
                     };
                     $scope.observations.forEach(getValue);
+                    let filterWithoutRoom = $scope.observations.filter(data => data.conceptNameToDisplay !== 'Opd Consultation Room');
+                    let filterRoom = $scope.observations.filter(data => data.conceptNameToDisplay === 'Opd Consultation Room');
+                    let filterEmergency = filterRoom.filter(data => data.formFieldPath.includes('Emergency'));
+                    let filterWithoutEmergency = filterRoom.filter(data => !data.formFieldPath.includes('Emergency'));
                     var value = $cookies.get("bahmni.user.location");
                     if (JSON.parse(value).name === "Emergency") {
-                        $scope.observations = $scope.observations.filter(data => data.formFieldPath !== 'Room To Assign.2/1-0');
+                        $scope.observations = [...filterWithoutRoom, ...filterEmergency];
                     }
                     else {
-                        $scope.observations = $scope.observations.filter(data => data.formFieldPath !== 'Room To Assign Emergency.1/1-0');
+                        $scope.observations = [...filterWithoutRoom, ...filterWithoutEmergency];
                     }
                     // let visitUUid = sessionStorage.getItem('visitUUid');
                     // var getMedicine = function () {
