@@ -422,6 +422,12 @@ Bahmni.Clinical.DrugOrderViewModel = function (config, proto, encounterDate) {
 
     this.calculateQuantityAndUnit = function () {
         self.calculateDurationInDays();
+        if (self.variableDosingType.morningDose > 0 || self.variableDosingType.morningDose > 0 || self.variableDosingType.morningDose > 0) {
+            self.frequencyType = 'variable';
+        }
+        else {
+            self.frequencyType = 'uniform';
+        }
         if (!self.quantityEnteredManually && !self.quantityEnteredViaEdit) {
             if (self.frequencyType === Bahmni.Clinical.Constants.dosingTypes.uniform) {
                 var mantissa = self.uniformDosingType.doseFraction ? self.uniformDosingType.doseFraction.value : 0;
@@ -561,14 +567,14 @@ Bahmni.Clinical.DrugOrderViewModel = function (config, proto, encounterDate) {
 
     this.isUniformDoseUnitRequired = function () {
         return (this.uniformDosingType.dose) ||
-               (this.uniformDosingType.doseFraction) ||
-               (this.isUniformFrequency && this.isDoseMandatory());
+            (this.uniformDosingType.doseFraction) ||
+            (this.isUniformFrequency && this.isDoseMandatory());
     };
 
     this.isUniformDoseRequired = function () {
         return this.isUniformFrequency &&
-               this.isDoseMandatory() &&
-               !this.uniformDosingType.doseFraction;
+            this.isDoseMandatory() &&
+            !this.uniformDosingType.doseFraction;
     };
 
     this.isVariableDoseRequired = function () {
@@ -616,7 +622,7 @@ Bahmni.Clinical.DrugOrderViewModel = function (config, proto, encounterDate) {
                     uuid: orderAttribute.obsUuid,
                     value: orderAttribute.value ? true : false,
                     orderUuid: self.uuid,
-                    concept: {uuid: orderAttribute.conceptUuid }
+                    concept: { uuid: orderAttribute.conceptUuid }
                 };
             });
         }
@@ -657,7 +663,7 @@ Bahmni.Clinical.DrugOrderViewModel = function (config, proto, encounterDate) {
         if (this.durationInDays) {
             this.effectiveStopDate = DateUtil
                 .addDays(
-                DateUtil.parse(this.effectiveStartDate), this.durationInDays);
+                    DateUtil.parse(this.effectiveStartDate), this.durationInDays);
         }
     };
 };

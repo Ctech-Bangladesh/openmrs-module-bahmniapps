@@ -21,6 +21,17 @@ Bahmni.Clinical.DrugOrder = (function () {
                 dosingInstructions.morningDose = drugOrderData.variableDosingType.morningDose;
                 dosingInstructions.afternoonDose = drugOrderData.variableDosingType.afternoonDose;
                 dosingInstructions.eveningDose = drugOrderData.variableDosingType.eveningDose;
+                if (drugOrderData.continue) {
+                    dosingInstructions.continue = true;
+                } else {
+                    dosingInstructions.continue = false;
+                }
+            } else {
+                if (drugOrderData.continue) {
+                    dosingInstructions.continue = true;
+                } else {
+                    dosingInstructions.continue = false;
+                }
             }
             return JSON.stringify(dosingInstructions);
         };
