@@ -43,6 +43,10 @@ angular.module('bahmni.clinical')
                         canAdd = false;
                     }
                 });
+                if (diagnosis.codedAnswer.uuid) {
+                    diagnosis.order = "PRIMARY";
+                    diagnosis.certainty = "PRESUMED";
+                }
                 return canAdd;
             };
 

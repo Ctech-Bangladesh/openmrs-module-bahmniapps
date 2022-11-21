@@ -1,15 +1,19 @@
-
 <div class="treatment-page treatment-page-container order-list clearfix">
     <div class="dashboard-section-wrapper clearfix">
         <section class="treatment-section-left fl">
             <div ui-view="addTreatment"></div>
         </section>
         <section class="treatment-section-right clearfix">
-            <new-drug-orders treatments="treatments"
-                             treatment-config="treatmentConfig"></new-drug-orders>
+
+            <new-drug-orders treatments="treatments" treatment-config="treatmentConfig"></new-drug-orders>
+           <!-- <div style="position: absolute">
+            <a href="https://192.168.1.228:5050/existingDrug" target="_blank" style="position: relative; left: 850px;"><button>Add New Drug</button></a>
+           </div> -->
             <new-order-group treatments="orderSetTreatments" order-set-name="newOrderSet.name"></new-order-group>
+
             <div ng-if="drugOrderHistoryView === 'default'" ui-view="defaultHistoryView"></div>
             <div ng-if="drugOrderHistoryView === 'custom'" ui-view="customHistoryView"></div>
+
         </section>
     </div>
 </div>

@@ -422,7 +422,7 @@ Bahmni.Clinical.DrugOrderViewModel = function (config, proto, encounterDate) {
 
     this.calculateQuantityAndUnit = function () {
         self.calculateDurationInDays();
-        if (self.variableDosingType.morningDose > 0 || self.variableDosingType.morningDose > 0 || self.variableDosingType.morningDose > 0) {
+        if (self.variableDosingType.morningDose > 0 || self.variableDosingType.afternoonDose > 0 || self.variableDosingType.eveningDose > 0) {
             self.frequencyType = 'variable';
         }
         else {

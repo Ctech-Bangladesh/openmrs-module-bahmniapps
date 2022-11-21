@@ -410,7 +410,7 @@
                     <div class="concept-set-description" ng-if="::getBooleanResult(observation.concept.description)">
                         <span class="description" ng-bind-html="observation.concept.description"></span>
                     </div>
-                    <div class="form-field form-field-group" ng-repeat="member in observation.groupMembers"
+                    <div class="form-field form-field-group" ng-repeat="member in observation.groupMembers | orderBy: reverse:true"
                          ng-if="!(member.hidden || member.hide)" ng-class="{'image-upload-wrapper': member.concept.name == 'Image'}">
                         <concept collapse-inner-sections="collapseInnerSections" observation="member"
                                  root-observation="observation" at-least-one-value-is-set="atLeastOneValueIsSet"
