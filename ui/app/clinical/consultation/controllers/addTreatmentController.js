@@ -523,85 +523,98 @@ angular.module('bahmni.clinical')
                             uuid: selectedItem.drug.uuid
                         });
                         $scope.treatment.variableDosingType.doseUnits = selectedItem.drug.dosageForm.display;
-                        // $http({
-                        //     method: "GET",
-                        //     url: `/openmrs/module/bahmnicustomutil/drugs-additional-info.form?uuid=${selectedItem.drug.uuid}`
-                        // }).success(function (response) {
-                        //     if (response) {
-                        //         if (response.dose !== null) {
-                        //             $scope.treatment.isUniformFrequency = true;
-                        //             $scope.treatment.uniformDosingType.dose = parseFloat(response.dose);
-                        //             if (response.frequency !== null) {
-                        //                 $scope.treatment.uniformDosingType.frequency = response.frequency;
-                        //             }
-                        //             else {
-                        //                 $scope.treatment.uniformDosingType.frequency = undefined;
-                        //             }
-                        //             if (response.and !== null) {
-                        //                 $scope.treatment.uniformDosingType.doseFraction = $scope.doseFractions.filter(data => data.label === response.and)[0];
-                        //             }
-                        //             else {
-                        //                 $scope.treatment.uniformDosingType.doseFraction = undefined;
-                        //             }
-                        //             if (response.continue === true) {
-                        //                 $scope.treatment.duration = parseInt(1);
-                        //                 $scope.treatment.continue = true;
-                        //                 value = true;
-                        //             }
-                        //             else {
-                        //                 $scope.treatment.duration = undefined;
-                        //                 $scope.treatment.continue = false;
-                        //                 value = false;
-                        //             }
-                        //         }
-                        //         else {
-                        //             $scope.treatment.isUniformFrequency = false;
-                        //             $scope.treatment.uniformDosingType.dose = undefined;
-                        //             if (response.morningDose !== null) {
-                        //                 $scope.treatment.isUniformFrequency = false;
-                        //                 $scope.treatment.variableDosingType.morningDose = parseFloat(response.morningDose);
-                        //             }
-                        //             else {
-                        //                 $scope.treatment.variableDosingType.morningDose = 0;
-                        //             }
-                        //             if (response.nightDose !== null) {
-                        //                 $scope.treatment.isUniformFrequency = false;
-                        //                 $scope.treatment.variableDosingType.eveningDose = parseFloat(response.nightDose);
-                        //             }
-                        //             else {
-                        //                 $scope.treatment.variableDosingType.eveningDose = 0;
-                        //             }
-                        //             if (response.afternoonDose !== null) {
-                        //                 $scope.treatment.isUniformFrequency = false;
-                        //                 $scope.treatment.variableDosingType.afternoonDose = parseFloat(response.afternoonDose);
-                        //             }
-                        //             else {
-                        //                 $scope.treatment.variableDosingType.afternoonDose = 0;
-                        //             }
-                        //             if (response.continue === true) {
-                        //                 $scope.treatment.duration = parseInt(1);
-                        //                 $scope.treatment.continue = true;
-                        //                 value = true;
-                        //             }
-                        //             else {
-                        //                 $scope.treatment.duration = undefined;
-                        //                 $scope.treatment.continue = false;
-                        //                 value = false;
-                        //             }
-                        //         }
-                        //     }
-                        //     else {
-                        //         $scope.treatment.isUniformFrequency = false;
-                        //         $scope.treatment.uniformDosingType.dose = undefined;
-                        //         $scope.treatment.variableDosingType.afternoonDose = 0;
-                        //         $scope.treatment.variableDosingType.morningDose = 0;
-                        //         $scope.treatment.variableDosingType.eveningDose = 0;
-                        //         $scope.treatment.uniformDosingType.frequency = undefined;
-                        //         $scope.treatment.uniformDosingType.doseFraction = undefined;
-                        //         $scope.treatment.duration = undefined;
-                        //         $scope.treatment.continue = false;
-                        //     }
-                        // });
+                        $http({
+                            method: "GET",
+                            url: `/openmrs/module/bahmnicustomutil/drugs-additional-info.form?uuid=${selectedItem.drug.uuid}`
+                        }).success(function (response) {
+                            if (response) {
+                                if (response.continue === true) {
+                                    $scope.treatment.continue = true;
+                                    value = true;
+                                }
+                                else {
+                                    $scope.treatment.continue = false;
+                                    value = false;
+                                }
+                                if (response.instruction !== null) {
+                                    $scope.treatment.instructions = response.instruction;
+                                }
+                                else {
+                                    $scope.treatment.instructions = undefined;
+                                }
+                                if (response.duration !== null) {
+                                    $scope.treatment.duration = response.duration;
+                                }
+                                else if (response.continue === true) {
+                                    $scope.treatment.duration = parseInt(1);
+                                }
+                                else {
+                                    $scope.treatment.duration = undefined;
+                                }
+                                if (response.durationUnit !== null) {
+                                    $scope.treatment.durationUnit = response.durationUnit;
+                                }
+                                else {
+                                    $scope.treatment.durationUnit = 'Day(s)';
+                                }
+
+                                if (response.dose !== null) {
+                                    $scope.treatment.isUniformFrequency = true;
+                                    $scope.treatment.uniformDosingType.dose = parseFloat(response.dose);
+                                    if (response.frequency !== null) {
+                                        $scope.treatment.uniformDosingType.frequency = response.frequency;
+                                    }
+                                    else {
+                                        $scope.treatment.uniformDosingType.frequency = undefined;
+                                    }
+                                    if (response.and !== null) {
+                                        $scope.treatment.uniformDosingType.doseFraction = $scope.doseFractions.filter(data => data.label === response.and)[0];
+                                    }
+                                    else {
+                                        $scope.treatment.uniformDosingType.doseFraction = undefined;
+                                    }
+                                }
+
+                                else {
+                                    $scope.treatment.isUniformFrequency = false;
+                                    $scope.treatment.uniformDosingType.dose = undefined;
+                                    if (response.morningDose !== null) {
+                                        $scope.treatment.isUniformFrequency = false;
+                                        $scope.treatment.variableDosingType.morningDose = parseFloat(response.morningDose);
+                                    }
+                                    else {
+                                        $scope.treatment.variableDosingType.morningDose = 0;
+                                    }
+                                    if (response.nightDose !== null) {
+                                        $scope.treatment.isUniformFrequency = false;
+                                        $scope.treatment.variableDosingType.eveningDose = parseFloat(response.nightDose);
+                                    }
+                                    else {
+                                        $scope.treatment.variableDosingType.eveningDose = 0;
+                                    }
+                                    if (response.afternoonDose !== null) {
+                                        $scope.treatment.isUniformFrequency = false;
+                                        $scope.treatment.variableDosingType.afternoonDose = parseFloat(response.afternoonDose);
+                                    }
+                                    else {
+                                        $scope.treatment.variableDosingType.afternoonDose = 0;
+                                    }
+                                }
+                            }
+                            else {
+                                $scope.treatment.isUniformFrequency = false;
+                                $scope.treatment.uniformDosingType.dose = undefined;
+                                $scope.treatment.variableDosingType.afternoonDose = 0;
+                                $scope.treatment.variableDosingType.morningDose = 0;
+                                $scope.treatment.variableDosingType.eveningDose = 0;
+                                $scope.treatment.uniformDosingType.frequency = undefined;
+                                $scope.treatment.uniformDosingType.doseFraction = undefined;
+                                $scope.treatment.duration = undefined;
+                                $scope.treatment.continue = false;
+                                $scope.treatment.instructions = undefined;
+                                $scope.treatment.durationUnit = 'Day(s)';
+                            }
+                        });
                         selectedItem = null;
                         return;
                     }

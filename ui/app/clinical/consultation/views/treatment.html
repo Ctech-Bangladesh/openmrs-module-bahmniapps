@@ -6,9 +6,10 @@
         <section class="treatment-section-right clearfix">
 
             <new-drug-orders treatments="treatments" treatment-config="treatmentConfig"></new-drug-orders>
-           <!-- <div style="position: absolute">
-            <a href="https://192.168.1.228:5050/existingDrug" target="_blank" style="position: relative; left: 850px;"><button>Add New Drug</button></a>
-           </div> -->
+            <div style="position: absolute">
+                <a id="drug-module" target="_blank" style="position: relative; left: 830px; top:10px"><button>Add Drug
+                        Defaults</button></a>
+            </div>
             <new-order-group treatments="orderSetTreatments" order-set-name="newOrderSet.name"></new-order-group>
 
             <div ng-if="drugOrderHistoryView === 'default'" ui-view="defaultHistoryView"></div>
@@ -17,3 +18,7 @@
         </section>
     </div>
 </div>
+<script>
+    var a = document.getElementById('drug-module');
+    a.href = `https://${window.location.hostname}:6060`;
+</script>
