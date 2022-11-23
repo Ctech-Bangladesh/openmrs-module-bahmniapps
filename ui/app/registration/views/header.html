@@ -4,7 +4,12 @@
             <li ng-repeat="extension in ::extensions">
                 <a ng-click="goTo(extension.url)" accesskey="{{::extension.shortcutKey | translate}}"><i class="{{::extension.icon}} fa fa-white small"></i>
                     <span class="nav-link" ng-bind-html="::extension | titleTranslate"></span></a>
+
+                   
             </li>
+           <div style="position: absolute; top: 10px; right: 80px;">
+            <a id="drug-module" target="_blank"><button class="nav-link">Queue Dashboard</button></a>
+           </div>
         </ul>
         <div class="reg-header-right fr">
             <div ui-view="headerExtension" class="print-action-items fl"></div>
@@ -26,3 +31,7 @@
             </ul>
         </div>
 </header>
+<script>
+    var a = document.getElementById('drug-module');
+    a.href = `https://${window.location.hostname}/openmrs/module/queuemanagement/dashboard.form`;
+</script>
