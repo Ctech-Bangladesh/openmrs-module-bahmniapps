@@ -264,6 +264,15 @@ angular.module('bahmni.registration')
                 return _.isEmpty(concept);
             };
             // End :: Registration Page validation
+            var generateQueue = function (queueData) {
+                console.log("Queue Generated :: " + queueData);
+                return $http({
+                    method: 'POST',
+                    url: '/openmrs/module/queuemanagement/generate.form',
+                    data: JSON.stringify(queueData),
+                    headers: {'Content-Type': 'application/json'}
+                });
+            };
 
             var afterSave = function () {
                 var afterSave = appService.getAppDescriptor().getConfigValue("afterSavePrint");

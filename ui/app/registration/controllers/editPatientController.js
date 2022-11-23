@@ -1,13 +1,43 @@
 'use strict';
 
 angular.module('bahmni.registration')
-    .controller('EditPatientController', ['$scope', 'patientService', 'encounterService', '$stateParams', 'openmrsPatientMapper',
+    .controller('EditPatientController', ['$scope', '$http', 'patientService', 'encounterService', '$stateParams', 'openmrsPatientMapper',
         '$window', '$q', 'spinner', 'appService', 'messagingService', '$rootScope', 'auditLogService',
-        function ($scope, patientService, encounterService, $stateParams, openmrsPatientMapper, $window, $q, spinner,
-                  appService, messagingService, $rootScope, auditLogService) {
+        function ($scope, $http, patientService, encounterService, $stateParams, openmrsPatientMapper, $window, $q, spinner,
+            appService, messagingService, $rootScope, auditLogService) {
             var dateUtil = Bahmni.Common.Util.DateUtil;
             var uuid = $stateParams.patientUuid;
             $scope.patient = {};
+            var getUserRole = function () {
+                var params = {
+                    v: "full"
+                };
+                return $http.get('/openmrs/ws/rest/v1/user?limit=500', {
+                    method: "GET",
+                    params: params,
+                    withCredentials: true
+                });
+            };
+            $q.all([getUserRole()]).then(function (response) {
+                var result = response[0].data.results;
+                var providerUuid = $rootScope.currentUser.person.uuid;
+                var filterUser = result.filter(user =>
+                    user.person.uuid === providerUuid
+                );
+                var roles = filterUser[0].roles;
+                var verify = roles.filter(role => role.name === "System Developer");
+
+                if (verify.length === 0) {
+                    var refresh = $window.localStorage.getItem('refresh');
+                    if (refresh === null) {
+                        location.reload();
+                        $window.localStorage.setItem('refresh', "1");
+                    }
+                    $scope.patient.access = true;
+                } else {
+                    $scope.patient.access = false;
+                }
+            });
             $scope.actions = {};
             $scope.addressHierarchyConfigs = appService.getAppDescriptor().getConfigValue("addressHierarchy");
             $scope.disablePhotoCapture = appService.getAppDescriptor().getConfigValue("disablePhotoCapture");
@@ -23,7 +53,14 @@ angular.module('bahmni.registration')
                     }
                 });
             };
-
+            $rootScope.onHomeNavigate = function (event) {
+                if ($scope.showSaveConfirmDialogConfig && $state.current.name != "patient.visit") {
+                    event.preventDefault();
+                    $scope.targetUrl = event.currentTarget.getAttribute('href');
+                    isHref = true;
+                    $scope.confirmationPrompt(event);
+                }
+            };
             var successCallBack = function (openmrsPatient) {
                 $scope.openMRSPatient = openmrsPatient["patient"];
                 $scope.patient = openmrsPatientMapper.map(openmrsPatient);
@@ -93,5 +130,6 @@ angular.module('bahmni.registration')
             $scope.afterSave = function () {
                 auditLogService.log($scope.patient.uuid, Bahmni.Registration.StateNameEvenTypeMap['patient.edit'], undefined, "MODULE_LABEL_REGISTRATION_KEY");
                 messagingService.showMessage("info", "REGISTRATION_LABEL_SAVED");
+                location.reload();
             };
         }]);
