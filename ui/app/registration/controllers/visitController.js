@@ -387,21 +387,21 @@ angular.module('bahmni.registration')
                 return forms;
             };
 
-            var isObjectEmpty = function (obj) {
-                return Object.keys(obj).length === 0;
-            };
+            // var isObjectEmpty = function (obj) {
+            //     return Object.keys(obj).length === 0;
+            // };
 
-            $scope.allowSave = false;
-            $timeout(function () {
-                $(".Select-multi-value-wrapper .Select-input input").keypress(function () {
-                    let value = [];
-                    value = $(this).val().toString();
-                    if (isObjectEmpty(value) != true) {
-                        $scope.allowSave = true;
-                        $timeout();
-                    }
-                }).keypress();
-            }, 1000);
+            // $scope.allowSave = false;
+            // $timeout(function () {
+            //     $(".Select-multi-value-wrapper .Select-input input").keypress(function () {
+            //         let value = [];
+            //         value = $(this).val().toString();
+            //         if (isObjectEmpty(value) != true) {
+            //             $scope.allowSave = true;
+            //             $timeout();
+            //         }
+            //     }).keypress();
+            // }, 1000);
 
             $scope.isFormTemplate = function (data) {
                 return data.formUuid;

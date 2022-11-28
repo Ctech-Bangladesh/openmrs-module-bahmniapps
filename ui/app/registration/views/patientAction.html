@@ -30,6 +30,11 @@
     <div ng-show="showReprint"><button accesskey="{{ ::'REGISTRATION_SAVE_ACCESS_KEY' | translate}}"
             class="left submit-btn" ng-bind-html="::'REPRINT_REGISTRATION_LABEL_REPRINT' | translate"
             ng-click="reprint()" ng-show="allowRePrint === true"
-            style="float: left; background: #2ca02c; color: white; font-weight: bold;"></button></div>
+            style="float: left; background: #2ca02c; color: white;"></button></div>
+    <div ng-show="showReprintIPD"><button accesskey="{{ ::'REGISTRATION_SAVE_ACCESS_KEY' | translate}}"
+            class="left submit-btn" ng-bind-html="::'REPRINT_REGISTRATION_LABEL_REPRINTADMISSIONFORM' | translate"
+            ng-click="reprintAdmissionForm()" ng-show="allowRePrintIPD === true"
+            style="float: left; background: #a02c2c; color: white;"></button></div>
+
 
 </div>
