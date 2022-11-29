@@ -27,11 +27,13 @@ angular.module('bahmni.registration')
                     let filterEmergency = filterRoom.filter(data => data.formFieldPath.includes('Emergency'));
                     let filterWithoutEmergency = filterRoom.filter(data => !data.formFieldPath.includes('Emergency'));
                     var value = $cookies.get("bahmni.user.location");
-                    if (JSON.parse(value).name === "Emergency") {
+                    if (JSON.parse(value).name.toLowerCase().includes('emergency')) {
                         $scope.observations = [...filterWithoutRoom, ...filterEmergency];
+                        $scope.observations.room = 'emergency';
                     }
                     else {
                         $scope.observations = [...filterWithoutRoom, ...filterWithoutEmergency];
+                        $scope.observations.room = 'opd';
                     }
                     // let visitUUid = sessionStorage.getItem('visitUUid');
                     // var getMedicine = function () {

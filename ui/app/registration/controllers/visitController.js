@@ -85,7 +85,7 @@ angular.module('bahmni.registration')
                         $scope.observationForms = getObservationForms(formExtensions, response.data);
                         $scope.conceptSets = $scope.conceptSets.concat($scope.observationForms);
                         var value = $cookies.get("bahmni.user.location");
-                        if (JSON.parse(value).name === "Emergency") {
+                        if (JSON.parse(value).name.toLowerCase().includes('emergency')) {
                             $scope.opdTicketButton = false;
                             $scope.conceptSets = $scope.conceptSets.filter(data => data.conceptName !== "Room To Assign");
                             let filterRoom = $scope.observations.filter(data => data.conceptNameToDisplay === 'Opd Consultation Room');
@@ -232,7 +232,7 @@ angular.module('bahmni.registration')
                 var isSelectOpd = false;
                 var _value = [];
                 var value = $cookies.get("bahmni.user.location");
-                if (JSON.parse(value).name === "Emergency") {
+                if (JSON.parse(value).name.toLowerCase().includes('emergency')) {
                     $scope.observationForms = $scope.observationForms.filter(data => data.conceptName !== "Room To Assign");
                 }
                 else {

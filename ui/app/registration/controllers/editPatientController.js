@@ -69,14 +69,14 @@ angular.module('bahmni.registration')
                     let filterRoom = $scope.obsData.filter(data => data.conceptNameToDisplay === 'Opd Consultation Room');
                     let filterEmergency = filterRoom.filter(data => data.formFieldPath.includes('Emergency'));
                     let filterWithoutEmergency = filterRoom.filter(data => !data.formFieldPath.includes('Emergency'));
-                    if (JSON.parse(value).name === "Emergency") {
+                    if (JSON.parse(value).name.toLowerCase().includes('emergency')) {
                         $scope.obsData = [...filterWithoutRoom, ...filterEmergency];
                     }
                     else {
                         $scope.obsData = [...filterWithoutRoom, ...filterWithoutEmergency];
                     }
                     $scope.allowRePrint = false;
-                    if (JSON.parse(value).name === "Emergency") {
+                    if (JSON.parse(value).name.toLowerCase().includes('emergency')) {
                         if (filterEmergency.length > 0) {
                             $scope.allowRePrint = true;
                         }
