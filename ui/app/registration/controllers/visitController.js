@@ -266,26 +266,26 @@ angular.module('bahmni.registration')
                 return _.isEmpty(concept);
             };
             // End :: Registration Page validation
-            // var generateQueue = function (queueData) {
-            //     console.log("Queue Generated :: " + queueData);
-            //     return $http({
-            //         method: 'POST',
-            //         url: '/openmrs/module/queuemanagement/generate.form',
-            //         data: JSON.stringify(queueData),
-            //         headers: { 'Content-Type': 'application/json' }
-            //     });
-            // };
+            var generateQueue = function (queueData) {
+                console.log("Queue Generated :: " + queueData);
+                return $http({
+                    method: 'POST',
+                    url: '/openmrs/module/queuemanagement/generate.form',
+                    data: JSON.stringify(queueData),
+                    headers: { 'Content-Type': 'application/json' }
+                });
+            };
 
-            /*  // print
-              var print = function () {
-                  return registrationCardPrinter.print($scope.defaultPrint.templateUrl, $scope.patient, mapRegistrationObservations(), $scope.encounterDateTime);
-              };*/
+              // // print
+              // var print = function () {
+              //     return registrationCardPrinter.print($scope.defaultPrint.templateUrl, $scope.patient, mapRegistrationObservations(), $scope.encounterDateTime);
+              // };
 
 
             var afterSave = function () {
-                // var forwardUrl = appService.getAppDescriptor().getConfigValue("afterVisitSaveForwardUrl");
+                var forwardUrl = appService.getAppDescriptor().getConfigValue("afterVisitSaveForwardUrl");
                 var afterSave = appService.getAppDescriptor().getConfigValue("afterSavePrint");
-                // var queueManagement = appService.getAppDescriptor().getConfigValue("queueManagement");
+                var queueManagement = appService.getAppDescriptor().getConfigValue("queueManagement");
                 $scope.serial = $scope.serial || [];
 
                 $state.transitionTo($state.current, $state.params, {
@@ -310,35 +310,35 @@ angular.module('bahmni.registration')
                         $scope.obsData = obsdata;
                         patientService.get(patientUuid).then(function (openMRSPatient) {
                             $scope.patient = openmrsPatientMapper.map(openMRSPatient);
-                            // obsdata.forEach(key => {
-                            //     if (key.complexData != null) {
-                            //         let identifier = $scope.patient.primaryIdentifier.identifier;
-                            //         let roomName = key.complexData.data.name;
-                            //         let roomId = key.complexData.data.id;
-                            //         let date = new Date;
-                            //         let formatDate = date.toISOString().split("T");
-                            //         let queue = {
-                            //             identifier: identifier,
-                            //             visitroom: roomName,
-                            //             roomId: roomId,
-                            //             dateCreated: formatDate[0]
-                            //         };
-                            //         if (queueManagement.willUse == true) {
-                            //             generateQueue(queue);
-                            //             console.log(queue);
-                            //             $http({
-                            //                 method: "GET",
-                            //                 url: "/openmrs/module/queuemanagement/getToken.form?identifier=" + identifier + "&dateCreated=" + formatDate[0],
-                            //             }).then(function mySuccess(response) {
-                            //                 var newData = response.data.token;
-                            //                 $scope.serial.push(newData);
-                            //             });
-                            //         } else {
-                            //             console.log("Queue management module is not being used now");
-                            //         }
-                            //     }
-                            // }
-                            // );
+                            obsdata.forEach(key => {
+                                if (key.complexData != null) {
+                                    let identifier = $scope.patient.primaryIdentifier.identifier;
+                                    let roomName = key.complexData.data.name;
+                                    let roomId = key.complexData.data.id;
+                                    let date = new Date;
+                                    let formatDate = date.toISOString().split("T");
+                                    let queue = {
+                                        identifier: identifier,
+                                        visitroom: roomName,
+                                        roomId: roomId,
+                                        dateCreated: formatDate[0]
+                                    };
+                                    if (queueManagement.willUse == true) {
+                                        generateQueue(queue);
+                                        console.log(queue);
+                                        $http({
+                                            method: "GET",
+                                            url: "/openmrs/module/queuemanagement/getToken.form?identifier=" + identifier + "&dateCreated=" + formatDate[0],
+                                        }).then(function mySuccess(response) {
+                                            var newData = response.data.token;
+                                            $scope.serial.push(newData);
+                                        });
+                                    } else {
+                                        console.log("Queue management module is not being used now");
+                                    }
+                                }
+                            }
+                            );
                         });
                         if (afterSave.print === true) {
                             $scope.observations = $scope.obsData || $scope.observations;
