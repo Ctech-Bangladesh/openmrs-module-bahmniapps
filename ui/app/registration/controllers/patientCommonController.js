@@ -129,7 +129,9 @@ angular.module('bahmni.registration')
 
             var hideSections = function (sectionsToHide, allSections) {
                 _.each(sectionsToHide, function (sectionName) {
+                   if(allSections[sectionName]){
                     allSections[sectionName].canShow = false;
+                   }   
                 });
             };
 
