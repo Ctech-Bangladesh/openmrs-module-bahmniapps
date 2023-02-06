@@ -1,9 +1,9 @@
 'use strict';
 
 angular.module('bahmni.common.patientSearch')
-    .controller('PatientsListController', ['$scope', '$window', 'patientService', '$rootScope', 'appService', 'spinner',
+    .controller('PatientsListController', ['$scope', '$http', '$window', 'patientService', '$rootScope', 'appService', 'spinner',
         '$stateParams', '$bahmniCookieStore', 'printer', 'configurationService',
-        function ($scope, $window, patientService, $rootScope, appService, spinner, $stateParams, $bahmniCookieStore, printer, configurationService) {
+        function ($scope, $http, $window, patientService, $rootScope, appService, spinner, $stateParams, $bahmniCookieStore, printer, configurationService) {
             const DEFAULT_FETCH_DELAY = 2000;
             var patientSearchConfig = appService.getAppDescriptor().getConfigValue("patientSearch");
             var patientListSpinner;
@@ -180,16 +180,28 @@ angular.module('bahmni.common.patientSearch')
                 if ($scope.search.searchType.links) {
                     link = _.find($scope.search.searchType.links, { linkColumn: heading }) || link;
                 }
-                // if (link.url === "#/default/patient/{{patientUuid}}/dashboard?encounterUuid=active") {
-                //     $window.open(`https://${$window.location.hostname}:7071/prescription/${patient.uuid}`);
-                // }
-                // else {
-                //     $window.open(appService.getAppDescriptor().formatUrl(link.url, options, true), link.newTab ? "_blank" : "_self");
-                // }
+                if (link.url === "#/default/patient/{{patientUuid}}/dashboard?encounterUuid=active") {
+                    $http({
+                        method: "GET",
+                        url: "/openmrs/ws/rest/v1/visit?includeInactive=true&patient="
+                            + patient.uuid + "&v=custom:(uuid,visitType,startDatetime,stopDatetime,location,encounters:(uuid))"
+                    }).then(function mySuccess (response) {
+                        let result = response.data.results;
+                        if (result.length > 1) {
+                            $window.open(appService.getAppDescriptor().formatUrl(link.url, options, true), link.newTab ? "_blank" : "_self");
+                        }
+                        else {
+                            $window.location.href = (`https://${$window.location.hostname}:7071/prescription/${patient.uuid}`);
+                        }
+                    });
+                }
+                else {
+                    $window.open(appService.getAppDescriptor().formatUrl(link.url, options, true), link.newTab ? "_blank" : "_self");
+                }
                 // if (link.url === "#/default/patient/{{patientUuid}}/dashboard?encounterUuid=active") {
                 //     link.url = "#/default/patient/{{patientUuid}}/dashboard/concept-set-group/observations?encounterUuid=active";
                 // }
-                $window.open(appService.getAppDescriptor().formatUrl(link.url, options, true), link.newTab ? "_blank" : "_self");
+                // $window.open(appService.getAppDescriptor().formatUrl(link.url, options, true), link.newTab ? "_blank" : "_self");
             };
             var getPatientCountSeriallyBySearchIndex = function (index) {
                 if (index === $scope.search.searchTypes.length) {
