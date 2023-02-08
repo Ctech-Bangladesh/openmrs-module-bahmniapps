@@ -114,10 +114,14 @@
             <span class="grouped-buttons">
                  <a class=" btn--left btn--success "
                     ng-if="visitHistory.activeVisit || retrospectiveEntry || allowConsultation()"
-                    ng-click="openConsultation()"
+                    ng-click="singlePagePrescription()"
                     accesskey="{{'CONSULTATION_SHORTCUT_KEY' | translate}}"
                     ng-bind-html="'CONSULTATION_TAB_KEY' | translate">
                  </a>
+                <a class=" btn--left btn--success " ng-if="visitHistory.activeVisit || retrospectiveEntry || allowConsultation()"
+                    ng-click="openConsultation()" accesskey="{{'CONSULTATION_SHORTCUT_KEY' | translate}}"
+                    ng-bind-html="'OBS_TAB_KEY' | translate">
+                </a>
                 <a class="btn--right btn--success " title="{{'OPEN_IN_NEW_WINDOW'|translate}}"
                    ng-if="visitHistory.activeVisit || retrospectiveEntry"
                    ng-click="openConsultationInNewTab()"><i class="fa fa-external-link"></i></a>

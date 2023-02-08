@@ -29,7 +29,9 @@ angular.module('bahmni.clinical').controller('ConsultationController',
             $scope.openConsultationInNewTab = function () {
                 $window.open('#' + $scope.consultationBoardLink, '_blank');
             };
-
+            $scope.singlePagePrescription = function () {
+                $window.location.href = `https://${$window.location.hostname}:7071/prescription/${$scope.patient.uuid}`;
+            };
             $scope.toggleDashboardMenu = function () {
                 $scope.showDashboardMenu = !$scope.showDashboardMenu;
             };
