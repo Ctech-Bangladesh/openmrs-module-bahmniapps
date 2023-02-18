@@ -298,14 +298,15 @@ angular.module('bahmni.registration')
                 $timeout(function () {
                     var apiURL = "/openmrs/ws/rest/v1/bahmnicore/observations?" +
                         "concept=Registration+Fee+Type&concept=Free+Type&" +
+                        "concept=Patient+Visit+Type&" +
                         "concept=Temporary+Categories&concept=Opd+Consultation+Room&" +
                         "patientUuid=" +
                         patientUuid +
                         "&scope=latest";
                     $http({
                         method: "GET",
-                        url: apiURL,
-                    }).then(function mySuccess(response) {
+                        url: apiURL
+                    }).then(function mySuccess (response) {
                         var obsdata = response.data;
                         $scope.obsData = obsdata;
                         patientService.get(patientUuid).then(function (openMRSPatient) {
@@ -315,7 +316,7 @@ angular.module('bahmni.registration')
                                     let identifier = $scope.patient.primaryIdentifier.identifier;
                                     let roomName = key.complexData.data.name;
                                     let roomId = key.complexData.data.id;
-                                    let date = new Date;
+                                    let date = new Date();
                                     let formatDate = date.toISOString().split("T");
                                     let queue = {
                                         identifier: identifier,
@@ -329,7 +330,7 @@ angular.module('bahmni.registration')
                                         $http({
                                             method: "GET",
                                             url: "/openmrs/module/queuemanagement/getToken.form?identifier=" + identifier + "&dateCreated=" + formatDate[0],
-                                        }).then(function mySuccess(response) {
+                                        }).then(function mySuccess (response) {
                                             var newData = response.data.token;
                                             $scope.serial.push(newData);
                                         });
