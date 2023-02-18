@@ -29,7 +29,7 @@ angular.module('bahmni.common.conceptSet')
                                 var formDetails = JSON.parse(formDetailsAsString);
                                 formDetails.version = formVersion;
                                 loadedFormDetails[formUuid] = formDetails;
-                                var formParams = { formName: formName, formVersion: formVersion, locale: locale };
+                                var formParams = { formName: formName, formVersion: formVersion, locale: locale, formUuid: formDetails.uuid };
                                 spinner.forPromise(formService.getFormTranslations(formDetails.translationsUrl, formParams)
                                     .then(function (response) {
                                         var formTranslations = !_.isEmpty(response.data) ? response.data[0] : {};
