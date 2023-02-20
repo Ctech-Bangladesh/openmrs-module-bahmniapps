@@ -109,6 +109,9 @@ angular.module('bahmni.registration')
                                 $scope.opdTicketButton = false;
                             }
                         }
+                        $scope.availableConceptSets = $scope.conceptSets.filter(function (conceptSet) {
+                            return conceptSet.isAvailable($scope.context);
+                        });
                         deferred.resolve(response.data);
                     });
                 return deferred.promise;
