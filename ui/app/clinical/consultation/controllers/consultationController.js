@@ -324,7 +324,7 @@ angular.module('bahmni.clinical').controller('ConsultationController',
                 switchToConsultationTab();
             };
             $scope.singlePagePrescription = function () {
-                $window.location.href = `https://${$window.location.hostname}:7071/prescription/${$scope.patient.uuid}`;
+                $window.location.href = `https://${$window.location.hostname}:6061/prescription/${$scope.patient.uuid}`;
             };
             var switchToConsultationTab = function () {
                 if ($scope.lastConsultationTabUrl.url) {

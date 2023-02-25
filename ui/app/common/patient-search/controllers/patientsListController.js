@@ -191,7 +191,7 @@ angular.module('bahmni.common.patientSearch')
                             $window.open(appService.getAppDescriptor().formatUrl(link.url, options, true), link.newTab ? "_blank" : "_self");
                         }
                         else {
-                            $window.location.href = (`https://${$window.location.hostname}:7071/prescription/${patient.uuid}`);
+                            $window.location.href = (`https://${$window.location.hostname}:6061/prescription/${patient.uuid}`);
                         }
                     });
                 }
