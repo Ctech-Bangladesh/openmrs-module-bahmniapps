@@ -30,6 +30,10 @@ angular.module('bahmni.clinical').controller('ConsultationController',
                 $window.open('#' + $scope.consultationBoardLink, '_blank');
             };
 
+            $scope.singlePagePrescription = function () {
+                $window.location.href = `https://${$window.location.hostname}:6061/prescription/${$scope.patient.uuid}`;
+            };
+
             $scope.toggleDashboardMenu = function () {
                 $scope.showDashboardMenu = !$scope.showDashboardMenu;
             };
