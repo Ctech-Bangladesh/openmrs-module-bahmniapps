@@ -114,6 +114,20 @@ angular.module('bahmni.registration')
                             });
                         }
                     });
+                    var user = $cookies.get("bahmni.user");
+                    var getUser = function (data) {
+                        return $http.get(`/openmrs/ws/rest/v1/user?username=${data}`, {
+                            method: "GET",
+                            withCredentials: true
+                        });
+                    };
+                    $q.all([getUser(JSON.parse(user))]).then(function (response) {
+                        if (response[0].data.results.length > 0) {
+                            $q.all([getApiData(response[0].data.results[0].links[0].uri.split('/openmrs')[1])]).then(function (response) {
+                                $scope.observations.user = response[0].data.person.display;
+                            });
+                        }
+                    });
                     var getDispositionNote = function () {
                         return $http.get(`/openmrs/ws/rest/v1/obs?limit=1&patient=${$stateParams.patientUuid}&concept=Disposition%20Set`, {
                             method: "GET",
