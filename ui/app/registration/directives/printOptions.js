@@ -53,7 +53,7 @@ angular.module('bahmni.registration')
                         $scope.observations = [...filterWithoutRoom, ...filterWithoutEmergency];
                         $scope.observations.room = 'opd';
                     }
-                    
+
                     var getDispositionProvider = function () {
                         return $http.get(`/openmrs/ws/rest/v1/obs?limit=1&concepts=Disposition&patient=${$stateParams.patientUuid}`, {
                             method: "GET",
