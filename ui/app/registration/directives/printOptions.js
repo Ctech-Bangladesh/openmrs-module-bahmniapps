@@ -40,13 +40,20 @@ angular.module('bahmni.registration')
                     }
 
                     $scope.observations.forEach(getValue);
+                    let filterWithoutRoom = $scope.observations.filter(data => data.conceptNameToDisplay !== 'Opd Consultation Room');
+                    let filterRoom = $scope.observations.filter(data => data.conceptNameToDisplay === 'Opd Consultation Room');
+                    let filterEmergency = filterRoom.filter(data => data.formFieldPath.includes('Emergency'));
+                    let filterWithoutEmergency = filterRoom.filter(data => !data.formFieldPath.includes('Emergency'));
                     var value = $cookies.get("bahmni.user.location");
-                    if (JSON.parse(value).name === "Emergency") {
-                        $scope.observations = $scope.observations.filter(data => data.formFieldPath !== 'Room To Assign.2/1-0');
+                    if (JSON.parse(value).name.toLowerCase().includes('emergency')) {
+                        $scope.observations = [...filterWithoutRoom, ...filterEmergency];
+                        $scope.observations.room = 'emergency';
                     }
                     else {
-                        $scope.observations = $scope.observations.filter(data => data.formFieldPath !== 'Room To Assign Emergency.1/1-0');
+                        $scope.observations = [...filterWithoutRoom, ...filterWithoutEmergency];
+                        $scope.observations.room = 'opd';
                     }
+                    
                     var getDispositionProvider = function () {
                         return $http.get(`/openmrs/ws/rest/v1/obs?limit=1&concepts=Disposition&patient=${$stateParams.patientUuid}`, {
                             method: "GET",
