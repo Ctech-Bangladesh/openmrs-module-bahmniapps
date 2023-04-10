@@ -12,24 +12,24 @@ angular.module('bahmni.registration')
             $scope.showEnterID = configValueForEnterId === null ? true : configValueForEnterId;
             $scope.today = Bahmni.Common.Util.DateTimeFormatter.getDateWithoutTime(dateUtil.now());
             $window.localStorage.removeItem('refresh');
-            // var countRegistration = function (userUuid) {
-            //     let apiUrl = "/openmrs/module/bahmnicustomutil/countRegistrationByUser/" + userUuid + ".form";
-            //     $http({
-            //         method: 'GET',
-            //         url: apiUrl
-            //     }).then(function mySuccess (response) {
-            //         var result = response.data;
-            //         $scope.userName = result.userName;
-            //         $scope.totalReg = result.totalRegData[0];
-            //     });
-            // };
+            var countRegistration = function (userUuid) {
+                let apiUrl = "/openmrs/module/bahmnicustomutil/countRegistrationByUser/" + userUuid + ".form";
+                $http({
+                    method: 'GET',
+                    url: apiUrl
+                }).then(function mySuccess (response) {
+                    var result = response.data;
+                    $scope.userName = result.userName;
+                    $scope.totalReg = result.totalRegData[0];
+                });
+            };
             var getPersonAttributeTypes = function () {
                 return $rootScope.patientConfiguration.attributeTypes;
             };
 
             var prepopulateDefaultsInFields = function () {
-                // var userUuid = $rootScope.currentUser.uuid;
-                // $scope.getTotalRegistration = countRegistration(userUuid);
+                var userUuid = $rootScope.currentUser.uuid;
+                $scope.getTotalRegistration = countRegistration(userUuid);
                 var personAttributeTypes = getPersonAttributeTypes();
                 var patientInformation = appService.getAppDescriptor().getConfigValue("patientInformation");
                 if (!patientInformation || !patientInformation.defaults) {
