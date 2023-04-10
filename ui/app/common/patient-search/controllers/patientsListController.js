@@ -180,25 +180,28 @@ angular.module('bahmni.common.patientSearch')
                 if ($scope.search.searchType.links) {
                     link = _.find($scope.search.searchType.links, { linkColumn: heading }) || link;
                 }
+                // if (link.url && link.url !== null) {
+                //     if (link.url === "#/default/patient/{{patientUuid}}/dashboard?encounterUuid=active") {
+                //         $http({
+                //             method: "GET",
+                //             url: "/openmrs/ws/rest/v1/visit?includeInactive=true&patient="
+                //                 + patient.uuid + "&v=custom:(uuid,visitType,startDatetime,stopDatetime,location,encounters:(uuid))"
+                //         }).then(function mySuccess (response) {
+                //             let result = response.data.results;
+                //             if (result.length > 1) {
+                //                 $window.open(appService.getAppDescriptor().formatUrl(link.url, options, true), link.newTab ? "_blank" : "_self");
+                //             }
+                //             else {
+                //                 $window.location.href = (`https://${$window.location.hostname}:6061/prescription/${patient.uuid}`);
+                //             }
+                //         });
+                //     }
+                //     else {
+                //         $window.open(appService.getAppDescriptor().formatUrl(link.url, options, true), link.newTab ? "_blank" : "_self");
+                //     }
+                // }
                 if (link.url && link.url !== null) {
-                    if (link.url === "#/default/patient/{{patientUuid}}/dashboard?encounterUuid=active") {
-                        $http({
-                            method: "GET",
-                            url: "/openmrs/ws/rest/v1/visit?includeInactive=true&patient="
-                                + patient.uuid + "&v=custom:(uuid,visitType,startDatetime,stopDatetime,location,encounters:(uuid))"
-                        }).then(function mySuccess (response) {
-                            let result = response.data.results;
-                            if (result.length > 1) {
-                                $window.open(appService.getAppDescriptor().formatUrl(link.url, options, true), link.newTab ? "_blank" : "_self");
-                            }
-                            else {
-                                $window.location.href = (`https://${$window.location.hostname}:6061/prescription/${patient.uuid}`);
-                            }
-                        });
-                    }
-                    else {
-                        $window.open(appService.getAppDescriptor().formatUrl(link.url, options, true), link.newTab ? "_blank" : "_self");
-                    }
+                    $window.open(appService.getAppDescriptor().formatUrl(link.url, options, true), link.newTab ? "_blank" : "_self");
                 }
             };
             var getPatientCountSeriallyBySearchIndex = function (index) {
