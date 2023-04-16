@@ -1,10 +1,10 @@
 'use strict';
 
 angular.module('bahmni.registration')
-    .controller('EditPatientController', ['$scope', '$http', 'patientService', 'encounterService', '$stateParams', 'openmrsPatientMapper',
-        '$window', '$q', 'spinner', 'appService', 'messagingService', '$rootScope', 'auditLogService',
-        function ($scope, $http, patientService, encounterService, $stateParams, openmrsPatientMapper, $window, $q, spinner,
-            appService, messagingService, $rootScope, auditLogService) {
+    .controller('EditPatientController', ['$scope', '$cookies', '$timeout', '$http', 'patientService', 'encounterService', '$stateParams', 'openmrsPatientMapper',
+        '$window', '$q', 'spinner', 'appService', 'messagingService', '$rootScope', 'auditLogService', 'registrationCardPrinter',
+        function ($scope, $cookies, $timeout, $http, patientService, encounterService, $stateParams, openmrsPatientMapper, $window, $q, spinner,
+            appService, messagingService, $rootScope, auditLogService, registrationCardPrinter) {
             var dateUtil = Bahmni.Common.Util.DateUtil;
             var uuid = $stateParams.patientUuid;
             $scope.patient = {};
@@ -38,6 +38,7 @@ angular.module('bahmni.registration')
                     $scope.patient.access = false;
                 }
             });
+            $scope.allowRePrint = false;
             $scope.actions = {};
             $scope.addressHierarchyConfigs = appService.getAppDescriptor().getConfigValue("addressHierarchy");
             $scope.disablePhotoCapture = appService.getAppDescriptor().getConfigValue("disablePhotoCapture");
@@ -60,6 +61,64 @@ angular.module('bahmni.registration')
                     isHref = true;
                     $scope.confirmationPrompt(event);
                 }
+            };
+            $timeout(function () {
+                let apiURL = "/openmrs/ws/rest/v1/bahmnicore/observations?" +
+                    "concept=Fee+Category&concept=Free+Type&" +
+                    "concept=Temporary+Categories&concept=Opd+Consultation+Room&" +
+                    "patientUuid=" +
+                    uuid +
+                    "&scope=latest";
+                $http({
+                    method: "GET",
+                    url: apiURL
+                }).then(function mySuccess (response) {
+                    let obsData = response.data;
+                    $scope.obsData = obsData;
+                    obsData.forEach(key => {
+                        $scope.allowRePrint = false;
+                        if (key.complexData != null) {
+                            if (key.encounterDateTime != '') {
+                                $scope.allowRePrint = true;
+                            }
+                        }
+                    });
+                });
+            }, 500);
+            var getApiData = function (url) {
+                return $http.get(`/openmrs${url}`, {
+                    method: "GET",
+                    withCredentials: true
+                });
+            };
+            var user = $cookies.get("bahmni.user");
+            var getUser = function (data) {
+                return $http.get(`/openmrs/ws/rest/v1/user?username=${data}`, {
+                    method: "GET",
+                    withCredentials: true
+                });
+            };
+            
+            $scope.reprint = function () {
+                let reprint = appService.getAppDescriptor().getConfigValue("afterSavePrint");
+                $scope.observations = $scope.obsData || $scope.observations;
+                $q.all([getUser(JSON.parse(user))]).then(function (response) {
+                    if (response[0].data.results.length > 0) {
+                        $q.all([getApiData(response[0].data.results[0].links[0].uri.split('/openmrs')[1])]).then(function (response) {
+                            $scope.observations.user = response[0].data.person.display;
+                        });
+                    }
+                });
+                
+                var obs = {};
+                var getValue = function (observation) {
+                    obs[observation.concept.name] = obs[observation.concept.name] || [];
+                    observation.value && obs[observation.concept.name].push(observation.value);
+                    observation.groupMembers.forEach(getValue);
+                };
+                $scope.observations.forEach(getValue);
+                $scope.obs = obs;
+                registrationCardPrinter.print(reprint.templateUrl, $scope.patient, $scope.obs, $scope.encounterDateTime, $scope.observations);
             };
             var successCallBack = function (openmrsPatient) {
                 $scope.openMRSPatient = openmrsPatient["patient"];
