@@ -1,3 +1,12 @@
+<style> 
+.box-container{
+    overflow: visible!important;
+}
+.Select-menu-outer{
+    width: 300px;
+    transform: translate3d(0px, -100px, 0px)!important;
+}
+</style>
 <div class="reg-body-wrapper visit-patient-page">
     <div class="non-printable" xmlns="http://www.w3.org/1999/html">
         <div>
@@ -43,7 +52,7 @@
                                 </article>
                                 <article ng-if="isFormTemplate(conceptSet)" class="fl obs-section-form"
                                          id={{::conceptSet.formUuid}}>
-                                    <form-controls id="roomdata" form="conceptSet" patient="patient"
+                                    <form-controls style="z-index: -1;" id="roomdata" form="conceptSet" patient="patient"
                                                    validate-form="true"></form-controls>
                                 </article>
                                 <article ng-if="::conceptSet.options.showLatest" class="obs-section fr"
