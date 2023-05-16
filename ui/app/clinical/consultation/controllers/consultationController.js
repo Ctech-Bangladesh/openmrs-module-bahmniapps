@@ -29,7 +29,12 @@ angular.module('bahmni.clinical').controller('ConsultationController',
             $scope.openConsultationInNewTab = function () {
                 $window.open('#' + $scope.consultationBoardLink, '_blank');
             };
-
+            const singlePagePrescription = appService.getAppDescriptor().getConfigValue("singlePagePrescription");
+            if (singlePagePrescription) {
+                $scope.singlePagePrescriptionHide = false;
+            } else {
+                $scope.singlePagePrescriptionHide = true;
+            }
             $scope.singlePagePrescription = function () {
                 $window.location.href = `https://${$window.location.hostname}:6061/prescription/${$scope.patient.uuid}`;
             };

@@ -79,7 +79,10 @@ angular.module('bahmni.registration')
                         $scope.allowRePrint = false;
                         if (key.complexData != null) {
                             if (key.encounterDateTime != '') {
-                                $scope.allowRePrint = true;
+                                let reprint = appService.getAppDescriptor().getConfigValue("afterSavePrint");
+                                if (reprint) {
+                                    $scope.allowRePrint = true;
+                                }
                             }
                         }
                     });
@@ -98,7 +101,7 @@ angular.module('bahmni.registration')
                     withCredentials: true
                 });
             };
-            
+            $scope.reprintHide = true;
             $scope.reprint = function () {
                 let reprint = appService.getAppDescriptor().getConfigValue("afterSavePrint");
                 $scope.observations = $scope.obsData || $scope.observations;
@@ -109,7 +112,7 @@ angular.module('bahmni.registration')
                         });
                     }
                 });
-                
+
                 var obs = {};
                 var getValue = function (observation) {
                     obs[observation.concept.name] = obs[observation.concept.name] || [];
