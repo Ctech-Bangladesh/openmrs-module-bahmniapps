@@ -64,6 +64,7 @@
   "REGISTRATION_LABEL_REPRINT": "<u>R</u>eprint",
   "REGISTRATION_LABEL_BACK":"<u>B</u>ack",
   "REGISTRATION_LABEL_ENTER_VISIT":"Enter <u>V</u>isit Details",
+  "GENERATE_HEALTH_ID":"<u>G</u>enerate <u>H</u>ealth Id",
   "REGISTRATION_TITLE_ADDITIONAL_PATIENT":"Additional Patient Information",
   "REGISTRATION_TITLE_RELATIONSHIPS":"Relationships",
   "REGISTRATION_CONTENT_ENTERING_ID":"You are entering ID(s) which is ahead of the Sequence. It will create a gap in the Sequence. Do you want to continue?",

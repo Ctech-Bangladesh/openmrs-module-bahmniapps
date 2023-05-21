@@ -1,3 +1,26 @@
+<style>
+    .healthIdBtn {
+        border-radius: 3px;
+        background: linear-gradient(to bottom, #A1D030, #88af28);
+        background-color: #88af28;
+        border: #88af28 1px solid;
+        padding: 6px 20px 7px;
+        display: inline-block;
+        line-height: 1.2em;
+        color: white;
+        cursor: pointer;
+        min-width: 0;
+        max-width: 300px;
+        text-decoration: none;
+        max-width: 250px;
+        min-width: 0;
+        margin-right: 10px;
+    }
+
+    .healthIdBtn:hover {
+        background: linear-gradient(to bottom, #c8eb75, #88af28);
+    }
+</style>
 <div ng-controller="PatientCommonController">
     <div class="box-container box-container-patient-info patient-common-info-container">
         <section>
@@ -193,9 +216,13 @@
                                 non-blank="identifier.isIdentifierRequired()" pattern-validate
                                 ng-change="identifier.generate()" focus-on="identifier.hasOldIdentifier"
                                 ng-show="identifier.hasOldIdentifier || !identifier.hasIdentifierSources()"
+                                ng-value="healthId"
                                 ng-disabled="readOnlyExtraIdentifiers.indexOf(identifier.identifierType.name)>-1">
                         </div>
-
+                        <!-- <button>Generate Health Id</button> -->
+                        <span class="healthIdBtn" ng-click="generateHealthId()"
+                            ng-bind-html="::'GENERATE_HEALTH_ID' | translate">
+                        </span>
                         <div class="field-value field-value-has-identifier"
                             ng-show="::identifier.hasIdentifierSources()">
                             <input type="text" id="registrationNumber" ng-model="identifier.registrationNumber"
@@ -291,3 +318,19 @@
         </section>
     </div>
 </div>
+<script>
+    //     console.log('hello');
+    //    window.onload = function () {
+    //        console.log('hello');
+    //        if (window.localStorage.getItem('healthId')) {
+    //            let patientData = JSON.parse(window.localStorage.getItem('healthId'));
+    //            document.getElementById('nid').value = patientData.nid;
+    //            console.log(document.getElementById('nationalId'));
+    //        }
+    //    };
+    window.onload = function () {
+        // Perform any necessary actions here
+        let data = 'Example Data';
+        console.log(data);
+    };
+</script>
