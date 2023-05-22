@@ -291,9 +291,11 @@ angular.module('bahmni.registration')
                             var test = $scope.searchParameters.registrationNumber;
                             var pattern = /^[0-9]/;
                             if (test.match(pattern)) {
+                                searching = true;
                                 fetch(`https://${$window.location.hostname}:6061/api/v1/health-id/${test}`)
                                     .then(response => response.json())
                                     .then(res => {
+                                        searching = false;
                                         if (res.statusCode === 200) {
                                             res.content.present_address.division = geoCode.find(division => division.type === "division" && division.division_id.includes(res.content.present_address.division_id)).name;
                                             res.content.present_address.district = geoCode.find(district => district.type === "district" && district.district_id.includes(res.content.present_address.district_id) && district.division_id.includes(res.content.present_address.division_id)).name;
@@ -307,6 +309,7 @@ angular.module('bahmni.registration')
                                         }
                                     });
                             } else {
+                                searching = false;
                                 $scope.patientIdentifier = { 'patientIdentifier': patientIdentifier };
                                 $scope.noResultsMessage = 'REGISTRATION_LABEL_COULD_NOT_FIND_PATIENT';
                             }
