@@ -37,7 +37,8 @@ angular.module('bahmni.registration')
                     $scope.patient.age.years = years;
                     $scope.patient.age.months = months;
                     $scope.patient.age.days = days;
-                    $scope.healthId = patientData.hid;
+                    $scope.patient.extraIdentifiers[0].identifier = patientData.hid;
+                    $scope.patient.extraIdentifiers[0].registrationNumber = patientData.hid;
                     $scope.patient.nationalId = patientData.nid;
                     $scope.patient.address.address1 = patientData.present_address.address_line;
                     $scope.patient.address.display = patientData.present_address.address_line;
@@ -249,7 +250,10 @@ angular.module('bahmni.registration')
                         })
                         .then(res => {
                             if (res.statusCode === 201) {
-                                $timeout($scope.healthId = parseInt(res.content.id), 100);
+                                $timeout(function () {
+                                    $scope.patient.extraIdentifiers[0].identifier = res.content.id;
+                                    $scope.patient.extraIdentifiers[0].registrationNumber = res.content.id;
+                                }, 100);
                             } else if (res.statusCode === 208) {
                                 let patientData = res.content;
                                 var result = window.confirm(`Patient already registered with this NID/BRN. Do you want to replace with the existing info?`);
@@ -280,7 +284,8 @@ angular.module('bahmni.registration')
                                         $scope.patient.age.years = years;
                                         $scope.patient.age.months = months;
                                         $scope.patient.age.days = days;
-                                        $scope.healthId = patientData.hid;
+                                        $scope.patient.extraIdentifiers[0].identifier = patientData.hid;
+                                        $scope.patient.extraIdentifiers[0].registrationNumber = patientData.hid;
                                         $scope.patient.nationalId = patientData.nid;
                                         $scope.patient.address.address1 = patientData.present_address.address_line;
                                         $scope.patient.address.display = patientData.present_address.address_line;
