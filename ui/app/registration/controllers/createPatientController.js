@@ -188,6 +188,7 @@ angular.module('bahmni.registration')
                 .catch(error => {
                     console.error('Error:', error);
                 });
+            // $scope.healtIdBtn = true;
             $scope.generateHealthId = function () {
                 let divisionName = $scope.patient.address.stateProvince;
                 let districtName = $scope.patient.address.countyDistrict;
@@ -196,69 +197,108 @@ angular.module('bahmni.registration')
                     var divisionId = geoCode.find(division => division.type === "division" && division.name.includes(divisionName.toUpperCase())).division_id;
                     var districtId = geoCode.find(district => district.type === "district" && district.name.includes(districtName.toUpperCase())).district_id;
                     var upazilaId = geoCode.find(upazila => upazila.type === "upazila" && upazila.name.includes(upazilaName.toUpperCase())).upazila_id;
-                    return {
-                        given_name: data.givenName,
-                        sur_name: data.familyName,
-                        date_of_birth: data.birthdate ? data.birthdate.toISOString().substring(0, 10) : null,
-                        gender: data.gender,
-                        nid: data.nationalId,
-                        present_address: {
-                            address_line: data.address.address1,
-                            division_id: divisionId,
-                            district_id: districtId,
-                            upazila_id: upazilaId
-
-                        },
-                        confidential: "No"
-                    };
+                    if (data.nationalId) {
+                        return {
+                            given_name: data.givenName,
+                            sur_name: data.familyName,
+                            date_of_birth: data.birthdate ? data.birthdate.toISOString().substring(0, 10) : null,
+                            gender: data.gender,
+                            nid: data.nationalId,
+                            bin_brn: '',
+                            present_address: {
+                                address_line: data.address.address1,
+                                division_id: divisionId,
+                                district_id: districtId,
+                                upazila_id: upazilaId
+                            },
+                            confidential: "No"
+                        };
+                    } else {
+                        return {
+                            given_name: data.givenName,
+                            sur_name: data.familyName,
+                            date_of_birth: data.birthdate ? data.birthdate.toISOString().substring(0, 10) : null,
+                            gender: data.gender,
+                            nid: '',
+                            bin_brn: data.birthRegistrationId,
+                            present_address: {
+                                address_line: data.address.address1,
+                                division_id: divisionId,
+                                district_id: districtId,
+                                upazila_id: upazilaId
+                            },
+                            confidential: "No"
+                        };
+                    }
                 }
-                let dataBody = transformData($scope.patient);
-                fetch(`https://${$window.location.hostname}:6061/api/v1/health-id`,
-                    {
-                        method: "POST",
-                        body: JSON.stringify(dataBody),
-                        headers: {
-                            'Content-Type': 'application/json'
-                        }
-                    })
-                    .then(response => response.json())
-                    .then(res => {
-                        if (res.statusCode === 201) {
-                            $timeout($scope.healthId = parseInt(res.content.id), 100);
-                        } else if (res.statusCode === 208) {
-                            let patientData = res.content;
-                            $timeout(function () {
-                                $scope.patient.givenName = patientData.given_name;
-                                $scope.patient.familyName = patientData.sur_name;
-                                $scope.patient.gender = patientData.gender;
-                                $scope.patient.birthdate = new Date(patientData.date_of_birth);
-                                var currentDate = new Date();
-                                var birthDate = new Date(patientData.date_of_birth);
-                                var years = currentDate.getFullYear() - birthDate.getFullYear();
-                                var months = currentDate.getMonth() - birthDate.getMonth();
-                                var days = currentDate.getDate() - birthDate.getDate();
-                                if (months < 0 || (months === 0 && days < 0)) {
-                                    years--;
-                                    months += 12;
+                if ($scope.patient.givenName && $scope.patient.familyName && $scope.patient.birthdate && $scope.patient.gender && $scope.patient.address.stateProvince && $scope.patient.address.countyDistrict && $scope.patient.address.address5 && $scope.patient.address.address1) {
+                    let dataBody = transformData($scope.patient);
+                    fetch(`https://${$window.location.hostname}:6061/api/v1/health-id`,
+                        {
+                            method: "POST",
+                            body: JSON.stringify(dataBody),
+                            headers: {
+                                'Content-Type': 'application/json'
+                            }
+                        })
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error('Request failed with status ' + response.status);
+                            }
+                            return response.json();
+                        })
+                        .then(res => {
+                            if (res.statusCode === 201) {
+                                $timeout($scope.healthId = parseInt(res.content.id), 100);
+                            } else if (res.statusCode === 208) {
+                                let patientData = res.content;
+                                var result = window.confirm(`Patient already registered with this NID/BRN. Do you want to replace with the existing info?`);
+                                if (result === true) {
+                                    res.content.present_address.division = geoCode.find(division => division.type === "division" && division.division_id.includes(res.content.present_address.division_id)).name;
+                                    res.content.present_address.district = geoCode.find(district => district.type === "district" && district.district_id.includes(res.content.present_address.district_id) && district.division_id.includes(res.content.present_address.division_id)).name;
+                                    res.content.present_address.upazila = geoCode.find(upazila => upazila.type === "upazila" && upazila.upazila_id.includes(res.content.present_address.upazila_id) && upazila.district_id.includes(res.content.present_address.district_id) && upazila.division_id.includes(res.content.present_address.division_id)).name;
+                                    localStorage.setItem("healthId", JSON.stringify(res.content));
+                                    $timeout(function () {
+                                        $scope.patient.givenName = patientData.given_name;
+                                        $scope.patient.familyName = patientData.sur_name;
+                                        $scope.patient.gender = patientData.gender;
+                                        $scope.patient.birthdate = new Date(patientData.date_of_birth);
+                                        var currentDate = new Date();
+                                        var birthDate = new Date(patientData.date_of_birth);
+                                        var years = currentDate.getFullYear() - birthDate.getFullYear();
+                                        var months = currentDate.getMonth() - birthDate.getMonth();
+                                        var days = currentDate.getDate() - birthDate.getDate();
+                                        if (months < 0 || (months === 0 && days < 0)) {
+                                            years--;
+                                            months += 12;
+                                        }
+                                        if (days < 0) {
+                                            var prevMonthDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 0);
+                                            days = prevMonthDate.getDate() - birthDate.getDate() + currentDate.getDate();
+                                            months--;
+                                        }
+                                        $scope.patient.age.years = years;
+                                        $scope.patient.age.months = months;
+                                        $scope.patient.age.days = days;
+                                        $scope.healthId = patientData.hid;
+                                        $scope.patient.nationalId = patientData.nid;
+                                        $scope.patient.address.address1 = patientData.present_address.address_line;
+                                        $scope.patient.address.display = patientData.present_address.address_line;
+                                        $scope.patient.address.stateProvince = geoCode.find(division => division.type === "division" && division.division_id.includes(res.content.present_address.division_id)).name;
+                                        $scope.patient.address.countyDistrict = geoCode.find(district => district.type === "district" && district.district_id.includes(res.content.present_address.district_id) && district.division_id.includes(res.content.present_address.division_id)).name;
+                                        $scope.patient.address.address5 = geoCode.find(upazila => upazila.type === "upazila" && upazila.upazila_id.includes(res.content.present_address.upazila_id) && upazila.district_id.includes(res.content.present_address.district_id) && upazila.division_id.includes(res.content.present_address.division_id)).name;
+                                    }, 100);
                                 }
-                                if (days < 0) {
-                                    var prevMonthDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 0);
-                                    days = prevMonthDate.getDate() - birthDate.getDate() + currentDate.getDate();
-                                    months--;
-                                }
-                                $scope.patient.age.years = years;
-                                $scope.patient.age.months = months;
-                                $scope.patient.age.days = days;
-                                $scope.healthId = patientData.hid;
-                                $scope.patient.nationalId = patientData.nid;
-                                $scope.patient.address.address1 = patientData.present_address.address_line;
-                                $scope.patient.address.display = patientData.present_address.address_line;
-                                $scope.patient.address.address5 = geoCode.find(division => division.type === "division" && division.division_id.includes(res.content.present_address.division_id)).name;
-                                $scope.patient.address.countyDistrict = geoCode.find(district => district.type === "district" && district.district_id.includes(res.content.present_address.district_id) && district.division_id.includes(res.content.present_address.division_id)).name;
-                                $scope.patient.address.stateProvince = geoCode.find(upazila => upazila.type === "upazila" && upazila.upazila_id.includes(res.content.present_address.upazila_id) && upazila.district_id.includes(res.content.present_address.district_id) && upazila.division_id.includes(res.content.present_address.division_id)).name;
-                            }, 100);
-                        }
-                    });
+                            }
+                        })
+                        .catch(error => {
+                            window.alert('There was an error!');
+                            console.error('Error:', error);
+                            // errorMessage = 'There was an error';
+                        });
+                } else {
+                    window.alert('Please enter all information.');
+                }
             };
             var createPatient = function (jumpAccepted) {
                 return patientService.create($scope.patient, jumpAccepted).then(function (response) {

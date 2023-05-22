@@ -219,8 +219,8 @@
                                 ng-value="healthId"
                                 ng-disabled="readOnlyExtraIdentifiers.indexOf(identifier.identifierType.name)>-1">
                         </div>
-                        <!-- <button>Generate Health Id</button> -->
-                        <span class="healthIdBtn" ng-click="generateHealthId()"
+                        <!-- Generate Health Id-->
+                        <span ng-show="patient.nationalId.length>9 || patient.birthRegistrationId.length>16" class="healthIdBtn" ng-click="generateHealthId()"
                             ng-bind-html="::'GENERATE_HEALTH_ID' | translate">
                         </span>
                         <div class="field-value field-value-has-identifier"
