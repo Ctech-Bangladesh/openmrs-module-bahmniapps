@@ -164,6 +164,79 @@ angular.module('bahmni.registration')
                             });
                         }
                     });
+                    var getAge = function (dateString) {
+                        var today = new Date();
+                        var birthDate = new Date(dateString);
+                        let by = Number.parseFloat(birthDate.getFullYear()),
+                            bm = Number.parseFloat(birthDate.getMonth()),
+                            bd = Number.parseFloat(birthDate.getDate()),
+                            ty = Number.parseFloat(today.getFullYear()),
+                            tm = Number.parseFloat(today.getMonth()),
+                            td = Number.parseFloat(today.getDate());
+                        let years = 0, months = 0, days = 0;
+                        if (td < bd) {
+                            tm = tm - 1;
+                            if (tm < 0) {
+                                ty = ty - 1;
+                                tm = 11;
+                            }
+                            td = td + new Date(ty, tm + 1, 0).getDate();
+                        }
+                        if (tm < bm) {
+                            ty = ty - 1;
+                            tm = tm + 12;
+                        }
+                        years = ty - by;
+                        months = tm - bm;
+                        days = td - bd;
+                        if (months < 0) {
+                            years = years - 1;
+                            months = months + 12;
+                        }
+                        let result = '';
+                        if (years > 0) {
+                            result += years + ' Y ';
+                        }
+                        else {
+                            if (months > 0) {
+                                result += months + ' M ';
+                            }
+                            if (days > 0) {
+                                result += days + ' D';
+                            }
+                        }
+
+                        return result;
+                    };
+                    var getUserRelationship = function (id) {
+                        return $http.get(`/openmrs/ws/rest/v1/patientprofile/${id}?v=full`, {
+                            method: "GET",
+                            withCredentials: true
+                        });
+                    };
+                    $q.all([getUserRelationship($stateParams.patientUuid)]).then(function (response) {
+                        // console.log(response[0].data);
+                        if (response[0].data.relationships.length > 0) {
+                            // console.log(response[0].data.relationships[0].personA.uuid === $stateParams.patientUuid);
+                            if (response[0].data.relationships[0].personA.uuid === $stateParams.patientUuid) {
+                                $scope.observations.relationship = true;
+                                $q.all([getUserRelationship(response[0].data.relationships[0].personB.uuid)]).then(function (response) {
+                                    // console.log(response[0].data, $scope.patient);
+                                    if (response[0].data) {
+                                        $scope.observations.mainPatient = response[0].data;
+                                        $scope.observations.mainPatientAge = getAge(response[0].data.patient.person.birthdate);
+                                        // console.log(response[0].data);
+                                    }
+                                    // $scope.patient = response[0].data.patient.person;
+                                });
+                            }
+                            else {
+                                $scope.observations.relationship = false;
+                            }
+                        } else {
+                            $scope.observations.relationship = false;
+                        }
+                    });
                     return obs;
                 };
 
