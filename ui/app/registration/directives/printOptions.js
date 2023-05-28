@@ -215,19 +215,25 @@ angular.module('bahmni.registration')
                         });
                     };
                     $q.all([getUserRelationship($stateParams.patientUuid)]).then(function (response) {
-                        // console.log(response[0].data);
                         if (response[0].data.relationships.length > 0) {
-                            // console.log(response[0].data.relationships[0].personA.uuid === $stateParams.patientUuid);
                             if (response[0].data.relationships[0].personA.uuid === $stateParams.patientUuid) {
                                 $scope.observations.relationship = true;
                                 $q.all([getUserRelationship(response[0].data.relationships[0].personB.uuid)]).then(function (response) {
-                                    // console.log(response[0].data, $scope.patient);
                                     if (response[0].data) {
                                         $scope.observations.mainPatient = response[0].data;
                                         $scope.observations.mainPatientAge = getAge(response[0].data.patient.person.birthdate);
-                                        // console.log(response[0].data);
+                                        if (response[0].data.patient.person.attributes.length > 0) {
+                                            let attributes = response[0].data.patient.person.attributes;
+                                            let nid = attributes.filter(data => data.attributeType.display === "nationalId");
+                                            if (nid.length > 0) {
+                                                $scope.observations.mainPatientNid = nid[0].value;
+                                            }
+                                            let phoneNumber = attributes.filter(data => data.attributeType.display === "phoneNumber");
+                                            if (phoneNumber.length > 0) {
+                                                $scope.observations.mainPatientPhoneNumber = phoneNumber[0].value;
+                                            }
+                                        }
                                     }
-                                    // $scope.patient = response[0].data.patient.person;
                                 });
                             }
                             else {
