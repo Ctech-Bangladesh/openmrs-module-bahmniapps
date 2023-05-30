@@ -12,7 +12,9 @@ angular.module('bahmni.registration')
             $scope.showEnterID = configValueForEnterId === null ? true : configValueForEnterId;
             $scope.today = Bahmni.Common.Util.DateTimeFormatter.getDateWithoutTime(dateUtil.now());
             $window.localStorage.removeItem('refresh');
-
+            var capitalizeFirstLetter = function (str) {
+                return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+            };
             if ($window.localStorage.getItem('healthId')) {
                 let patientData = JSON.parse($window.localStorage.getItem('healthId'));
                 $timeout(function () {
@@ -42,15 +44,16 @@ angular.module('bahmni.registration')
                     $scope.patient.nationalId = patientData.nid;
                     $scope.patient.address.address1 = patientData.present_address.address_line;
                     $scope.patient.address.display = patientData.present_address.address_line;
-                    $scope.patient.address.address5 = patientData.present_address.upazila;
-                    $scope.patient.address.countyDistrict = patientData.present_address.district;
-                    $scope.patient.address.stateProvince = patientData.present_address.division;
+                    $scope.patient.address.address5 = capitalizeFirstLetter(patientData.present_address.upazila);
+                    $scope.patient.address.countyDistrict = capitalizeFirstLetter(patientData.present_address.district);
+                    $scope.patient.address.stateProvince = capitalizeFirstLetter(patientData.present_address.division);
                 }, 100);
                 // if (patientData.given_name.length > 0) {
                 //     $scope.patient.givenName = patientData.given_name;
                 //     $scope.patient.givenName = patientData.given_name;
                 // }
             }
+
             var countRegistration = function (userUuid) {
                 let apiUrl = "/openmrs/module/bahmnicustomutil/countRegistrationByUser/" + userUuid + ".form";
                 $http({
@@ -281,6 +284,10 @@ angular.module('bahmni.registration')
                                             days = prevMonthDate.getDate() - birthDate.getDate() + currentDate.getDate();
                                             months--;
                                         }
+                                        var stateProvince = geoCode.find(division => division.type === "division" && division.division_id.includes(res.content.present_address.division_id)).name;
+                                        var countyDistrict = geoCode.find(district => district.type === "district" && district.district_id.includes(res.content.present_address.district_id) && district.division_id.includes(res.content.present_address.division_id)).name;
+                                        var upazila = geoCode.find(upazila => upazila.type === "upazila" && upazila.upazila_id.includes(res.content.present_address.upazila_id) && upazila.district_id.includes(res.content.present_address.district_id) && upazila.division_id.includes(res.content.present_address.division_id)).name;
+
                                         $scope.patient.age.years = years;
                                         $scope.patient.age.months = months;
                                         $scope.patient.age.days = days;
@@ -289,9 +296,9 @@ angular.module('bahmni.registration')
                                         $scope.patient.nationalId = patientData.nid;
                                         $scope.patient.address.address1 = patientData.present_address.address_line;
                                         $scope.patient.address.display = patientData.present_address.address_line;
-                                        $scope.patient.address.stateProvince = geoCode.find(division => division.type === "division" && division.division_id.includes(res.content.present_address.division_id)).name;
-                                        $scope.patient.address.countyDistrict = geoCode.find(district => district.type === "district" && district.district_id.includes(res.content.present_address.district_id) && district.division_id.includes(res.content.present_address.division_id)).name;
-                                        $scope.patient.address.address5 = geoCode.find(upazila => upazila.type === "upazila" && upazila.upazila_id.includes(res.content.present_address.upazila_id) && upazila.district_id.includes(res.content.present_address.district_id) && upazila.division_id.includes(res.content.present_address.division_id)).name;
+                                        $scope.patient.address.stateProvince = capitalizeFirstLetter(stateProvince);
+                                        $scope.patient.address.countyDistrict = capitalizeFirstLetter(countyDistrict);
+                                        $scope.patient.address.address5 = capitalizeFirstLetter(upazila);
                                     }, 100);
                                 }
                             }
