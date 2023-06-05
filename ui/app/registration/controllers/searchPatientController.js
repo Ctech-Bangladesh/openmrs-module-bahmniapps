@@ -297,9 +297,9 @@ angular.module('bahmni.registration')
                                     .then(res => {
                                         searching = false;
                                         if (res.statusCode === 200) {
-                                            res.content.present_address.division = geoCode.find(division => division.type === "division" && division.division_id.includes(res.content.present_address.division_id)).name;
-                                            res.content.present_address.district = geoCode.find(district => district.type === "district" && district.district_id.includes(res.content.present_address.district_id) && district.division_id.includes(res.content.present_address.division_id)).name;
-                                            res.content.present_address.upazila = geoCode.find(upazila => upazila.type === "upazila" && upazila.upazila_id.includes(res.content.present_address.upazila_id) && upazila.district_id.includes(res.content.present_address.district_id) && upazila.division_id.includes(res.content.present_address.division_id)).name;
+                                            res.content.present_address.division = geoCode.find(division => division.type === "division" && division.division_id.includes(res.content.present_address.division_id))?.name;
+                                            res.content.present_address.district = geoCode.find(district => district.type === "district" && district.district_id.includes(res.content.present_address.district_id) && district.division_id.includes(res.content.present_address.division_id))?.name;
+                                            res.content.present_address.upazila = geoCode.find(upazila => upazila.type === "upazila" && upazila.upazila_id.includes(res.content.present_address.upazila_id) && upazila.district_id.includes(res.content.present_address.district_id) && upazila.division_id.includes(res.content.present_address.division_id))?.name;
                                             localStorage.setItem("healthId", JSON.stringify(res.content));
                                             $window.location.href = "/bahmni/registration/#/patient/new";
                                         }

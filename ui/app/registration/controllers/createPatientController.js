@@ -13,7 +13,7 @@ angular.module('bahmni.registration')
             $scope.today = Bahmni.Common.Util.DateTimeFormatter.getDateWithoutTime(dateUtil.now());
             $window.localStorage.removeItem('refresh');
             var capitalizeFirstLetter = function (str) {
-                return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+                return str?.charAt(0).toUpperCase() + str?.slice(1).toLowerCase();
             };
             if ($window.localStorage.getItem('healthId')) {
                 let patientData = JSON.parse($window.localStorage.getItem('healthId'));
