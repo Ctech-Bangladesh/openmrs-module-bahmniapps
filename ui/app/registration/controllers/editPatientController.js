@@ -34,11 +34,37 @@ angular.module('bahmni.registration')
                         $window.localStorage.setItem('refresh', "1");
                     }
                     $scope.patient.access = true;
+                    $scope.allowRePrint = false;
                 } else {
+                    $timeout(function () {
+                        let apiURL = "/openmrs/ws/rest/v1/bahmnicore/observations?" +
+                            "concept=Fee+Category&concept=Free+Type&" +
+                            "concept=Temporary+Categories&concept=Opd+Consultation+Room&" +
+                            "patientUuid=" +
+                            uuid +
+                            "&scope=latest";
+                        $http({
+                            method: "GET",
+                            url: apiURL
+                        }).then(function mySuccess (response) {
+                            let obsData = response.data;
+                            $scope.obsData = obsData;
+                            obsData.forEach(key => {
+                                $scope.allowRePrint = false;
+                                if (key.complexData != null) {
+                                    if (key.encounterDateTime != '') {
+                                        let reprint = appService.getAppDescriptor().getConfigValue("afterSavePrint");
+                                        if (reprint) {
+                                            $scope.allowRePrint = true;
+                                        }
+                                    }
+                                }
+                            });
+                        });
+                    }, 500);
                     $scope.patient.access = false;
                 }
             });
-            $scope.allowRePrint = false;
             $scope.actions = {};
             $scope.addressHierarchyConfigs = appService.getAppDescriptor().getConfigValue("addressHierarchy");
             $scope.disablePhotoCapture = appService.getAppDescriptor().getConfigValue("disablePhotoCapture");
@@ -62,32 +88,6 @@ angular.module('bahmni.registration')
                     $scope.confirmationPrompt(event);
                 }
             };
-            $timeout(function () {
-                let apiURL = "/openmrs/ws/rest/v1/bahmnicore/observations?" +
-                    "concept=Fee+Category&concept=Free+Type&" +
-                    "concept=Temporary+Categories&concept=Opd+Consultation+Room&" +
-                    "patientUuid=" +
-                    uuid +
-                    "&scope=latest";
-                $http({
-                    method: "GET",
-                    url: apiURL
-                }).then(function mySuccess (response) {
-                    let obsData = response.data;
-                    $scope.obsData = obsData;
-                    obsData.forEach(key => {
-                        $scope.allowRePrint = false;
-                        if (key.complexData != null) {
-                            if (key.encounterDateTime != '') {
-                                let reprint = appService.getAppDescriptor().getConfigValue("afterSavePrint");
-                                if (reprint) {
-                                    $scope.allowRePrint = true;
-                                }
-                            }
-                        }
-                    });
-                });
-            }, 500);
             var getApiData = function (url) {
                 return $http.get(`/openmrs${url}`, {
                     method: "GET",
@@ -120,6 +120,13 @@ angular.module('bahmni.registration')
                     observation.groupMembers.forEach(getValue);
                 };
                 $scope.observations.forEach(getValue);
+                var value = $cookies.get("bahmni.user.location");
+                if (JSON.parse(value).name.toLowerCase().includes('emergency')) {
+                    $scope.observations.room = 'emergency';
+                }
+                else {
+                    $scope.observations.room = 'opd';
+                }
                 $scope.obs = obs;
                 registrationCardPrinter.print(reprint.templateUrl, $scope.patient, $scope.obs, $scope.encounterDateTime, $scope.observations);
             };
