@@ -1,9 +1,9 @@
 'use strict';
 
 angular.module('bahmni.registration')
-    .controller('VisitController', ['$window', '$scope', '$http', '$rootScope', '$state', '$bahmniCookieStore', 'patientService', 'encounterService', '$stateParams', 'spinner', '$timeout', '$q', 'appService', 'openmrsPatientMapper', 'contextChangeHandler', 'messagingService', 'sessionService', 'visitService', '$location', '$translate',
+    .controller('VisitController', ['$window','$cookies', '$scope', '$http', '$rootScope', '$state', '$bahmniCookieStore', 'patientService', 'encounterService', '$stateParams', 'spinner', '$timeout', '$q', 'appService', 'openmrsPatientMapper', 'contextChangeHandler', 'messagingService', 'sessionService', 'visitService', '$location', '$translate',
         'auditLogService', 'formService', 'registrationCardPrinter',
-        function ($window, $scope, $http, $rootScope, $state, $bahmniCookieStore, patientService, encounterService, $stateParams, spinner, $timeout, $q, appService, openmrsPatientMapper, contextChangeHandler, messagingService, sessionService, visitService, $location, $translate, auditLogService, formService, registrationCardPrinter) {
+        function ($window, $cookies, $scope, $http, $rootScope, $state, $bahmniCookieStore, patientService, encounterService, $stateParams, spinner, $timeout, $q, appService, openmrsPatientMapper, contextChangeHandler, messagingService, sessionService, visitService, $location, $translate, auditLogService, formService, registrationCardPrinter) {
             var vm = this;
             var patientUuid = $stateParams.patientUuid;
             var extensions = appService.getAppDescriptor().getExtensions("org.bahmni.registration.conceptSetGroup.observations", "config");
@@ -326,7 +326,6 @@ angular.module('bahmni.registration')
                                     };
                                     if (queueManagement.willUse == true) {
                                         generateQueue(queue);
-                                        console.log(queue);
                                         $http({
                                             method: "GET",
                                             url: "/openmrs/module/queuemanagement/getToken.form?identifier=" + identifier + "&dateCreated=" + formatDate[0],
@@ -343,6 +342,13 @@ angular.module('bahmni.registration')
                         });
                         if (afterSave.print === true) {
                             $scope.observations = $scope.obsData || $scope.observations;
+                            var value = $cookies.get("bahmni.user.location");
+                            if (JSON.parse(value).name.toLowerCase().includes('emergency')) {
+                                $scope.observations.room = 'emergency';
+                            }
+                            else {
+                                $scope.observations.room = 'opd';
+                            }
                             registrationCardPrinter.print(afterSave.templateUrl, $scope.patient, $scope.obs, $scope.encounterDateTime, $scope.observations, $scope.serial);
                             if (afterSave.createNew === true) {
                                 $state.go('newpatient');
