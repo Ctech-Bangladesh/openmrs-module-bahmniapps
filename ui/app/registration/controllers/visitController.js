@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('bahmni.registration')
-    .controller('VisitController', ['$window','$cookies', '$scope', '$http', '$rootScope', '$state', '$bahmniCookieStore', 'patientService', 'encounterService', '$stateParams', 'spinner', '$timeout', '$q', 'appService', 'openmrsPatientMapper', 'contextChangeHandler', 'messagingService', 'sessionService', 'visitService', '$location', '$translate',
+    .controller('VisitController', ['$window', '$cookies', '$scope', '$http', '$rootScope', '$state', '$bahmniCookieStore', 'patientService', 'encounterService', '$stateParams', 'spinner', '$timeout', '$q', 'appService', 'openmrsPatientMapper', 'contextChangeHandler', 'messagingService', 'sessionService', 'visitService', '$location', '$translate',
         'auditLogService', 'formService', 'registrationCardPrinter',
         function ($window, $cookies, $scope, $http, $rootScope, $state, $bahmniCookieStore, patientService, encounterService, $stateParams, spinner, $timeout, $q, appService, openmrsPatientMapper, contextChangeHandler, messagingService, sessionService, visitService, $location, $translate, auditLogService, formService, registrationCardPrinter) {
             var vm = this;
@@ -276,10 +276,10 @@ angular.module('bahmni.registration')
                 });
             };
 
-              // // print
-              // var print = function () {
-              //     return registrationCardPrinter.print($scope.defaultPrint.templateUrl, $scope.patient, mapRegistrationObservations(), $scope.encounterDateTime);
-              // };
+            // // print
+            // var print = function () {
+            //     return registrationCardPrinter.print($scope.defaultPrint.templateUrl, $scope.patient, mapRegistrationObservations(), $scope.encounterDateTime);
+            // };
 
 
             var afterSave = function () {
@@ -299,14 +299,14 @@ angular.module('bahmni.registration')
                     var apiURL = "/openmrs/ws/rest/v1/bahmnicore/observations?" +
                         "concept=Registration+Fee+Type&concept=Free+Type&" +
                         "concept=Patient+Visit+Type&" +
-                        "concept=Temporary+Categories&concept=Opd+Consultation+Room&" +
+                        "concept=Temporary+Category&concept=Road+Traffic+Accident&concept=Opd+Consultation+Room&" +
                         "patientUuid=" +
                         patientUuid +
                         "&scope=latest";
                     $http({
                         method: "GET",
                         url: apiURL
-                    }).then(function mySuccess (response) {
+                    }).then(function mySuccess(response) {
                         var obsdata = response.data;
                         $scope.obsData = obsdata;
                         patientService.get(patientUuid).then(function (openMRSPatient) {
@@ -329,7 +329,7 @@ angular.module('bahmni.registration')
                                         $http({
                                             method: "GET",
                                             url: "/openmrs/module/queuemanagement/getToken.form?identifier=" + identifier + "&dateCreated=" + formatDate[0],
-                                        }).then(function mySuccess (response) {
+                                        }).then(function mySuccess(response) {
                                             var newData = response.data.token;
                                             $scope.serial.push(newData);
                                         });
@@ -341,6 +341,7 @@ angular.module('bahmni.registration')
                             );
                         });
                         if (afterSave.print === true) {
+
                             $scope.observations = $scope.obsData || $scope.observations;
                             var value = $cookies.get("bahmni.user.location");
                             if (JSON.parse(value).name.toLowerCase().includes('emergency')) {
