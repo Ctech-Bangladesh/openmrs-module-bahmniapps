@@ -218,10 +218,7 @@
                                 ng-show="identifier.hasOldIdentifier || !identifier.hasIdentifierSources()"
                                 ng-disabled="readOnlyExtraIdentifiers.indexOf(identifier.identifierType.name)>-1">
                         </div>
-                        <!-- Generate Health Id-->
-                        <span ng-show="patient.nationalId.length>9 || patient.birthRegistrationId.length>16" class="healthIdBtn" ng-click="generateHealthId()"
-                            ng-bind-html="::'GENERATE_HEALTH_ID' | translate">
-                        </span>
+                      
                         <div class="field-value field-value-has-identifier"
                             ng-show="::identifier.hasIdentifierSources()">
                             <input type="text" id="registrationNumber" ng-model="identifier.registrationNumber"

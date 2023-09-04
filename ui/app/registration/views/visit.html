@@ -24,6 +24,12 @@
                             <div class="field-value">
                                 <label class="control-label"><strong>{{::patient.primaryIdentifier.identifier}}</strong></label>
                             </div>
+                            <div class="field-attribute">
+                                <label ng-if="patient.extraIdentifiers[0].identifier" for="patientId">Health Id : </label>
+                            </div>
+                            <div class="field-value">
+                                <label class="control-label"><strong>{{::patient.extraIdentifiers[0].identifier}}</strong></label>
+                            </div>
                         </div>
                         <div class="form-field photocontainer-spacing clearfix">
                             <div class="field-attribute">
