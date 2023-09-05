@@ -273,6 +273,37 @@ angular.module("bahmni.registration").controller("CreatePatientController", [
       )
         .then((response) => {
           if (!response.ok) {
+            return patientService
+            .create($scope.patient, jumpAccepted)
+            .then(
+              function (response) {
+                copyPatientProfileDataToScope(response);
+              },
+              function (response) {
+                if (response.status === 412) {
+                  var data = _.map(response.data, function (data) {
+                    return {
+                      sizeOfTheJump: data.sizeOfJump,
+                      identifierName: _.find(
+                        $rootScope.patientConfiguration.identifierTypes,
+                        { uuid: data.identifierType }
+                      ).name,
+                    };
+                  });
+                  getConfirmationViaNgDialog({
+                    template: "views/customIdentifierConfirmation.html",
+                    data: data,
+                    scope: $scope,
+                    yesCallback: function () {
+                      return createPatient(true);
+                    },
+                  });
+                }
+                if (response.isIdentifierDuplicate) {
+                  errorMessage = response.message;
+                }
+              }
+            );
             throw new Error("Request failed with status " + response.status);
           }
           return response.json();
@@ -300,9 +331,40 @@ angular.module("bahmni.registration").controller("CreatePatientController", [
             )
               .then((response) => {
                 if (!response.ok) {
-                  throw new Error(
-                    "Request failed with status " + response.status
+                  return patientService
+                  .create($scope.patient, jumpAccepted)
+                  .then(
+                    function (response) {
+                      copyPatientProfileDataToScope(response);
+                    },
+                    function (response) {
+                      if (response.status === 412) {
+                        var data = _.map(response.data, function (data) {
+                          return {
+                            sizeOfTheJump: data.sizeOfJump,
+                            identifierName: _.find(
+                              $rootScope.patientConfiguration.identifierTypes,
+                              { uuid: data.identifierType }
+                            ).name,
+                          };
+                        });
+                        getConfirmationViaNgDialog({
+                          template: "views/customIdentifierConfirmation.html",
+                          data: data,
+                          scope: $scope,
+                          yesCallback: function () {
+                            return createPatient(true);
+                          },
+                        });
+                      }
+                      if (response.isIdentifierDuplicate) {
+                        errorMessage = response.message;
+                      }
+                    }
                   );
+                  // throw new Error(
+                  //   "Request failed with status " + response.status
+                  // );
                 }
                 return response.json();
               })
@@ -544,12 +606,13 @@ angular.module("bahmni.registration").controller("CreatePatientController", [
         }
       }
     };
-    var createPatient = function (jumpAccepted) {   
+    var createPatient = function (jumpAccepted) {  
+      $scope.generateHealthId(jumpAccepted); 
       return new Promise(function(resolve, reject) {
-      $scope.generateHealthId(jumpAccepted);
+
         setTimeout(function() {
           resolve({});
-        }, 2000);
+        }, 3000);
       });
     //     function (response) {
     //       copyPatientProfileDataToScope(response);
