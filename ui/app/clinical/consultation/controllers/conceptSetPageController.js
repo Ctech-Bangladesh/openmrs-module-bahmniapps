@@ -207,6 +207,10 @@ angular.module('bahmni.clinical')
                 $event.stopPropagation();
             };
 
+            $scope.redirectDeathCertificate = function () {
+                $window.location.href = `https://${$window.location.hostname}:6060/deathCertificate/${$scope.patient.uuid}`;
+            };
+
             $scope.addTemplate = function (template) {
                 $scope.scrollingEnabled = true;
                 $scope.showTemplatesList = false;

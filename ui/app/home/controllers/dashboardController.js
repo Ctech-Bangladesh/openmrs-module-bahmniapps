@@ -11,6 +11,9 @@ angular.module('bahmni.home')
             };
 
             $scope.isVisibleExtension = function (extension) {
+                if (extension.id === "bahmni.registration") {
+                    extension.url = `https://${$window.location.hostname}:6062/api/v1/health-id/health-id`;
+                }
                 return extension.exclusiveOnlineModule ? isOnline() : extension.exclusiveOfflineModule ? !isOnline() : true;
             };
 

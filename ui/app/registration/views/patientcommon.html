@@ -191,7 +191,7 @@
                             </select>
                         </div>
                         <div class="field-value" ng-if="!identifier.hasIdentifierSources()">
-                            <input type="text" id="registrationNumber" ng-model="identifier.registrationNumber"
+                            <input type="text" id="registrationNumber" readOnly ng-model="identifier.registrationNumber"
                                    non-blank="identifier.isIdentifierRequired()" pattern-validate
                                    ng-change="identifier.generate()" focus-on="identifier.hasOldIdentifier"
                                    ng-show="identifier.hasOldIdentifier || !identifier.hasIdentifierSources()"
