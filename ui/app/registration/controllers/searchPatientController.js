@@ -10,7 +10,7 @@ angular.module('bahmni.registration')
             });
             var searching = false;
             var maxAttributesFromConfig = 5;
-            const healthIDEnable = appService.getAppDescriptor().getConfigValue("healthId");
+            const healthIDEnable = appService.getAppDescriptor().getConfigValue("healthIdEnable");
             var allSearchConfigs = appService.getAppDescriptor().getConfigValue("patientSearch") || {};
             var patientSearchResultConfigs = appService.getAppDescriptor().getConfigValue("patientSearchResults") || {};
             maxAttributesFromConfig = !_.isEmpty(allSearchConfigs.programAttributes) ? maxAttributesFromConfig - 1 : maxAttributesFromConfig;

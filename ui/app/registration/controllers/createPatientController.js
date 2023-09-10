@@ -6,7 +6,7 @@ angular.module('bahmni.registration')
             var dateUtil = Bahmni.Common.Util.DateUtil;
             $scope.actions = {};
             var errorMessage;
-            const healthIDEnable = appService.getAppDescriptor().getConfigValue("healthId");
+            const healthIDEnable = appService.getAppDescriptor().getConfigValue("healthIdEnable");
             var configValueForEnterId = appService.getAppDescriptor().getConfigValue('showEnterID');
             $scope.addressHierarchyConfigs = appService.getAppDescriptor().getConfigValue("addressHierarchy");
             $scope.disablePhotoCapture = appService.getAppDescriptor().getConfigValue("disablePhotoCapture");

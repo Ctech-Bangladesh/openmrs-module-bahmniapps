@@ -8,10 +8,10 @@ angular.module('bahmni.home')
             var isOnline = function () {
                 return $window.navigator.onLine;
             };
-
+            const healthIDEnable = appService.getAppDescriptor().getConfigValue("healthIDEnable");
             $scope.isVisibleExtension = function (extension) {
-                if (extension.id === "bahmni.registration") {
-                    extension.url = `https://${$window.location.hostname}:6062/api/v1/health-id/health-id`;
+                if (extension.id === "bahmni.registration" && healthIDEnable) {
+                    extension.url = `https://${$window.location.hostname}:6062/health-id/`;
                 }
                 return extension.exclusiveOnlineModule ? isOnline() : extension.exclusiveOfflineModule ? !isOnline() : true;
             };
@@ -44,7 +44,7 @@ angular.module('bahmni.home')
                 $bahmniCookieStore.put(Bahmni.Common.Constants.locationCookieName, {
                     name: selectedLocation.display,
                     uuid: selectedLocation.uuid
-                }, {path: '/', expires: 7});
+                }, { path: '/', expires: 7 });
                 $window.location.reload();
             };
 
