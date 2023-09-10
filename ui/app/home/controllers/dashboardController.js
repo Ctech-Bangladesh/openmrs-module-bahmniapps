@@ -5,7 +5,6 @@ angular.module('bahmni.home')
         function ($scope, $state, appService, locationService, spinner, $bahmniCookieStore, $window, $q) {
             $scope.appExtensions = appService.getAppDescriptor().getExtensions($state.current.data.extensionPointId, "link") || [];
             $scope.selectedLocationUuid = {};
-
             var isOnline = function () {
                 return $window.navigator.onLine;
             };

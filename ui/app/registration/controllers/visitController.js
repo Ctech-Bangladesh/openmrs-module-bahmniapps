@@ -12,6 +12,20 @@ angular.module('bahmni.registration')
             var selectedProvider = $rootScope.currentProvider;
             var regEncounterTypeUuid = $rootScope.regEncounterConfiguration.encounterTypes[Bahmni.Registration.Constants.registrationEncounterType];
             var visitLocationUuid = $rootScope.visitLocation;
+            function reloadPageOnce () {
+                // Check if a flag is set in localStorage
+                const shouldReload = localStorage.getItem('shouldReload');
+
+                if (!shouldReload) {
+                    // If the flag is not set, set it to a value to indicate that the page should reload
+                    localStorage.setItem('shouldReload', 'true');
+                    location.reload();
+                } else {
+                    // If the flag is already set, remove it from localStorage
+                    localStorage.removeItem('shouldReload');
+                }
+            }
+            reloadPageOnce();
             $window.localStorage.removeItem('healthId');
             var getPatient = function () {
                 var deferred = $q.defer();

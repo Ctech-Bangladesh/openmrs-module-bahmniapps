@@ -6,55 +6,59 @@ angular.module('bahmni.registration')
             var dateUtil = Bahmni.Common.Util.DateUtil;
             $scope.actions = {};
             var errorMessage;
+            const healthIDEnable = appService.getAppDescriptor().getConfigValue("healthId");
             var configValueForEnterId = appService.getAppDescriptor().getConfigValue('showEnterID');
             $scope.addressHierarchyConfigs = appService.getAppDescriptor().getConfigValue("addressHierarchy");
             $scope.disablePhotoCapture = appService.getAppDescriptor().getConfigValue("disablePhotoCapture");
             $scope.showEnterID = configValueForEnterId === null ? true : configValueForEnterId;
             $scope.today = Bahmni.Common.Util.DateTimeFormatter.getDateWithoutTime(dateUtil.now());
             window.sessionStorage.removeItem('free');
-            if ($window.localStorage.getItem("healthId")) {
-                let patientData = JSON.parse($window.localStorage.getItem("healthId"));
-                $timeout(function () {
-                    $scope.patient.givenName = patientData.given_name;
-                    $scope.patient.familyName = patientData.sur_name;
-                    $scope.patient.gender = patientData.gender;
-                    $scope.patient.birthdate = new Date(patientData.date_of_birth);
-                    var currentDate = new Date();
-                    var birthDate = new Date(patientData.date_of_birth);
-                    var years = currentDate.getFullYear() - birthDate.getFullYear();
-                    var months = currentDate.getMonth() - birthDate.getMonth();
-                    var days = currentDate.getDate() - birthDate.getDate();
-                    if (months < 0 || (months === 0 && days < 0)) {
-                        years--;
-                        months += 12;
-                    }
-                    if (days < 0) {
-                        var prevMonthDate = new Date(
-                            currentDate.getFullYear(),
-                            currentDate.getMonth() - 1,
-                            0
-                        );
-                        days = prevMonthDate.getDate() - birthDate.getDate() + currentDate.getDate();
-                        months--;
-                    }
-                    $scope.patient.age.years = years;
-                    $scope.patient.age.months = months;
-                    $scope.patient.age.days = days;
-                    $scope.patient.extraIdentifiers[0].identifier = patientData.hid;
-                    $scope.patient.extraIdentifiers[0].registrationNumber = patientData.hid;
-                    $scope.patient.nationalId = patientData.nid;
-                    $scope.patient.address.address1 =
-                        patientData.present_address.address_line;
-                    $scope.patient.address.display =
-                        patientData.present_address.address_line;
-                    $scope.patient.address.address5 =
-                        patientData.present_address.upazila_id;
-                    $scope.patient.address.countyDistrict =
-                        patientData.present_address.district_id;
-                    $scope.patient.address.stateProvince =
-                        patientData.present_address.division_id;
-                }, 100);
+            if (healthIDEnable) {
+                if ($window.localStorage.getItem("healthId")) {
+                    let patientData = JSON.parse($window.localStorage.getItem("healthId"));
+                    $timeout(function () {
+                        $scope.patient.givenName = patientData.given_name;
+                        $scope.patient.familyName = patientData.sur_name;
+                        $scope.patient.gender = patientData.gender;
+                        $scope.patient.birthdate = new Date(patientData.date_of_birth);
+                        var currentDate = new Date();
+                        var birthDate = new Date(patientData.date_of_birth);
+                        var years = currentDate.getFullYear() - birthDate.getFullYear();
+                        var months = currentDate.getMonth() - birthDate.getMonth();
+                        var days = currentDate.getDate() - birthDate.getDate();
+                        if (months < 0 || (months === 0 && days < 0)) {
+                            years--;
+                            months += 12;
+                        }
+                        if (days < 0) {
+                            var prevMonthDate = new Date(
+                                currentDate.getFullYear(),
+                                currentDate.getMonth() - 1,
+                                0
+                            );
+                            days = prevMonthDate.getDate() - birthDate.getDate() + currentDate.getDate();
+                            months--;
+                        }
+                        $scope.patient.age.years = years;
+                        $scope.patient.age.months = months;
+                        $scope.patient.age.days = days;
+                        $scope.patient.extraIdentifiers[0].identifier = patientData.hid;
+                        $scope.patient.extraIdentifiers[0].registrationNumber = patientData.hid;
+                        $scope.patient.nationalId = patientData.nid;
+                        $scope.patient.address.address1 =
+                            patientData.present_address.address_line;
+                        $scope.patient.address.display =
+                            patientData.present_address.address_line;
+                        $scope.patient.address.address5 =
+                            patientData.present_address.upazila_id;
+                        $scope.patient.address.countyDistrict =
+                            patientData.present_address.district_id;
+                        $scope.patient.address.stateProvince =
+                            patientData.present_address.division_id;
+                    }, 100);
+                }
             }
+
             var countRegistration = function (userUuid) {
                 let apiUrl = "/openmrs/module/bahmnicustomutil/countRegistrationByUser/" + userUuid + ".form";
                 $http({
@@ -245,7 +249,7 @@ angular.module('bahmni.registration')
                             $scope.patient.phoneNumber &&
                             ($scope.patient.nationalId || $scope.patient.birthRegistrationId)
                         ) {
-                            fetch(
+                            spinner.forAjaxPromise(fetch(
                                 `https://${$window.location.hostname}:6062/api/v1/health-id`,
                                 {
                                     method: "POST",
@@ -487,7 +491,7 @@ angular.module('bahmni.registration')
                                 .catch((error) => {
                                     console.error("Error:", error);
                                     // errorMessage = 'There was an error';
-                                });
+                                }));
                         } else {
                             return patientService.create($scope.patient, jumpAccepted).then(
                                 function (response) {
@@ -567,12 +571,46 @@ angular.module('bahmni.registration')
             };
 
             var createPatient = function (jumpAccepted) {
-                $scope.generateHealthId(jumpAccepted);
-                return new Promise(function (resolve, reject) {
-                    $timeout(function () {
-                        resolve({});
-                    }, 3000);
-                });
+                if (healthIDEnable) {
+                    $scope.generateHealthId(jumpAccepted);
+                    return new Promise(function (resolve, reject) {
+                        $timeout(function () {
+                            resolve({});
+                        }, 3000);
+                    });
+                } else {
+                    return patientService
+                        .create($scope.patient, jumpAccepted)
+                        .then(
+                            function (response) {
+                                copyPatientProfileDataToScope(response);
+                            },
+                            function (response) {
+                                if (response.status === 412) {
+                                    var data = _.map(response.data, function (data) {
+                                        return {
+                                            sizeOfTheJump: data.sizeOfJump,
+                                            identifierName: _.find(
+                                                $rootScope.patientConfiguration.identifierTypes,
+                                                { uuid: data.identifierType }
+                                            ).name
+                                        };
+                                    });
+                                    getConfirmationViaNgDialog({
+                                        template: "views/customIdentifierConfirmation.html",
+                                        data: data,
+                                        scope: $scope,
+                                        yesCallback: function () {
+                                            return createPatient(true);
+                                        }
+                                    });
+                                }
+                                if (response.isIdentifierDuplicate) {
+                                    errorMessage = response.message;
+                                }
+                            }
+                        );
+                }
             };
 
             var createPromise = function () {

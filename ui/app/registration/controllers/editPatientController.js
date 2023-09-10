@@ -34,8 +34,8 @@ angular.module('bahmni.registration')
                     "&scope=latest";
                 $http({
                     method: "GET",
-                    url: apiURL,
-                }).then(function mySuccess(response) {
+                    url: apiURL
+                }).then(function mySuccess (response) {
                     let obsData = response.data;
                     $scope.obsData = obsData;
                     obsData.forEach(key => {

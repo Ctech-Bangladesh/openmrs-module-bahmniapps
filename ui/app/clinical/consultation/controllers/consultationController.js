@@ -116,14 +116,14 @@ angular.module('bahmni.clinical').controller('ConsultationController',
                 const queueMng = appService.getAppDescriptor().getConfigValue(
                     "queueManagement");
                 const identifier = $scope.patient.identifier;
-                const date = new Date;
+                const date = new Date();
                 const formatDate = date.toISOString().split("T");
                 if (queueMng.willUse === true) {
                     $http({
                         method: "GET",
                         url: "/openmrs/module/queuemanagement/getToken.form?identifier="
-                            + identifier + "&dateCreated=" + formatDate[0],
-                    }).then(function mySuccess(response) {
+                            + identifier + "&dateCreated=" + formatDate[0]
+                    }).then(function mySuccess (response) {
                         const room = response.data.roomId ? response.data.roomId : 0;
                         if (room !== 0) {
                             updateQueueStatus(identifier, room);
