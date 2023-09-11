@@ -26,7 +26,7 @@ angular.module('bahmni.home')
 
             var logAuditForLoginAttempts = function (eventType, isFailedEvent) {
                 if ($scope.loginInfo.username) {
-                    var messageParams = isFailedEvent ? {userName: $scope.loginInfo.username} : undefined;
+                    var messageParams = isFailedEvent ? { userName: $scope.loginInfo.username } : undefined;
                     auditLogService.log(undefined, eventType, messageParams, 'MODULE_LABEL_LOGIN_KEY');
                 }
             };
@@ -38,7 +38,7 @@ angular.module('bahmni.home')
                 var localTime = new Date().toLocaleString();
                 var localtimeZone = getLocalTimeZone();
                 var localeTimeZone = localTime + " " + localtimeZone;
-                $scope.timeZoneObject = { serverTime: serverTime, localeTimeZone: localeTimeZone};
+                $scope.timeZoneObject = { serverTime: serverTime, localeTimeZone: localeTimeZone };
                 if (offset && !new Date().toString().includes(offset)) {
                     $scope.warning = "Warning";
                     $scope.warningMessage = "WARNING_SERVER_TIME_ZONE_MISMATCH";
@@ -62,7 +62,7 @@ angular.module('bahmni.home')
                     _.forEach(localeList, function (locale) {
                         var localeLanguage = findLanguageByLocale(locale);
                         if (_.isUndefined(localeLanguage)) {
-                            $scope.locales.push({"code": locale, "nativeName": locale});
+                            $scope.locales.push({ "code": locale, "nativeName": locale });
                         } else {
                             $scope.locales.push(localeLanguage);
                         }
@@ -131,40 +131,263 @@ angular.module('bahmni.home')
                     });
                 };
 
-                sessionService.loginUser($scope.loginInfo.username, $scope.loginInfo.password, $scope.loginInfo.currentLocation, $scope.loginInfo.otp).then(
-                    function (data) {
-                        ensureNoSessionIdInRoot();
-                        if (data && data.firstFactAuthorization) {
-                            $scope.showOTP = true;
-                            deferrable.resolve(data);
-                            return;
+                function userPayloadData (inputData) {
+                    const transformedData = {
+                        username: inputData.userName,
+                        password: inputData.password,
+                        person: {
+                            names: [
+                                {
+                                    givenName: inputData.name.trim(),
+                                    preferred: true
+                                }
+                            ],
+                            gender: inputData.gender.charAt(0).toUpperCase(),
+                            age: 0,
+                            birthdate: new Date(inputData.birthDate).toISOString(),
+                            birthdateEstimated: false,
+                            dead: false,
+                            addresses: [
+                                {
+                                    preferred: true,
+                                    address1: inputData.address.text
+                                }
+                            ],
+                            deathdateEstimated: false
+                        },
+                        systemId: inputData.systemId,
+                        roles: inputData.roles
+                    };
+
+                    return transformedData;
+                }
+
+                function generateUsername (name, email) {
+                    const emailUsername = email.split('@')[0].replace(/[^a-zA-Z0-9]/g, '');
+                    const nameParts = name.split(' ');
+                    const firstName = nameParts[1];
+                    const numericPart = emailUsername.match(/\d+/);
+                    let username = firstName.toLowerCase();
+                    if (numericPart) {
+                        username += numericPart[0];
+                    }
+                    return username;
+                }
+
+                fetch(`https://${$window.location.hostname}:6062/api/v1/hris/bahmni-user/${$scope.loginInfo.username}`)
+                    .then((response) => {
+                        if (!response.ok) {
+                            loginBahmni();
                         }
-                        sessionService.loadCredentials().then(function () {
-                            onSuccessfulAuthentication();
-                            $rootScope.currentUser.addDefaultLocale($scope.selectedLocale);
-                            userService.savePreferences().then(
-                                function () { deferrable.resolve(); },
-                                function (error) { deferrable.reject(error); }
+                        return response.json();
+                    })
+                    .then((res) => {
+                        if (res.content) {
+                            loginBahmni();
+                        } else {
+                            const dataBody = {
+                                "email": $scope.loginInfo.username,
+                                "password": $scope.loginInfo.password
+                            };
+                            const headers = new Headers();
+                            headers.append("Content-Type", "application/json");
+                            fetch(
+                                `https://${$window.location.hostname}:6062/api/v1/hris/signin`,
+                                {
+                                    method: "POST",
+                                    body: JSON.stringify(dataBody),
+                                    headers: headers
+                                }
+                            )
+                                .then((response) => {
+                                    if (!response.ok) {
+                                        loginBahmni();
+                                    }
+                                    return response.json();
+                                })
+                                .then((res) => {
+                                    if (res.access_token) {
+                                        fetch(`https://${$window.location.hostname}:6062/api/v1/hris/token/${res.access_token}`)
+                                            .then((response) => {
+                                                if (!response.ok) {
+                                                    loginBahmni();
+                                                }
+                                                return response.json();
+                                            })
+                                            .then((res) => {
+                                                if (res.profiles.length > 0) {
+                                                    fetch(`https://${$window.location.hostname}:6062/api/v1/hris/provider/${res.profiles[0].id}`)
+                                                        .then((response) => {
+                                                            if (!response.ok) {
+                                                                loginBahmni();
+                                                            }
+                                                            return response.json();
+                                                        })
+                                                        .then((userData) => {
+                                                            if (userData.telecom.length > 0) {
+                                                                const userEmailData = userData.telecom.filter(data => data.system === 'email');
+                                                                if (userEmailData.length > 0) {
+                                                                    const userEmail = userEmailData[0].value;
+                                                                    const roles = {
+                                                                        names: [
+                                                                            "Admin-App",
+                                                                            "InPatient-App",
+                                                                            "Reports-App",
+                                                                            "Doctor"
+                                                                        ]
+                                                                    };
+                                                                    fetch(`https://${$window.location.hostname}:6062/api/v1/hris/bahmni-roles`, {
+                                                                        method: "POST",
+                                                                        body: JSON.stringify(roles),
+                                                                        headers: headers
+                                                                    })
+                                                                        .then((response) => {
+                                                                            if (!response.ok) {
+                                                                                loginBahmni();
+                                                                            }
+                                                                            return response.json();
+                                                                        })
+                                                                        .then((res) => {
+                                                                            const roleData = res.content.uuidList.map(item => ({
+                                                                                "uuid": item
+                                                                            }));
+                                                                            const userName = generateUsername(userData.name, userEmail);
+                                                                            userData.userName = userName;
+                                                                            userData.systemId = userEmail;
+                                                                            userData.roles = roleData;
+                                                                            userData.password = $scope.loginInfo.password;
+                                                                            const userPayload = userPayloadData(userData);
+                                                                            const userHeaders = new Headers();
+                                                                            userHeaders.append("Content-Type", "application/json");
+                                                                            userHeaders.append("Authorization", "Basic c3VwZXJtYW46RGV2QGN0ZWNoMTIz");
+                                                                            fetch(
+                                                                                `https://${$window.location.hostname}/openmrs/ws/rest/v1/user`,
+                                                                                {
+                                                                                    method: "POST",
+                                                                                    body: JSON.stringify(userPayload),
+                                                                                    headers: userHeaders
+                                                                                }
+                                                                            )
+                                                                                .then((response) => {
+                                                                                    if (!response.ok) {
+                                                                                        loginBahmni();
+                                                                                    }
+                                                                                    return response.json();
+                                                                                })
+                                                                                .then((res) => {
+                                                                                    if (res) {
+                                                                                        const providerData = {
+                                                                                            "name": res.person.display,
+                                                                                            "description": null,
+                                                                                            "person": res.person.uuid,
+                                                                                            "identifier": null,
+                                                                                            "attributes": [],
+                                                                                            "retired": false
+                                                                                        };
+                                                                                        fetch(
+                                                                                            `https://${$window.location.hostname}/openmrs/ws/rest/v1/provider`,
+                                                                                            {
+                                                                                                method: "POST",
+                                                                                                body: JSON.stringify(providerData),
+                                                                                                headers: userHeaders
+                                                                                            }
+                                                                                        )
+                                                                                            .then((response) => {
+                                                                                                if (!response.ok) {
+                                                                                                    loginBahmni();
+                                                                                                }
+                                                                                                return response.json();
+                                                                                            })
+                                                                                            .then((res) => {
+                                                                                                if (res) {
+                                                                                                    loginBahmni();
+                                                                                                }
+                                                                                            })
+                                                                                            .catch((error) => {
+                                                                                                loginBahmni();
+                                                                                                console.error("Error:", error);
+                                                                                                // errorMessage = 'There was an error';
+                                                                                            });
+                                                                                    }
+                                                                                })
+                                                                                .catch((error) => {
+                                                                                    loginBahmni();
+                                                                                    console.error("Error:", error);
+                                                                                    // errorMessage = 'There was an error';
+                                                                                });
+                                                                        })
+                                                                        .catch((error) => {
+                                                                            loginBahmni();
+                                                                            console.error("Error:", error);
+                                                                            // errorMessage = 'There was an error';
+                                                                        });
+                                                                }
+                                                            }
+                                                        })
+                                                        .catch((error) => {
+                                                            loginBahmni();
+                                                            console.error("Error:", error);
+                                                            // errorMessage = 'There was an error';
+                                                        });
+                                                }
+                                            })
+                                            .catch((error) => {
+                                                loginBahmni();
+                                                console.error("Error:", error);
+                                                // errorMessage = 'There was an error';
+                                            });
+                                    } else {
+                                        loginBahmni();
+                                    }
+                                })
+                                .catch((error) => {
+                                    loginBahmni();
+                                    console.error("Error:", error);
+                                    // errorMessage = 'There was an error';
+                                });
+                        }
+                    })
+                    .catch((error) => {
+                        loginBahmni();
+                        console.error("Error:", error);
+                    });
+
+                const loginBahmni = () => {
+                    sessionService.loginUser($scope.loginInfo.username, $scope.loginInfo.password, $scope.loginInfo.currentLocation, $scope.loginInfo.otp).then(
+                        function (data) {
+                            ensureNoSessionIdInRoot();
+                            if (data && data.firstFactAuthorization) {
+                                $scope.showOTP = true;
+                                deferrable.resolve(data);
+                                return;
+                            }
+                            sessionService.loadCredentials().then(function () {
+                                onSuccessfulAuthentication();
+                                $rootScope.currentUser.addDefaultLocale($scope.selectedLocale);
+                                userService.savePreferences().then(
+                                    function () { deferrable.resolve(); },
+                                    function (error) { deferrable.reject(error); }
+                                );
+                                logAuditForLoginAttempts("USER_LOGIN_SUCCESS");
+                            }, function (error) {
+                                $scope.errorMessageTranslateKey = error;
+                                deferrable.reject(error);
+                                logAuditForLoginAttempts("USER_LOGIN_FAILED", true);
+                            }
                             );
-                            logAuditForLoginAttempts("USER_LOGIN_SUCCESS");
-                        }, function (error) {
+                        },
+                        function (error) {
                             $scope.errorMessageTranslateKey = error;
+                            if (error === 'LOGIN_LABEL_MAX_FAILED_ATTEMPTS' || error == 'LOGIN_LABEL_OTP_EXPIRED') {
+                                deleteUserCredentialsAndShowLoginPage();
+                            } else if (error == 'LOGIN_LABEL_WRONG_OTP_MESSAGE_KEY') {
+                                delete $scope.loginInfo.otp;
+                            }
                             deferrable.reject(error);
                             logAuditForLoginAttempts("USER_LOGIN_FAILED", true);
                         }
-                        );
-                    },
-                    function (error) {
-                        $scope.errorMessageTranslateKey = error;
-                        if (error === 'LOGIN_LABEL_MAX_FAILED_ATTEMPTS' || error == 'LOGIN_LABEL_OTP_EXPIRED') {
-                            deleteUserCredentialsAndShowLoginPage();
-                        } else if (error == 'LOGIN_LABEL_WRONG_OTP_MESSAGE_KEY') {
-                            delete $scope.loginInfo.otp;
-                        }
-                        deferrable.reject(error);
-                        logAuditForLoginAttempts("USER_LOGIN_FAILED", true);
-                    }
-                );
+                    );
+                };
 
                 var deleteUserCredentialsAndShowLoginPage = function () {
                     $scope.showOTP = false;
