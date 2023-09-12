@@ -13,16 +13,15 @@ angular.module('bahmni.registration')
             var regEncounterTypeUuid = $rootScope.regEncounterConfiguration.encounterTypes[Bahmni.Registration.Constants.registrationEncounterType];
             var visitLocationUuid = $rootScope.visitLocation;
             function reloadPageOnce () {
-                // Check if a flag is set in localStorage
+                const visitPage = localStorage.getItem('visitPage');
                 const shouldReload = localStorage.getItem('shouldReload');
-
-                if (!shouldReload) {
-                    // If the flag is not set, set it to a value to indicate that the page should reload
-                    localStorage.setItem('shouldReload', 'true');
-                    location.reload();
-                } else {
-                    // If the flag is already set, remove it from localStorage
-                    localStorage.removeItem('shouldReload');
+                if (visitPage === 'true') {
+                    if (!shouldReload) {
+                        localStorage.setItem('shouldReload', 'true');
+                        location.reload();
+                    } else {
+                        localStorage.removeItem('shouldReload');
+                    }
                 }
             }
             reloadPageOnce();
@@ -296,6 +295,7 @@ angular.module('bahmni.registration')
             // };
 
             var afterSave = function () {
+                localStorage.setItem('visitPage', 'false');
                 var forwardUrl = appService.getAppDescriptor().getConfigValue("afterVisitSaveForwardUrl");
                 var afterSave = appService.getAppDescriptor().getConfigValue("afterSavePrint");
                 var queueManagement = appService.getAppDescriptor().getConfigValue("queueManagement");

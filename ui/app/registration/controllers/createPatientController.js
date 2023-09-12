@@ -300,48 +300,89 @@ angular.module('bahmni.registration')
                                 })
                                 .then((res) => {
                                     if (res.statusCode === 201) {
-                                        $scope.patient.extraIdentifiers[0].identifier =
-                                            res.content.id;
-                                        $scope.patient.extraIdentifiers[0].registrationNumber =
-                                            res.content.id;
-                                        return patientService
-                                            .create($scope.patient, jumpAccepted)
-                                            .then(
-                                                function (response) {
-                                                    copyPatientProfileDataToScope(response);
-                                                },
-                                                function (response) {
-                                                    if (response.status === 412) {
-                                                        var data = _.map(response.data, function (data) {
-                                                            return {
-                                                                sizeOfTheJump: data.sizeOfJump,
-                                                                identifierName: _.find(
-                                                                    $rootScope.patientConfiguration.identifierTypes,
-                                                                    { uuid: data.identifierType }
-                                                                ).name
-                                                            };
-                                                        });
-                                                        getConfirmationViaNgDialog({
-                                                            template: "views/customIdentifierConfirmation.html",
-                                                            data: data,
-                                                            scope: $scope,
-                                                            yesCallback: function () {
-                                                                return createPatient(true);
-                                                            }
-                                                        });
-                                                    }
-                                                    if (response.isIdentifierDuplicate) {
-                                                        errorMessage = response.message;
-                                                    }
+                                        $scope.patient.extraIdentifiers[0].identifier = res.content.id;
+                                        $scope.patient.extraIdentifiers[0].registrationNumber = res.content.id;
+                                        fetch(`https://${window.location.hostname}:6062/api/v1/health-id/${res.content.id}`)
+                                            .then((response) => {
+                                                if (!response.ok) {
+                                                    throw new Error(`Request failed with status: ${response.status}`);
                                                 }
-                                            );
+                                                return response.json();
+                                            })
+                                            .then((res) => {
+                                                if (res.statusCode === 200) {
+                                                    const patientData = res.content;
+                                                    $scope.patient.givenName = patientData.given_name;
+                                                    $scope.patient.familyName = patientData.sur_name;
+                                                    $scope.patient.gender = patientData.gender;
+                                                    $scope.patient.birthdate = new Date(patientData.date_of_birth);
+                                                    var currentDate = new Date();
+                                                    var birthDate = new Date(patientData.date_of_birth);
+                                                    var years = currentDate.getFullYear() - birthDate.getFullYear();
+                                                    var months = currentDate.getMonth() - birthDate.getMonth();
+                                                    var days = currentDate.getDate() - birthDate.getDate();
+                                                    if (months < 0 || (months === 0 && days < 0)) {
+                                                        years--;
+                                                        months += 12;
+                                                    }
+                                                    if (days < 0) {
+                                                        var prevMonthDate = new Date(
+                                                            currentDate.getFullYear(),
+                                                            currentDate.getMonth() - 1,
+                                                            0
+                                                        );
+                                                        days = prevMonthDate.getDate() - birthDate.getDate() + currentDate.getDate();
+                                                        months--;
+                                                    }
+                                                    $scope.patient.age.years = years;
+                                                    $scope.patient.age.months = months;
+                                                    $scope.patient.age.days = days;
+                                                    $scope.patient.nationalId = patientData.nid;
+                                                    $scope.patient.address.address1 = patientData.present_address.address_line;
+                                                    $scope.patient.address.display = patientData.present_address.address_line;
+                                                    $scope.patient.address.address5 = patientData.present_address.upazila_id;
+                                                    $scope.patient.address.countyDistrict = patientData.present_address.district_id;
+                                                    $scope.patient.address.stateProvince = patientData.present_address.division_id;
+                                                    return patientService
+                                                        .create($scope.patient, jumpAccepted)
+                                                        .then(
+                                                            function (response) {
+                                                                copyPatientProfileDataToScope(response);
+                                                            },
+                                                            function (response) {
+                                                                if (response.status === 412) {
+                                                                    var data = _.map(response.data, function (data) {
+                                                                        return {
+                                                                            sizeOfTheJump: data.sizeOfJump,
+                                                                            identifierName: _.find(
+                                                                                $rootScope.patientConfiguration.identifierTypes,
+                                                                                { uuid: data.identifierType }
+                                                                            ).name
+                                                                        };
+                                                                    });
+                                                                    getConfirmationViaNgDialog({
+                                                                        template: "views/customIdentifierConfirmation.html",
+                                                                        data: data,
+                                                                        scope: $scope,
+                                                                        yesCallback: function () {
+                                                                            return createPatient(true);
+                                                                        }
+                                                                    });
+                                                                }
+                                                                if (response.isIdentifierDuplicate) {
+                                                                    errorMessage = response.message;
+                                                                }
+                                                            }
+                                                        );
+                                                }
+                                            })
+                                            .catch((error) => {
+                                                console.error("Error:", error);
+                                            });
                                     } else if (res.statusCode === 208) {
-                                        res.content.present_address.division =
-                                            res.content.present_address.division_id;
-                                        res.content.present_address.district =
-                                            res.content.present_address.district_id;
-                                        res.content.present_address.upazila =
-                                            res.content.present_address.upazila_id;
+                                        res.content.present_address.division = res.content.present_address.division_id;
+                                        res.content.present_address.district = res.content.present_address.district_id;
+                                        res.content.present_address.upazila = res.content.present_address.upazila_id;
                                         localStorage.setItem("healthId", JSON.stringify(res.content));
                                         const patientData = res.content;
                                         $scope.patient.givenName = patientData.given_name;
@@ -571,6 +612,7 @@ angular.module('bahmni.registration')
             };
 
             var createPatient = function (jumpAccepted) {
+                localStorage.setItem('visitPage', 'true');
                 if (healthIDEnable) {
                     $scope.generateHealthId(jumpAccepted);
                     return new Promise(function (resolve, reject) {
