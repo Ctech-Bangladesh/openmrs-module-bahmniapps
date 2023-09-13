@@ -25,6 +25,11 @@ angular.module('bahmni.registration')
                 });
                 return columnName;
             };
+            $scope.selectedIdPreference = 'patientID';
+            $scope.idPreference = function (selectedValue) {
+                $scope.selectedIdPreference = selectedValue;
+                console.log($scope.selectedIdPreference);
+            };
 
             var hasSearchParameters = function () {
                 return $scope.searchParameters.name.trim().length > 0 ||
@@ -45,8 +50,7 @@ angular.module('bahmni.registration')
                 $scope.searchParameters.programAttributeFieldValue = searchParameters.programAttributeFieldValue || '';
                 $scope.searchParameters.addressSearchResultsConfig = searchParameters.addressSearchResultsConfig || '';
                 $scope.searchParameters.personSearchResultsConfig = searchParameters.personSearchResultsConfig || '';
-
-                $scope.searchParameters.registrationNumber = searchParameters.registrationNumber || "";
+                $scope.searchParameters.registrationNumber = searchParameters.registrationNumber || searchParameters.healthIDNumber || "";
                 if (hasSearchParameters()) {
                     searching = true;
                     var searchPromise = patientService.search(

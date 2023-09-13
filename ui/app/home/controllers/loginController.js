@@ -162,16 +162,16 @@ angular.module('bahmni.home')
                     return transformedData;
                 }
 
-                function generateUsername (name, email) {
-                    const emailUsername = email.split('@')[0].replace(/[^a-zA-Z0-9]/g, '');
-                    const nameParts = name.split(' ');
-                    const firstName = nameParts[1];
-                    const numericPart = emailUsername.match(/\d+/);
-                    let username = firstName.toLowerCase();
-                    if (numericPart) {
-                        username += numericPart[0];
+                function generateUsername (name) {
+                    return `HRIS-${name.split(' ')[1]}-${Math.floor(Math.random() * 9000) + 1000}`;
+                }
+
+                function checkAndFormatPassword (password) {
+                    if (password.search(/[A-Z]/) === -1) {
+                        return password.charAt(0).toUpperCase() + password.slice(1) + '123';
+                    } else {
+                        return password;
                     }
-                    return username;
                 }
 
                 fetch(`https://${$window.location.hostname}:6062/api/v1/hris/bahmni-user/${$scope.loginInfo.username}`)
@@ -251,11 +251,11 @@ angular.module('bahmni.home')
                                                                             const roleData = res.content.uuidList.map(item => ({
                                                                                 "uuid": item
                                                                             }));
-                                                                            const userName = generateUsername(userData.name, userEmail);
+                                                                            const userName = generateUsername(userData.name);
                                                                             userData.userName = userName;
                                                                             userData.systemId = userEmail;
                                                                             userData.roles = roleData;
-                                                                            userData.password = $scope.loginInfo.password;
+                                                                            userData.password = checkAndFormatPassword($scope.loginInfo.password);
                                                                             const userPayload = userPayloadData(userData);
                                                                             const userHeaders = new Headers();
                                                                             userHeaders.append("Content-Type", "application/json");
@@ -329,6 +329,8 @@ angular.module('bahmni.home')
                                                             console.error("Error:", error);
                                                             // errorMessage = 'There was an error';
                                                         });
+                                                } else {
+                                                    loginBahmni();
                                                 }
                                             })
                                             .catch((error) => {
@@ -353,7 +355,7 @@ angular.module('bahmni.home')
                     });
 
                 const loginBahmni = () => {
-                    sessionService.loginUser($scope.loginInfo.username, $scope.loginInfo.password, $scope.loginInfo.currentLocation, $scope.loginInfo.otp).then(
+                    sessionService.loginUser($scope.loginInfo.username, checkAndFormatPassword($scope.loginInfo.password), $scope.loginInfo.currentLocation, $scope.loginInfo.otp).then(
                         function (data) {
                             ensureNoSessionIdInRoot();
                             if (data && data.firstFactAuthorization) {
@@ -364,6 +366,11 @@ angular.module('bahmni.home')
                             sessionService.loadCredentials().then(function () {
                                 onSuccessfulAuthentication();
                                 $rootScope.currentUser.addDefaultLocale($scope.selectedLocale);
+                                fetch(`/openmrs/ws/rest/v1/provider?user=${$rootScope.currentUser.uuid}`)
+                                    .then(res => res.json())
+                                    .then(data => {
+                                        localStorage.setItem('providerName', data.results[0].display);
+                                    });
                                 userService.savePreferences().then(
                                     function () { deferrable.resolve(); },
                                     function (error) { deferrable.reject(error); }

@@ -8,6 +8,7 @@ angular.module('bahmni.home')
             var isOnline = function () {
                 return $window.navigator.onLine;
             };
+            $scope.providerName = localStorage.getItem('providerName');
             const healthIDEnable = appService.getAppDescriptor().getConfigValue("healthIDEnable");
             $scope.isVisibleExtension = function (extension) {
                 if (extension.id === "bahmni.registration" && healthIDEnable) {

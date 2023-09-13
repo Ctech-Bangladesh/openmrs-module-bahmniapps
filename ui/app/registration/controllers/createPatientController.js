@@ -204,37 +204,7 @@ angular.module('bahmni.registration')
                 )
                     .then((response) => {
                         if (!response.ok) {
-                            return patientService
-                                .create($scope.patient, jumpAccepted)
-                                .then(
-                                    function (response) {
-                                        copyPatientProfileDataToScope(response);
-                                    },
-                                    function (response) {
-                                        if (response.status === 412) {
-                                            var data = _.map(response.data, function (data) {
-                                                return {
-                                                    sizeOfTheJump: data.sizeOfJump,
-                                                    identifierName: _.find(
-                                                        $rootScope.patientConfiguration.identifierTypes,
-                                                        { uuid: data.identifierType }
-                                                    ).name
-                                                };
-                                            });
-                                            getConfirmationViaNgDialog({
-                                                template: "views/customIdentifierConfirmation.html",
-                                                data: data,
-                                                scope: $scope,
-                                                yesCallback: function () {
-                                                    return createPatient(true);
-                                                }
-                                            });
-                                        }
-                                        if (response.isIdentifierDuplicate) {
-                                            errorMessage = response.message;
-                                        }
-                                    }
-                                );
+                            return patientCreate($scope.patient, jumpAccepted);
                         }
                         return response.json();
                     })
@@ -244,295 +214,239 @@ angular.module('bahmni.registration')
                             districtId = res.content.districtCode;
                             upazilaId = res.content.upazillaCode;
                         }
-                        const dataBody = transformData($scope.patient);
                         if (
                             $scope.patient.phoneNumber &&
                             ($scope.patient.nationalId || $scope.patient.birthRegistrationId)
                         ) {
-                            spinner.forAjaxPromise(fetch(
-                                `https://${$window.location.hostname}:6062/api/v1/health-id`,
-                                {
-                                    method: "POST",
-                                    body: JSON.stringify(dataBody),
-                                    headers: {
-                                        "Content-Type": "application/json"
-                                    }
-                                }
-                            )
-                                .then((response) => {
-                                    if (!response.ok) {
-                                        return patientService
-                                            .create($scope.patient, jumpAccepted)
-                                            .then(
-                                                function (response) {
-                                                    copyPatientProfileDataToScope(response);
-                                                },
-                                                function (response) {
-                                                    if (response.status === 412) {
-                                                        var data = _.map(response.data, function (data) {
-                                                            return {
-                                                                sizeOfTheJump: data.sizeOfJump,
-                                                                identifierName: _.find(
-                                                                    $rootScope.patientConfiguration.identifierTypes,
-                                                                    { uuid: data.identifierType }
-                                                                ).name
-                                                            };
-                                                        });
-                                                        getConfirmationViaNgDialog({
-                                                            template: "views/customIdentifierConfirmation.html",
-                                                            data: data,
-                                                            scope: $scope,
-                                                            yesCallback: function () {
-                                                                return createPatient(true);
-                                                            }
-                                                        });
+                            spinner.forAjaxPromise(
+                                fetch(`https://${$window.location.hostname}:6062/api/v1/health-id/nid/${$scope.patient.nationalId}`)
+                                    .then((response) => {
+                                        if (!response.ok) {
+                                            throw new Error(`Request failed with status: ${response.status}`);
+                                        }
+                                        return response.json();
+                                    })
+                                    .then((res) => {
+                                        if (res.results.length > 0) {
+                                            const patientData = res.results[0];
+                                            fetch(`https://${$window.location.hostname}:6062/api/v1/health-id/geo-code?upazillaCode=${patientData.present_address.upazila_id}&districtCode=${patientData.present_address.district_id}&divisionCode=${patientData.present_address.division_id}`)
+                                                .then((response) => {
+                                                    if (!response.ok) {
+                                                        throw new Error(`Request failed with status: ${response.status}`);
                                                     }
-                                                    if (response.isIdentifierDuplicate) {
-                                                        errorMessage = response.message;
-                                                    }
-                                                }
-                                            );
-                                        // throw new Error(
-                                        //   "Request failed with status " + response.status
-                                        // );
-                                    }
-                                    return response.json();
-                                })
-                                .then((res) => {
-                                    if (res.statusCode === 201) {
-                                        $scope.patient.extraIdentifiers[0].identifier = res.content.id;
-                                        $scope.patient.extraIdentifiers[0].registrationNumber = res.content.id;
-                                        fetch(`https://${window.location.hostname}:6062/api/v1/health-id/${res.content.id}`)
-                                            .then((response) => {
-                                                if (!response.ok) {
-                                                    throw new Error(`Request failed with status: ${response.status}`);
-                                                }
-                                                return response.json();
-                                            })
-                                            .then((res) => {
-                                                if (res.statusCode === 200) {
-                                                    const patientData = res.content;
-                                                    $scope.patient.givenName = patientData.given_name;
-                                                    $scope.patient.familyName = patientData.sur_name;
-                                                    $scope.patient.gender = patientData.gender;
-                                                    $scope.patient.birthdate = new Date(patientData.date_of_birth);
-                                                    var currentDate = new Date();
-                                                    var birthDate = new Date(patientData.date_of_birth);
-                                                    var years = currentDate.getFullYear() - birthDate.getFullYear();
-                                                    var months = currentDate.getMonth() - birthDate.getMonth();
-                                                    var days = currentDate.getDate() - birthDate.getDate();
-                                                    if (months < 0 || (months === 0 && days < 0)) {
-                                                        years--;
-                                                        months += 12;
-                                                    }
-                                                    if (days < 0) {
-                                                        var prevMonthDate = new Date(
-                                                            currentDate.getFullYear(),
-                                                            currentDate.getMonth() - 1,
-                                                            0
+                                                    return response.json();
+                                                })
+                                                .then((res) => {
+                                                    if (res) {
+                                                        $scope.patient.givenName = patientData.given_name;
+                                                        $scope.patient.familyName = patientData.sur_name;
+                                                        $scope.patient.gender = patientData.gender;
+                                                        $scope.patient.birthdate = new Date(
+                                                            patientData.date_of_birth
                                                         );
-                                                        days = prevMonthDate.getDate() - birthDate.getDate() + currentDate.getDate();
-                                                        months--;
+                                                        var currentDate = new Date();
+                                                        var birthDate = new Date(patientData.date_of_birth);
+                                                        var years =
+                                                            currentDate.getFullYear() - birthDate.getFullYear();
+                                                        var months = currentDate.getMonth() - birthDate.getMonth();
+                                                        var days = currentDate.getDate() - birthDate.getDate();
+                                                        if (months < 0 || (months === 0 && days < 0)) {
+                                                            years--;
+                                                            months += 12;
+                                                        }
+                                                        if (days < 0) {
+                                                            var prevMonthDate = new Date(
+                                                                currentDate.getFullYear(),
+                                                                currentDate.getMonth() - 1,
+                                                                0
+                                                            );
+                                                            days =
+                                                                prevMonthDate.getDate() -
+                                                                birthDate.getDate() +
+                                                                currentDate.getDate();
+                                                            months--;
+                                                        }
+                                                        var stateProvince = res.content.division;
+                                                        var countyDistrict = res.content.district;
+                                                        var upazila = res.content.upazilla;
+                                                        $scope.patient.age.years = years;
+                                                        $scope.patient.age.months = months;
+                                                        $scope.patient.age.days = days;
+                                                        $scope.patient.extraIdentifiers[0].identifier =
+                                                            patientData.hid;
+                                                        $scope.patient.extraIdentifiers[0].registrationNumber =
+                                                            patientData.hid;
+                                                        $scope.patient.nationalId = patientData.nid;
+                                                        $scope.patient.address.address1 =
+                                                            patientData.present_address.address_line;
+                                                        $scope.patient.address.display =
+                                                            patientData.present_address.address_line;
+                                                        $scope.patient.address.stateProvince = stateProvince;
+                                                        $scope.patient.address.countyDistrict = countyDistrict;
+                                                        $scope.patient.address.address5 = upazila;
+                                                        return patientCreate($scope.patient, jumpAccepted);
                                                     }
-                                                    $scope.patient.age.years = years;
-                                                    $scope.patient.age.months = months;
-                                                    $scope.patient.age.days = days;
-                                                    $scope.patient.nationalId = patientData.nid;
-                                                    $scope.patient.address.address1 = patientData.present_address.address_line;
-                                                    $scope.patient.address.display = patientData.present_address.address_line;
-                                                    $scope.patient.address.address5 = patientData.present_address.upazila_id;
-                                                    $scope.patient.address.countyDistrict = patientData.present_address.district_id;
-                                                    $scope.patient.address.stateProvince = patientData.present_address.division_id;
-                                                    return patientService
-                                                        .create($scope.patient, jumpAccepted)
-                                                        .then(
-                                                            function (response) {
-                                                                copyPatientProfileDataToScope(response);
-                                                            },
-                                                            function (response) {
-                                                                if (response.status === 412) {
-                                                                    var data = _.map(response.data, function (data) {
-                                                                        return {
-                                                                            sizeOfTheJump: data.sizeOfJump,
-                                                                            identifierName: _.find(
-                                                                                $rootScope.patientConfiguration.identifierTypes,
-                                                                                { uuid: data.identifierType }
-                                                                            ).name
-                                                                        };
-                                                                    });
-                                                                    getConfirmationViaNgDialog({
-                                                                        template: "views/customIdentifierConfirmation.html",
-                                                                        data: data,
-                                                                        scope: $scope,
-                                                                        yesCallback: function () {
-                                                                            return createPatient(true);
-                                                                        }
-                                                                    });
-                                                                }
-                                                                if (response.isIdentifierDuplicate) {
-                                                                    errorMessage = response.message;
+                                                });
+                                        } else {
+                                            fetch(`https://${$window.location.hostname}:6062/api/v1/health-id/nid-verify`,
+                                                {
+                                                    method: "POST",
+                                                    body: JSON.stringify(transformNIDData($scope.patient)),
+                                                    headers: {
+                                                        "Content-Type": "application/json"
+                                                    }
+                                                }
+                                            )
+                                                .then((response) => {
+                                                    if (!response.ok) {
+                                                        $scope.patient.nationalId = 'Not Verified';
+                                                        return patientCreate($scope.patient, jumpAccepted);
+                                                        // throw new Error(`Request failed with status: ${response.status}`);
+                                                    }
+                                                    return response.json();
+                                                })
+                                                .then((res) => {
+                                                    if (res.verifyToken) {
+                                                        const nidData = res;
+                                                        const HIDPayloadData = transformNidVerifyData($scope.patient, nidData.citizenData);
+                                                        fetch(`https://${$window.location.hostname}:6062/api/v1/health-id`,
+                                                            {
+                                                                method: "POST",
+                                                                body: JSON.stringify(HIDPayloadData),
+                                                                headers: {
+                                                                    "Content-Type": "application/json"
                                                                 }
                                                             }
-                                                        );
-                                                }
-                                            })
-                                            .catch((error) => {
-                                                console.error("Error:", error);
-                                            });
-                                    } else if (res.statusCode === 208) {
-                                        res.content.present_address.division = res.content.present_address.division_id;
-                                        res.content.present_address.district = res.content.present_address.district_id;
-                                        res.content.present_address.upazila = res.content.present_address.upazila_id;
-                                        localStorage.setItem("healthId", JSON.stringify(res.content));
-                                        const patientData = res.content;
-                                        $scope.patient.givenName = patientData.given_name;
-                                        $scope.patient.familyName = patientData.sur_name;
-                                        $scope.patient.gender = patientData.gender;
-                                        $scope.patient.birthdate = new Date(
-                                            patientData.date_of_birth
-                                        );
-                                        var currentDate = new Date();
-                                        var birthDate = new Date(patientData.date_of_birth);
-                                        var years =
-                                            currentDate.getFullYear() - birthDate.getFullYear();
-                                        var months = currentDate.getMonth() - birthDate.getMonth();
-                                        var days = currentDate.getDate() - birthDate.getDate();
-                                        if (months < 0 || (months === 0 && days < 0)) {
-                                            years--;
-                                            months += 12;
+                                                        )
+                                                            .then((response) => {
+                                                                if (!response.ok) {
+                                                                    return patientCreate($scope.patient, jumpAccepted);
+                                                                }
+                                                                return response.json();
+                                                            })
+                                                            .then((res) => {
+                                                                if (res.statusCode === 201) {
+                                                                    $scope.patient.extraIdentifiers[0].identifier = res.content.id;
+                                                                    $scope.patient.extraIdentifiers[0].registrationNumber = res.content.id;
+                                                                    fetch(`https://${$window.location.hostname}:6062/api/v1/health-id/${res.content.id}`)
+                                                                        .then((response) => {
+                                                                            if (!response.ok) {
+                                                                                throw new Error(`Request failed with status: ${response.status}`);
+                                                                            }
+                                                                            return response.json();
+                                                                        })
+                                                                        .then((res) => {
+                                                                            if (res.statusCode === 200) {
+                                                                                const patientData = res.content;
+                                                                                $scope.patient.givenName = patientData.given_name;
+                                                                                $scope.patient.familyName = patientData.sur_name;
+                                                                                $scope.patient.gender = patientData.gender;
+                                                                                $scope.patient.birthdate = new Date(patientData.date_of_birth);
+                                                                                var currentDate = new Date();
+                                                                                var birthDate = new Date(patientData.date_of_birth);
+                                                                                var years = currentDate.getFullYear() - birthDate.getFullYear();
+                                                                                var months = currentDate.getMonth() - birthDate.getMonth();
+                                                                                var days = currentDate.getDate() - birthDate.getDate();
+                                                                                if (months < 0 || (months === 0 && days < 0)) {
+                                                                                    years--;
+                                                                                    months += 12;
+                                                                                }
+                                                                                if (days < 0) {
+                                                                                    var prevMonthDate = new Date(
+                                                                                        currentDate.getFullYear(),
+                                                                                        currentDate.getMonth() - 1,
+                                                                                        0
+                                                                                    );
+                                                                                    days = prevMonthDate.getDate() - birthDate.getDate() + currentDate.getDate();
+                                                                                    months--;
+                                                                                }
+                                                                                $scope.patient.age.years = years;
+                                                                                $scope.patient.age.months = months;
+                                                                                $scope.patient.age.days = days;
+                                                                                $scope.patient.nationalId = patientData.nid;
+                                                                                $scope.patient.address.address1 = patientData.present_address.address_line;
+                                                                                $scope.patient.address.display = patientData.present_address.address_line;
+                                                                                $scope.patient.address.address5 = patientData.present_address.upazila_id;
+                                                                                $scope.patient.address.countyDistrict = patientData.present_address.district_id;
+                                                                                $scope.patient.address.stateProvince = patientData.present_address.division_id;
+                                                                                return patientCreate($scope.patient, jumpAccepted);
+                                                                            }
+                                                                        })
+                                                                        .catch((error) => {
+                                                                            console.error("Error:", error);
+                                                                        });
+                                                                } else if (res.statusCode === 208) {
+                                                                    res.content.present_address.division = res.content.present_address.division_id;
+                                                                    res.content.present_address.district = res.content.present_address.district_id;
+                                                                    res.content.present_address.upazila = res.content.present_address.upazila_id;
+                                                                    localStorage.setItem("healthId", JSON.stringify(res.content));
+                                                                    const patientData = res.content;
+                                                                    $scope.patient.givenName = patientData.given_name;
+                                                                    $scope.patient.familyName = patientData.sur_name;
+                                                                    $scope.patient.gender = patientData.gender;
+                                                                    $scope.patient.birthdate = new Date(
+                                                                        patientData.date_of_birth
+                                                                    );
+                                                                    var currentDate = new Date();
+                                                                    var birthDate = new Date(patientData.date_of_birth);
+                                                                    var years =
+                                                                        currentDate.getFullYear() - birthDate.getFullYear();
+                                                                    var months = currentDate.getMonth() - birthDate.getMonth();
+                                                                    var days = currentDate.getDate() - birthDate.getDate();
+                                                                    if (months < 0 || (months === 0 && days < 0)) {
+                                                                        years--;
+                                                                        months += 12;
+                                                                    }
+                                                                    if (days < 0) {
+                                                                        var prevMonthDate = new Date(
+                                                                            currentDate.getFullYear(),
+                                                                            currentDate.getMonth() - 1,
+                                                                            0
+                                                                        );
+                                                                        days =
+                                                                            prevMonthDate.getDate() -
+                                                                            birthDate.getDate() +
+                                                                            currentDate.getDate();
+                                                                        months--;
+                                                                    }
+                                                                    var stateProvince = res.content.present_address.division_id;
+                                                                    var countyDistrict = res.content.present_address.district_id;
+                                                                    var upazila = res.content.present_address.upazila_id;
+                                                                    $scope.patient.age.years = years;
+                                                                    $scope.patient.age.months = months;
+                                                                    $scope.patient.age.days = days;
+                                                                    $scope.patient.extraIdentifiers[0].identifier =
+                                                                        patientData.hid;
+                                                                    $scope.patient.extraIdentifiers[0].registrationNumber =
+                                                                        patientData.hid;
+                                                                    $scope.patient.nationalId = patientData.nid;
+                                                                    $scope.patient.address.address1 =
+                                                                        patientData.present_address.address_line;
+                                                                    $scope.patient.address.display =
+                                                                        patientData.present_address.address_line;
+                                                                    $scope.patient.address.stateProvince = stateProvince;
+                                                                    $scope.patient.address.countyDistrict = countyDistrict;
+                                                                    $scope.patient.address.address5 = upazila;
+                                                                    return patientCreate($scope.patient, jumpAccepted);
+                                                                } else if (res.statusCode === 400) {
+                                                                    $scope.patient.nationalId = 'Not Verified';
+                                                                    return patientCreate($scope.patient, jumpAccepted);
+                                                                } else {
+                                                                    return patientCreate($scope.patient, jumpAccepted);
+                                                                }
+                                                            })
+                                                            .catch((error) => {
+                                                                console.error("Error:", error);
+                                                                // errorMessage = 'There was an error';
+                                                            });
+                                                    } else {
+                                                        $scope.patient.nationalId = 'Not Verified';
+                                                        return patientCreate($scope.patient, jumpAccepted);
+                                                    }
+                                                });
                                         }
-                                        if (days < 0) {
-                                            var prevMonthDate = new Date(
-                                                currentDate.getFullYear(),
-                                                currentDate.getMonth() - 1,
-                                                0
-                                            );
-                                            days =
-                                                prevMonthDate.getDate() -
-                                                birthDate.getDate() +
-                                                currentDate.getDate();
-                                            months--;
-                                        }
-                                        var stateProvince = res.content.present_address.division_id;
-                                        var countyDistrict = res.content.present_address.district_id;
-                                        var upazila = res.content.present_address.upazila_id;
-                                        $scope.patient.age.years = years;
-                                        $scope.patient.age.months = months;
-                                        $scope.patient.age.days = days;
-                                        $scope.patient.extraIdentifiers[0].identifier =
-                                            patientData.hid;
-                                        $scope.patient.extraIdentifiers[0].registrationNumber =
-                                            patientData.hid;
-                                        $scope.patient.nationalId = patientData.nid;
-                                        $scope.patient.address.address1 =
-                                            patientData.present_address.address_line;
-                                        $scope.patient.address.display =
-                                            patientData.present_address.address_line;
-                                        $scope.patient.address.stateProvince = stateProvince;
-                                        $scope.patient.address.countyDistrict = countyDistrict;
-                                        $scope.patient.address.address5 = upazila;
-                                        return patientService
-                                            .create($scope.patient, jumpAccepted)
-                                            .then(
-                                                function (response) {
-                                                    copyPatientProfileDataToScope(response);
-                                                },
-                                                function (response) {
-                                                    if (response.status === 412) {
-                                                        var data = _.map(response.data, function (data) {
-                                                            return {
-                                                                sizeOfTheJump: data.sizeOfJump,
-                                                                identifierName: _.find(
-                                                                    $rootScope.patientConfiguration.identifierTypes,
-                                                                    { uuid: data.identifierType }
-                                                                ).name
-                                                            };
-                                                        });
-                                                        getConfirmationViaNgDialog({
-                                                            template: "views/customIdentifierConfirmation.html",
-                                                            data: data,
-                                                            scope: $scope,
-                                                            yesCallback: function () {
-                                                                return createPatient(true);
-                                                            }
-                                                        });
-                                                    }
-                                                    if (response.isIdentifierDuplicate) {
-                                                        errorMessage = response.message;
-                                                    }
-                                                }
-                                            );
-                                    } else if (res.statusCode === 400) {
-                                        $scope.patient.nationalId = 'Not Verified';
-                                        return patientService
-                                            .create($scope.patient, jumpAccepted)
-                                            .then(
-                                                function (response) {
-                                                    copyPatientProfileDataToScope(response);
-                                                },
-                                                function (response) {
-                                                    if (response.status === 412) {
-                                                        var data = _.map(response.data, function (data) {
-                                                            return {
-                                                                sizeOfTheJump: data.sizeOfJump,
-                                                                identifierName: _.find(
-                                                                    $rootScope.patientConfiguration.identifierTypes,
-                                                                    { uuid: data.identifierType }
-                                                                ).name
-                                                            };
-                                                        });
-                                                        getConfirmationViaNgDialog({
-                                                            template: "views/customIdentifierConfirmation.html",
-                                                            data: data,
-                                                            scope: $scope,
-                                                            yesCallback: function () {
-                                                                return createPatient(true);
-                                                            }
-                                                        });
-                                                    }
-                                                    if (response.isIdentifierDuplicate) {
-                                                        errorMessage = response.message;
-                                                    }
-                                                }
-                                            );
-                                    } else {
-                                        return patientService
-                                            .create($scope.patient, jumpAccepted)
-                                            .then(
-                                                function (response) {
-                                                    copyPatientProfileDataToScope(response);
-                                                },
-                                                function (response) {
-                                                    if (response.status === 412) {
-                                                        var data = _.map(response.data, function (data) {
-                                                            return {
-                                                                sizeOfTheJump: data.sizeOfJump,
-                                                                identifierName: _.find(
-                                                                    $rootScope.patientConfiguration.identifierTypes,
-                                                                    { uuid: data.identifierType }
-                                                                ).name
-                                                            };
-                                                        });
-                                                        getConfirmationViaNgDialog({
-                                                            template: "views/customIdentifierConfirmation.html",
-                                                            data: data,
-                                                            scope: $scope,
-                                                            yesCallback: function () {
-                                                                return createPatient(true);
-                                                            }
-                                                        });
-                                                    }
-                                                    if (response.isIdentifierDuplicate) {
-                                                        errorMessage = response.message;
-                                                    }
-                                                }
-                                            );
-                                    }
-                                })
-                                .catch((error) => {
-                                    console.error("Error:", error);
-                                    // errorMessage = 'There was an error';
-                                }));
+                                    })
+                            );
                         } else {
                             return patientService.create($scope.patient, jumpAccepted).then(
                                 function (response) {
@@ -565,13 +479,32 @@ angular.module('bahmni.registration')
                             );
                         }
                     });
-                function transformData (data) {
+                function convertToYYYYMMDD (timestamp) {
+                    const date = new Date(timestamp);
+                    const year = date.getFullYear();
+                    const month = String(date.getMonth() + 1).padStart(2, '0'); // Month is zero-based
+                    const day = String(date.getDate()).padStart(2, '0');
+
+                    return `${year}-${month}-${day}`;
+                }
+                function transformNIDData (data) {
+                    return {
+                        performer: $rootScope.currentUser.uuid,
+                        nidOrBrn: data.nationalId ? data.nationalId : data.birthRegistrationId,
+                        type: data.nationalId ? "nid" : "brn",
+                        name: data.familyName ? `${data.givenName} ${data.familyName}` : `${data.givenName}`,
+                        mobile: data.phoneNumber,
+                        dob: convertToYYYYMMDD(data.birthdate)
+
+                    };
+                }
+                function transformNidVerifyData (data, nidData) {
                     var userUuid = $rootScope.currentUser.uuid;
                     if (data.nationalId) {
                         return {
                             performer: userUuid,
-                            given_name: data.givenName,
-                            sur_name: data.familyName,
+                            given_name: nidData.fullName_English,
+                            sur_name: '',
                             mobile: data.phoneNumber,
                             date_of_birth: data.birthdate
                                 ? data.birthdate.toISOString().substring(0, 10)
@@ -590,8 +523,8 @@ angular.module('bahmni.registration')
                     } else {
                         return {
                             performer: userUuid,
-                            given_name: data.givenName,
-                            sur_name: data.familyName,
+                            given_name: nidData.fullName_English,
+                            sur_name: '',
                             mobile: data.phoneNumber,
                             date_of_birth: data.birthdate
                                 ? data.birthdate.toISOString().substring(0, 10)
@@ -609,6 +542,82 @@ angular.module('bahmni.registration')
                         };
                     }
                 }
+                function patientCreate (patientData, jumpAccepted) {
+                    return patientService.create(patientData, jumpAccepted).then(
+                        function (response) {
+                            copyPatientProfileDataToScope(response);
+                        },
+                        function (response) {
+                            if (response.status === 412) {
+                                var data = _.map(response.data, function (data) {
+                                    return {
+                                        sizeOfTheJump: data.sizeOfJump,
+                                        identifierName: _.find(
+                                            $rootScope.patientConfiguration.identifierTypes,
+                                            { uuid: data.identifierType }
+                                        ).name
+                                    };
+                                });
+                                getConfirmationViaNgDialog({
+                                    template: "views/customIdentifierConfirmation.html",
+                                    data: data,
+                                    scope: $scope,
+                                    yesCallback: function () {
+                                        return exampleFunction(patientData, jumpAccepted);
+                                    }
+                                });
+                            }
+                            if (response.isIdentifierDuplicate) {
+                                errorMessage = response.message;
+                            }
+                        }
+                    );
+                }
+
+                // function transformData (data) {
+                //     var userUuid = $rootScope.currentUser.uuid;
+                //     if (data.nationalId) {
+                //         return {
+                //             performer: userUuid,
+                //             given_name: data.givenName,
+                //             sur_name: data.familyName,
+                //             mobile: data.phoneNumber,
+                //             date_of_birth: data.birthdate
+                //                 ? data.birthdate.toISOString().substring(0, 10)
+                //                 : null,
+                //             gender: data.gender,
+                //             nid: data.nationalId,
+                //             bin_brn: "",
+                //             present_address: {
+                //                 address_line: data.address.address1,
+                //                 division_id: divisionId,
+                //                 district_id: districtId,
+                //                 upazila_id: upazilaId
+                //             },
+                //             confidential: "No"
+                //         };
+                //     } else {
+                //         return {
+                //             performer: userUuid,
+                //             given_name: data.givenName,
+                //             sur_name: data.familyName,
+                //             mobile: data.phoneNumber,
+                //             date_of_birth: data.birthdate
+                //                 ? data.birthdate.toISOString().substring(0, 10)
+                //                 : null,
+                //             gender: data.gender,
+                //             nid: "",
+                //             bin_brn: data.birthRegistrationId,
+                //             present_address: {
+                //                 address_line: data.address.address1,
+                //                 division_id: divisionId,
+                //                 district_id: districtId,
+                //                 upazila_id: upazilaId
+                //             },
+                //             confidential: "No"
+                //         };
+                //     }
+                // }
             };
 
             var createPatient = function (jumpAccepted) {
