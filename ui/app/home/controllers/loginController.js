@@ -117,10 +117,15 @@ angular.module('bahmni.home')
                 $scope.loginInfo.currentLocation = getLastLoggedinLocation();
             };
 
-            $scope.login = function () {
+            $scope.login = async function () {
                 $scope.errorMessageTranslateKey = null;
                 var deferrable = $q.defer();
+                const userHeaders = new Headers();
+                userHeaders.append("Content-Type", "application/json");
+                userHeaders.append("Authorization", "Basic c3VwZXJtYW46QWRtaW4xMjM=");
 
+                const headers = new Headers();
+                headers.append("Content-Type", "application/json");
                 var ensureNoSessionIdInRoot = function () {
                     // See https://bahmni.mingle.thoughtworks.com/projects/bahmni_emr/cards/2934
                     // The cookie should ideally not be set at root, and is interfering with
@@ -130,231 +135,25 @@ angular.module('bahmni.home')
                         expires: 1
                     });
                 };
-
-                function userPayloadData (inputData) {
-                    const transformedData = {
-                        username: inputData.userName,
-                        password: inputData.password,
-                        person: {
-                            names: [
-                                {
-                                    givenName: inputData.name.trim(),
-                                    preferred: true
-                                }
-                            ],
-                            gender: inputData.gender.charAt(0).toUpperCase(),
-                            age: 0,
-                            birthdate: new Date(inputData.birthDate).toISOString(),
-                            birthdateEstimated: false,
-                            dead: false,
-                            addresses: [
-                                {
-                                    preferred: true,
-                                    address1: inputData.address.text
-                                }
-                            ],
-                            deathdateEstimated: false
-                        },
-                        systemId: inputData.systemId,
-                        roles: inputData.roles
-                    };
-
-                    return transformedData;
-                }
-
-                function generateUsername (name) {
-                    return `HRIS-${name.split(' ')[1]}-${Math.floor(Math.random() * 9000) + 1000}`;
-                }
-
-                function checkAndFormatPassword (password) {
+                const checkAndFormatPassword = (password) => {
                     if (password.search(/[A-Z]/) === -1) {
                         return password.charAt(0).toUpperCase() + password.slice(1) + '123';
                     } else {
                         return password;
                     }
-                }
-
-                fetch(`https://${$window.location.hostname}:6062/api/v1/hris/bahmni-user/${$scope.loginInfo.username}`)
-                    .then((response) => {
-                        if (!response.ok) {
-                            loginBahmni();
+                };
+                const updateUserPassword = async (userPayload, uuid) => {
+                    return await fetch(
+                        `https://${$window.location.hostname}/openmrs/ws/rest/v1/password/${uuid}`,
+                        {
+                            method: "POST",
+                            body: JSON.stringify(userPayload),
+                            headers: userHeaders
                         }
-                        return response.json();
-                    })
-                    .then((res) => {
-                        if (res.content) {
-                            loginBahmni();
-                        } else {
-                            const dataBody = {
-                                "email": $scope.loginInfo.username,
-                                "password": $scope.loginInfo.password
-                            };
-                            const headers = new Headers();
-                            headers.append("Content-Type", "application/json");
-                            fetch(
-                                `https://${$window.location.hostname}:6062/api/v1/hris/signin`,
-                                {
-                                    method: "POST",
-                                    body: JSON.stringify(dataBody),
-                                    headers: headers
-                                }
-                            )
-                                .then((response) => {
-                                    if (!response.ok) {
-                                        loginBahmni();
-                                    }
-                                    return response.json();
-                                })
-                                .then((res) => {
-                                    if (res.access_token) {
-                                        fetch(`https://${$window.location.hostname}:6062/api/v1/hris/token/${res.access_token}`)
-                                            .then((response) => {
-                                                if (!response.ok) {
-                                                    loginBahmni();
-                                                }
-                                                return response.json();
-                                            })
-                                            .then((res) => {
-                                                if (res.profiles.length > 0) {
-                                                    fetch(`https://${$window.location.hostname}:6062/api/v1/hris/provider/${res.profiles[0].id}`)
-                                                        .then((response) => {
-                                                            if (!response.ok) {
-                                                                loginBahmni();
-                                                            }
-                                                            return response.json();
-                                                        })
-                                                        .then((userData) => {
-                                                            if (userData.telecom.length > 0) {
-                                                                const userEmailData = userData.telecom.filter(data => data.system === 'email');
-                                                                if (userEmailData.length > 0) {
-                                                                    const userEmail = userEmailData[0].value;
-                                                                    const roles = {
-                                                                        names: [
-                                                                            "Admin-App",
-                                                                            "InPatient-App",
-                                                                            "Reports-App",
-                                                                            "Doctor"
-                                                                        ]
-                                                                    };
-                                                                    fetch(`https://${$window.location.hostname}:6062/api/v1/hris/bahmni-roles`, {
-                                                                        method: "POST",
-                                                                        body: JSON.stringify(roles),
-                                                                        headers: headers
-                                                                    })
-                                                                        .then((response) => {
-                                                                            if (!response.ok) {
-                                                                                loginBahmni();
-                                                                            }
-                                                                            return response.json();
-                                                                        })
-                                                                        .then((res) => {
-                                                                            const roleData = res.content.uuidList.map(item => ({
-                                                                                "uuid": item
-                                                                            }));
-                                                                            const userName = generateUsername(userData.name);
-                                                                            userData.userName = userName;
-                                                                            userData.systemId = userEmail;
-                                                                            userData.roles = roleData;
-                                                                            userData.password = checkAndFormatPassword($scope.loginInfo.password);
-                                                                            const userPayload = userPayloadData(userData);
-                                                                            const userHeaders = new Headers();
-                                                                            userHeaders.append("Content-Type", "application/json");
-                                                                            userHeaders.append("Authorization", "Basic c3VwZXJtYW46RGV2QGN0ZWNoMTIz");
-                                                                            fetch(
-                                                                                `https://${$window.location.hostname}/openmrs/ws/rest/v1/user`,
-                                                                                {
-                                                                                    method: "POST",
-                                                                                    body: JSON.stringify(userPayload),
-                                                                                    headers: userHeaders
-                                                                                }
-                                                                            )
-                                                                                .then((response) => {
-                                                                                    if (!response.ok) {
-                                                                                        loginBahmni();
-                                                                                    }
-                                                                                    return response.json();
-                                                                                })
-                                                                                .then((res) => {
-                                                                                    if (res) {
-                                                                                        const providerData = {
-                                                                                            "name": res.person.display,
-                                                                                            "description": null,
-                                                                                            "person": res.person.uuid,
-                                                                                            "identifier": null,
-                                                                                            "attributes": [],
-                                                                                            "retired": false
-                                                                                        };
-                                                                                        fetch(
-                                                                                            `https://${$window.location.hostname}/openmrs/ws/rest/v1/provider`,
-                                                                                            {
-                                                                                                method: "POST",
-                                                                                                body: JSON.stringify(providerData),
-                                                                                                headers: userHeaders
-                                                                                            }
-                                                                                        )
-                                                                                            .then((response) => {
-                                                                                                if (!response.ok) {
-                                                                                                    loginBahmni();
-                                                                                                }
-                                                                                                return response.json();
-                                                                                            })
-                                                                                            .then((res) => {
-                                                                                                if (res) {
-                                                                                                    loginBahmni();
-                                                                                                }
-                                                                                            })
-                                                                                            .catch((error) => {
-                                                                                                loginBahmni();
-                                                                                                console.error("Error:", error);
-                                                                                                // errorMessage = 'There was an error';
-                                                                                            });
-                                                                                    }
-                                                                                })
-                                                                                .catch((error) => {
-                                                                                    loginBahmni();
-                                                                                    console.error("Error:", error);
-                                                                                    // errorMessage = 'There was an error';
-                                                                                });
-                                                                        })
-                                                                        .catch((error) => {
-                                                                            loginBahmni();
-                                                                            console.error("Error:", error);
-                                                                            // errorMessage = 'There was an error';
-                                                                        });
-                                                                }
-                                                            }
-                                                        })
-                                                        .catch((error) => {
-                                                            loginBahmni();
-                                                            console.error("Error:", error);
-                                                            // errorMessage = 'There was an error';
-                                                        });
-                                                } else {
-                                                    loginBahmni();
-                                                }
-                                            })
-                                            .catch((error) => {
-                                                loginBahmni();
-                                                console.error("Error:", error);
-                                                // errorMessage = 'There was an error';
-                                            });
-                                    } else {
-                                        loginBahmni();
-                                    }
-                                })
-                                .catch((error) => {
-                                    loginBahmni();
-                                    console.error("Error:", error);
-                                    // errorMessage = 'There was an error';
-                                });
-                        }
-                    })
-                    .catch((error) => {
-                        loginBahmni();
-                        console.error("Error:", error);
-                    });
+                    );
+                };
 
-                const loginBahmni = () => {
+                const loginBahmni = (hrisLoggedIn, uuid) => {
                     sessionService.loginUser($scope.loginInfo.username, checkAndFormatPassword($scope.loginInfo.password), $scope.loginInfo.currentLocation, $scope.loginInfo.otp).then(
                         function (data) {
                             ensureNoSessionIdInRoot();
@@ -373,7 +172,9 @@ angular.module('bahmni.home')
                                     });
                                 userService.savePreferences().then(
                                     function () { deferrable.resolve(); },
-                                    function (error) { deferrable.reject(error); }
+                                    function (error) {
+                                        deferrable.reject(error);
+                                    }
                                 );
                                 logAuditForLoginAttempts("USER_LOGIN_SUCCESS");
                             }, function (error) {
@@ -384,14 +185,25 @@ angular.module('bahmni.home')
                             );
                         },
                         function (error) {
-                            $scope.errorMessageTranslateKey = error;
-                            if (error === 'LOGIN_LABEL_MAX_FAILED_ATTEMPTS' || error == 'LOGIN_LABEL_OTP_EXPIRED') {
-                                deleteUserCredentialsAndShowLoginPage();
-                            } else if (error == 'LOGIN_LABEL_WRONG_OTP_MESSAGE_KEY') {
-                                delete $scope.loginInfo.otp;
+                            if (error === 'LOGIN_LABEL_LOGIN_ERROR_MESSAGE_KEY' && hrisLoggedIn) {
+                                // check if user exists in the system, if exists already and is not able to login,
+                                const userData = {
+                                    "newPassword": checkAndFormatPassword($scope.loginInfo.password)
+                                };
+                                const updateBahmniUserPassword = updateUserPassword(userData, uuid);
+                                if (updateBahmniUserPassword) {
+                                    return loginBahmni(false);
+                                }
+                            } else {
+                                $scope.errorMessageTranslateKey = error;
+                                if (error === 'LOGIN_LABEL_MAX_FAILED_ATTEMPTS' || error === 'LOGIN_LABEL_OTP_EXPIRED') {
+                                    deleteUserCredentialsAndShowLoginPage();
+                                } else if (error === 'LOGIN_LABEL_WRONG_OTP_MESSAGE_KEY') {
+                                    delete $scope.loginInfo.otp;
+                                }
+                                deferrable.reject(error);
+                                logAuditForLoginAttempts("USER_LOGIN_FAILED", true);
                             }
-                            deferrable.reject(error);
-                            logAuditForLoginAttempts("USER_LOGIN_FAILED", true);
                         }
                     );
                 };
@@ -426,5 +238,231 @@ angular.module('bahmni.home')
                         }
                     }
                 );
+                const checkInternet = async () => {
+                    return await fetch(`https://${$window.location.hostname}:6062/check-internet`)
+                        .then((response) => {
+                            return response.json();
+                        });
+                };
+
+                const userPayloadData = async (inputData) => {
+                    const transformedData = {
+                        username: inputData.userName,
+                        password: inputData.password,
+                        person: {
+                            names: [
+                                {
+                                    givenName: inputData.name.trim(),
+                                    preferred: true
+                                }
+                            ],
+                            gender: inputData.gender.charAt(0).toUpperCase(),
+                            age: 0,
+                            birthdate: new Date(inputData.birthDate).toISOString(),
+                            birthdateEstimated: false,
+                            dead: false,
+                            addresses: [
+                                {
+                                    preferred: true,
+                                    address1: inputData.address.text
+                                }
+                            ],
+                            deathdateEstimated: false
+                        },
+                        systemId: inputData.systemId,
+                        roles: inputData.roles
+                    };
+
+                    return transformedData;
+                };
+                const createUser = async (userPayload) => {
+                    return await fetch(
+                        `https://${$window.location.hostname}/openmrs/ws/rest/v1/user`,
+                        {
+                            method: "POST",
+                            body: JSON.stringify(userPayload),
+                            headers: userHeaders
+                        }
+                    )
+                        .then((response) => {
+                            return response.json();
+                        });
+                };
+                const createProvider = async (providerData) => {
+                    return await fetch(
+                        `https://${$window.location.hostname}/openmrs/ws/rest/v1/provider`,
+                        {
+                            method: "POST",
+                            body: JSON.stringify(providerData),
+                            headers: userHeaders
+                        }
+                    )
+                        .then((response) => {
+                            return response.json();
+                        });
+                };
+                const createBahmniHRISUser = async (userPayload) => {
+                    return await fetch(
+                        `https://${$window.location.hostname}:6062/api/v1/hris-user`,
+                        {
+                            method: "POST",
+                            body: JSON.stringify(userPayload),
+                            headers: headers
+                        }
+                    )
+                        .then((response) => {
+                            return response.json();
+                        });
+                };
+                const hrisLogin = async (dataBody) => {
+                    return await fetch(
+                        `https://${$window.location.hostname}:6062/api/v1/hris/signin`,
+                        {
+                            method: "POST",
+                            body: JSON.stringify(dataBody),
+                            headers: headers
+                        }
+                    )
+                        .then((response) => {
+                            return response.json();
+                        });
+                };
+                const getUserRolesUuid = async (roles) => {
+                    return await fetch(`https://${$window.location.hostname}:6062/api/v1/hris/bahmni-roles`, {
+                        method: "POST",
+                        body: JSON.stringify(roles),
+                        headers: headers
+                    })
+                        .then((response) => {
+                            return response.json();
+                        });
+                };
+                const checkUserName = async (username) => {
+                    return await fetch(`https://${$window.location.hostname}:6062/api/v1/hris/bahmni-user/${username}`)
+                        .then((response) => {
+                            return response.json();
+                        });
+                };
+
+                const getProviderFromHRIS = async (token) => {
+                    return await fetch(`https://${$window.location.hostname}:6062/api/v1/hris/token/${token}`)
+                        .then((response) => {
+                            return response.json();
+                        });
+                };
+                const getProviderDataFromHRIS = async (id) => {
+                    return await fetch(`https://${$window.location.hostname}:6062/api/v1/hris/provider/${id}`)
+                        .then((response) => {
+                            return response.json();
+                        });
+                };
+
+                const generateUsername = async (name) => {
+                    const generateRandomUsername = () => {
+                        return `HRIS-${name.split(' ')[1]}-${Math.floor(Math.random() * 9000) + 1000}`;
+                    };
+                    const username = generateRandomUsername();
+                    const userAvailable = await checkUserName(username);
+                    if (userAvailable.statusCode === 404) {
+                        return username;
+                    } else {
+                        return generateUsername(name);
+                    }
+                };
+
+                try {
+                    const dataBody = {
+                        "email": $scope.loginInfo.username,
+                        "password": $scope.loginInfo.password
+                    };
+                    // is ok status === 200
+                    const internetAvailability = await checkInternet();
+                    if (internetAvailability.content) {
+                        const hrisRes = await hrisLogin(dataBody);
+                        if (hrisRes.error) {
+                            return loginBahmni(false);
+                        } else {
+                            const userAvailable = await checkUserName($scope.loginInfo.username);
+                            if (userAvailable.statusCode === 404) {
+                                const accessToken = hrisRes.access_token;
+                                if (accessToken) {
+                                    const providerRes = await getProviderFromHRIS(accessToken);
+                                    const checkProvider = providerRes.profiles.find(p => p.name === 'provider');
+                                    if (!checkProvider) {
+                                        alert("You do not have privileges to access this system");
+                                        return loginBahmni(false);
+                                    } else {
+                                        const getUserData = await getProviderDataFromHRIS(checkProvider.id);
+                                        if (getUserData.telecom.length > 0) {
+                                            const userEmailData = getUserData.telecom.filter(data => data.system === 'email');
+                                            if (userEmailData.length > 0) {
+                                                const userEmail = userEmailData[0].value;
+                                                const roles = {
+                                                    names: [
+                                                        "Admin-App",
+                                                        "InPatient-App",
+                                                        "Reports-App",
+                                                        "Doctor"
+                                                    ]
+                                                };
+                                                const roleDataRes = await getUserRolesUuid(roles);
+                                                const roleData = roleDataRes.content.uuidList
+                                                    .map(item => ({
+                                                        "uuid": item
+                                                    }));
+                                                const userData = { ...getUserData };
+                                                const userName = await generateUsername(userData.name);
+                                                userData.userName = userName;
+                                                userData.systemId = userEmail;
+                                                userData.roles = roleData;
+                                                userData.password = checkAndFormatPassword($scope.loginInfo.password);
+
+                                                const userPayload = await userPayloadData(userData);
+                                                const createBahmniUser = await createUser(userPayload);
+                                                if (createBahmniUser) {
+                                                    const providerData = {
+                                                        "name": createBahmniUser.person.display,
+                                                        "description": null,
+                                                        "person": createBahmniUser.person.uuid,
+                                                        "identifier": null,
+                                                        "attributes": [],
+                                                        "retired": false
+                                                    };
+                                                    const createBahmniProvider = await createProvider(providerData);
+                                                    if (createBahmniProvider) {
+                                                        const bahmniUserPayload = {
+                                                            userUUID: createBahmniUser.person.uuid,
+                                                            object: JSON.stringify(getUserData),
+                                                            activeStatus: 1,
+                                                            url: getUserData.url,
+                                                            providerId: getUserData.id
+
+                                                        };
+                                                        const createBahmniHRIS = await createBahmniHRISUser(bahmniUserPayload);
+                                                        if (createBahmniHRIS) {
+                                                            return loginBahmni(false);
+                                                        } else {
+                                                            return loginBahmni(false);
+                                                        }
+                                                    } else {
+                                                        return loginBahmni(false);
+                                                    }
+                                                } else { return loginBahmni(false); }
+                                            } else { return loginBahmni(false); }
+                                        }
+                                    }
+                                } else {
+                                    return loginBahmni(false);
+                                }
+                            } else {
+                                return loginBahmni(true, userAvailable.content);
+                            }
+                        }
+                    } else {
+                        return loginBahmni(false);
+                    }
+                } catch (err) {
+                    console.log(err);
+                }
             };
         }]);
