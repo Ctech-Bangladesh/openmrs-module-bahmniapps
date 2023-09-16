@@ -1,8 +1,8 @@
 'use strict';
 
 angular.module('bahmni.home')
-    .controller('LoginController', ['$rootScope', '$scope', '$window', '$location', 'sessionService', 'initialData', 'spinner', '$q', '$stateParams', '$bahmniCookieStore', 'localeService', '$translate', 'userService', 'auditLogService',
-        function ($rootScope, $scope, $window, $location, sessionService, initialData, spinner, $q, $stateParams, $bahmniCookieStore, localeService, $translate, userService, auditLogService) {
+    .controller('LoginController', ['$rootScope', '$scope', 'messagingService', '$window', '$location', 'sessionService', 'initialData', 'spinner', '$q', '$stateParams', '$bahmniCookieStore', 'localeService', '$translate', 'userService', 'auditLogService',
+        function ($rootScope, $scope, messagingService, $window, $location, sessionService, initialData, spinner, $q, $stateParams, $bahmniCookieStore, localeService, $translate, userService, auditLogService) {
             var redirectUrl = $location.search()['from'];
             var landingPagePath = "/dashboard";
             var loginPagePath = "/login";
@@ -380,6 +380,15 @@ angular.module('bahmni.home')
                     if (internetAvailability.content) {
                         const hrisRes = await hrisLogin(dataBody);
                         if (hrisRes.error) {
+                            // messagingService.showMessage('error', hrisRes.message);
+                            // deferrable.reject(hrisRes.error);
+
+                            // const isHRISUser = true;
+                            // if (isHRISUser) {
+                            //     messagingService.showMessage('error', hrisRes.message);
+                            //     return;
+                            // }
+
                             return loginBahmni(false);
                         } else {
                             const userAvailable = await checkUserName($scope.loginInfo.username);
@@ -431,9 +440,11 @@ angular.module('bahmni.home')
                                                     const createBahmniProvider = await createProvider(providerData);
                                                     if (createBahmniProvider) {
                                                         const bahmniUserPayload = {
-                                                            userUUID: createBahmniUser.person.uuid,
+                                                            userUuid: createBahmniUser.uuid,
+                                                            personUuid: createBahmniUser.person.uuid,
+                                                            providerUuid: createBahmniProvider.uuid,
                                                             object: JSON.stringify(getUserData),
-                                                            activeStatus: 1,
+                                                            activeStatus: getUserData.active,
                                                             url: getUserData.url,
                                                             providerId: getUserData.id
 

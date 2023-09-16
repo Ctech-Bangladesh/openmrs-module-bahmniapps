@@ -222,7 +222,8 @@ angular.module('bahmni.registration')
                                 fetch(`https://${$window.location.hostname}:6062/api/v1/health-id/nid/${$scope.patient.nationalId}`)
                                     .then((response) => {
                                         if (!response.ok) {
-                                            throw new Error(`Request failed with status: ${response.status}`);
+                                            return patientCreate($scope.patient, jumpAccepted);
+                                            // throw new Error(`Request failed with status: ${response.status}`);
                                         }
                                         return response.json();
                                     })
@@ -479,15 +480,15 @@ angular.module('bahmni.registration')
                             );
                         }
                     });
-                function convertToYYYYMMDD (timestamp) {
+                const convertToYYYYMMDD = (timestamp) => {
                     const date = new Date(timestamp);
                     const year = date.getFullYear();
                     const month = String(date.getMonth() + 1).padStart(2, '0'); // Month is zero-based
                     const day = String(date.getDate()).padStart(2, '0');
 
                     return `${year}-${month}-${day}`;
-                }
-                function transformNIDData (data) {
+                };
+                const transformNIDData = (data) => {
                     return {
                         performer: $rootScope.currentUser.uuid,
                         nidOrBrn: data.nationalId ? data.nationalId : data.birthRegistrationId,
@@ -497,52 +498,63 @@ angular.module('bahmni.registration')
                         dob: convertToYYYYMMDD(data.birthdate)
 
                     };
-                }
-                function transformNidVerifyData (data, nidData) {
-                    var userUuid = $rootScope.currentUser.uuid;
-                    if (data.nationalId) {
-                        return {
-                            performer: userUuid,
-                            given_name: nidData.fullName_English,
-                            sur_name: '',
-                            mobile: data.phoneNumber,
-                            date_of_birth: data.birthdate
-                                ? data.birthdate.toISOString().substring(0, 10)
-                                : null,
-                            gender: data.gender,
-                            nid: data.nationalId,
-                            bin_brn: "",
-                            present_address: {
-                                address_line: data.address.address1,
-                                division_id: divisionId,
-                                district_id: districtId,
-                                upazila_id: upazilaId
-                            },
-                            confidential: "No"
-                        };
-                    } else {
-                        return {
-                            performer: userUuid,
-                            given_name: nidData.fullName_English,
-                            sur_name: '',
-                            mobile: data.phoneNumber,
-                            date_of_birth: data.birthdate
-                                ? data.birthdate.toISOString().substring(0, 10)
-                                : null,
-                            gender: data.gender,
-                            nid: "",
-                            bin_brn: data.birthRegistrationId,
-                            present_address: {
-                                address_line: data.address.address1,
-                                division_id: divisionId,
-                                district_id: districtId,
-                                upazila_id: upazilaId
-                            },
-                            confidential: "No"
-                        };
-                    }
-                }
-                function patientCreate (patientData, jumpAccepted) {
+                };
+                const transformNidVerifyData = (data, nidData) => {
+                    const userUuid = $rootScope.currentUser.uuid;
+                    const isNationalIdPresent = data.nationalId;
+                    return {
+                        performer: userUuid,
+                        given_name: nidData.fullName_English,
+                        sur_name: '',
+                        date_of_birth: data.birthdate ? data.birthdate.toISOString().substring(0, 10) : null,
+                        gender: data.gender,
+                        nid: isNationalIdPresent ? data.nationalId : '',
+                        bin_brn: isNationalIdPresent ? '' : data.birthRegistrationId,
+                        phone_number: {
+                            phone_number: data.phoneNumber
+                        },
+                        present_address: {
+                            address_line: data.address.address1,
+                            division_id: divisionId,
+                            district_id: districtId,
+                            upazila_id: upazilaId,
+                            country_code: "050"
+                        },
+                        name_bangla: '',
+                        religion: '',
+                        blood_group: '',
+                        place_of_birth: '',
+                        nationality: '',
+                        marital_status: '',
+                        primary_contact: '',
+                        primary_contact_number: {
+                            number: ''
+                        },
+                        relations: isNationalIdPresent ? [
+                            { type: 'FTH', name_bangla: '', given_name: '' },
+                            { type: 'MTH', name_bangla: '', given_name: '' },
+                            { type: 'SPS', name_bangla: '', given_name: '', relational_status: '' }
+                        ] : [],
+                        permanent_address: {
+                            address_line: '',
+                            division_id: '',
+                            district_id: '',
+                            upazila_id: '',
+                            city_corporation_id: '',
+                            union_or_urban_ward_id: '',
+                            rural_ward_id: '',
+                            area_mouja: '',
+                            village: '',
+                            holding_number: '',
+                            street: '',
+                            post_office: '',
+                            post_code: '',
+                            country_code: '050'
+                        },
+                        confidential: 'No'
+                    };
+                };
+                const patientCreate = (patientData, jumpAccepted) => {
                     return patientService.create(patientData, jumpAccepted).then(
                         function (response) {
                             copyPatientProfileDataToScope(response);
@@ -572,7 +584,7 @@ angular.module('bahmni.registration')
                             }
                         }
                     );
-                }
+                };
 
                 // function transformData (data) {
                 //     var userUuid = $rootScope.currentUser.uuid;
