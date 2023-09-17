@@ -44,7 +44,8 @@ angular.module('bahmni.registration')
                         $scope.patient.age.days = days;
                         $scope.patient.extraIdentifiers[0].identifier = patientData.hid;
                         $scope.patient.extraIdentifiers[0].registrationNumber = patientData.hid;
-                        $scope.patient.nationalId = patientData.nid;
+                        $scope.patient.nationalId = patientData.nid ? patientData.nid : '';
+                        $scope.patient.birthRegistrationId = patientData.bin_brn ? patientData.bin_brn : '';
                         $scope.patient.address.address1 =
                             patientData.present_address.address_line;
                         $scope.patient.address.display =
@@ -218,8 +219,10 @@ angular.module('bahmni.registration')
                             $scope.patient.phoneNumber &&
                             ($scope.patient.nationalId || $scope.patient.birthRegistrationId)
                         ) {
+                            const isNationalIdPresent = $scope.patient.nationalId;
+                            let endPoint = isNationalIdPresent ? `nid/${$scope.patient.nationalId}` : `brn/${$scope.patient.birthRegistrationId}`;
                             spinner.forAjaxPromise(
-                                fetch(`https://${$window.location.hostname}:6062/api/v1/health-id/nid/${$scope.patient.nationalId}`)
+                                fetch(`https://${$window.location.hostname}:6062/api/v1/health-id/${endPoint}`)
                                     .then((response) => {
                                         if (!response.ok) {
                                             return patientCreate($scope.patient, jumpAccepted);
@@ -309,7 +312,7 @@ angular.module('bahmni.registration')
                                                 .then((res) => {
                                                     if (res.verifyToken) {
                                                         const nidData = res;
-                                                        const HIDPayloadData = transformNidVerifyData($scope.patient, nidData.citizenData);
+                                                        const HIDPayloadData = transformNidVerifyData($scope.patient, nidData);
                                                         fetch(`https://${$window.location.hostname}:6062/api/v1/health-id`,
                                                             {
                                                                 method: "POST",
@@ -340,8 +343,16 @@ angular.module('bahmni.registration')
                                                                             if (res.statusCode === 200) {
                                                                                 const patientData = res.content;
                                                                                 $scope.patient.givenName = patientData.given_name;
+                                                                                $scope.patient.givenNameLocal = nidData.citizenData.fullName_Bangla;
+
                                                                                 $scope.patient.familyName = patientData.sur_name;
                                                                                 $scope.patient.gender = patientData.gender;
+
+                                                                                $scope.patient.primaryRelative = nidData.citizenData.fatherName_English;
+                                                                                $scope.patient.motherName = nidData.citizenData.motherName_English;
+                                                                                $scope.patient.givenFatherNameLocal = nidData.citizenData.fatherName_Bangla;
+                                                                                $scope.patient.givenMotherNameLocal = nidData.citizenData.motherName_Bangla;
+
                                                                                 $scope.patient.birthdate = new Date(patientData.date_of_birth);
                                                                                 var currentDate = new Date();
                                                                                 var birthDate = new Date(patientData.date_of_birth);
@@ -370,6 +381,7 @@ angular.module('bahmni.registration')
                                                                                 $scope.patient.address.address5 = patientData.present_address.upazila_id;
                                                                                 $scope.patient.address.countyDistrict = patientData.present_address.district_id;
                                                                                 $scope.patient.address.stateProvince = patientData.present_address.division_id;
+
                                                                                 return patientCreate($scope.patient, jumpAccepted);
                                                                             }
                                                                         })
@@ -383,8 +395,13 @@ angular.module('bahmni.registration')
                                                                     localStorage.setItem("healthId", JSON.stringify(res.content));
                                                                     const patientData = res.content;
                                                                     $scope.patient.givenName = patientData.given_name;
+                                                                    $scope.patient.givenNameLocal = nidData.citizenData.fullName_Bangla;
                                                                     $scope.patient.familyName = patientData.sur_name;
                                                                     $scope.patient.gender = patientData.gender;
+                                                                    $scope.patient.primaryRelative = nidData.citizenData.fatherName_English;
+                                                                    $scope.patient.motherName = nidData.citizenData.motherName_English;
+                                                                    $scope.patient.givenFatherNameLocal = nidData.citizenData.fatherName_Bangla;
+                                                                    $scope.patient.givenMotherNameLocal = nidData.citizenData.motherName_Bangla;
                                                                     $scope.patient.birthdate = new Date(
                                                                         patientData.date_of_birth
                                                                     );
@@ -442,6 +459,7 @@ angular.module('bahmni.registration')
                                                             });
                                                     } else {
                                                         $scope.patient.nationalId = 'Not Verified';
+                                                        $scope.patient.birthRegistrationId = 'Not Verified';
                                                         return patientCreate($scope.patient, jumpAccepted);
                                                     }
                                                 });
@@ -499,58 +517,58 @@ angular.module('bahmni.registration')
 
                     };
                 };
-                const transformNidVerifyData = (data, nidData) => {
-                    const userUuid = $rootScope.currentUser.uuid;
+                const transformNidVerifyData = (data, nidInformation) => {
+                    const nidData = nidInformation.citizenData;
+                    // const userUuid = $rootScope.currentUser.uuid;
                     const isNationalIdPresent = data.nationalId;
                     return {
-                        performer: userUuid,
                         given_name: nidData.fullName_English,
                         sur_name: '',
                         date_of_birth: data.birthdate ? data.birthdate.toISOString().substring(0, 10) : null,
-                        gender: data.gender,
+                        gender: nidData.gender === 1 ? 'M' : nidData.gender === 2 ? 'F' : 'O',
                         nid: isNationalIdPresent ? data.nationalId : '',
                         bin_brn: isNationalIdPresent ? '' : data.birthRegistrationId,
+                        verifyToken: nidInformation.verifyToken,
                         phone_number: {
-                            phone_number: data.phoneNumber
+                            number: data.phoneNumber
                         },
                         present_address: {
-                            address_line: data.address.address1,
+                            address_line: nidData.presentHouseholdNoText ? nidData.presentHouseholdNoText : data.address.address1,
                             division_id: divisionId,
                             district_id: districtId,
                             upazila_id: upazilaId,
                             country_code: "050"
                         },
-                        name_bangla: '',
-                        religion: '',
-                        blood_group: '',
-                        place_of_birth: '',
-                        nationality: '',
-                        marital_status: '',
-                        primary_contact: '',
+                        name_bangla: nidData.fullName_Bangla,
+                        religion: null,
+                        blood_group: null,
+                        place_of_birth: null,
+                        nationality: null,
+                        marital_status: null,
+                        primary_contact: null,
                         primary_contact_number: {
-                            number: ''
+                            number: null
                         },
-                        relations: isNationalIdPresent ? [
-                            { type: 'FTH', name_bangla: '', given_name: '' },
-                            { type: 'MTH', name_bangla: '', given_name: '' },
-                            { type: 'SPS', name_bangla: '', given_name: '', relational_status: '' }
-                        ] : [],
-                        permanent_address: {
-                            address_line: '',
-                            division_id: '',
-                            district_id: '',
-                            upazila_id: '',
-                            city_corporation_id: '',
-                            union_or_urban_ward_id: '',
-                            rural_ward_id: '',
-                            area_mouja: '',
-                            village: '',
-                            holding_number: '',
-                            street: '',
-                            post_office: '',
-                            post_code: '',
-                            country_code: '050'
-                        },
+                        relations: [
+                            { type: 'FTH', name_bangla: nidData.fatherName_Bangla, given_name: nidData.fatherName_English },
+                            { type: 'MTH', name_bangla: nidData.motherName_Bangla, given_name: nidData.motherName_English }
+                        ],
+                        // permanent_address: {
+                        //     address_line: nidData.permanentHouseholdNoText ? nidData.permanentHouseholdNoText : null,
+                        //     // division_id: null,
+                        //     // district_id: null,
+                        //     // upazila_id: null,
+                        //     city_corporation_id: null,
+                        //     union_or_urban_ward_id: null,
+                        //     rural_ward_id: null,
+                        //     area_mouja: null,
+                        //     village: null,
+                        //     holding_number: null,
+                        //     street: null,
+                        //     post_office: null,
+                        //     post_code: null,
+                        //     country_code: '050'
+                        // },
                         confidential: 'No'
                     };
                 };
