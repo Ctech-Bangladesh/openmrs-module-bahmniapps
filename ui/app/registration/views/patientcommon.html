@@ -1,20 +1,7 @@
 <div ng-controller="PatientCommonController">
     <div class="box-container box-container-patient-info patient-common-info-container">
         <section>
-            <article class="form-field patient-name-wrapper" ng-if="::patientConfiguration.local()['showNameField']">
-                <div class="field-attribute">
-                    <label for="patientName">{{::patientConfiguration.local()['labelForNameField']}}</label>
-                </div>
-                <div class="field-value" id="patientNameLocal">
-                    <input type="text" id="givenNameLocal" ng-model="patient.givenNameLocal" pattern-validate
-                        placeholder="{{::patientConfiguration.local()['placeholderForGivenName']}}" focus-me="true">
-                    <input ng-show="::showMiddleName" type="text" id="middleNameLocal"
-                        ng-model="patient.middleNameLocal" pattern-validate
-                        placeholder="{{::patientConfiguration.local()['placeholderForMiddleName']}}">
-                    <input type="text" ng-show="::showLastName" id="familyNameLocal" ng-model="patient.familyNameLocal"
-                        pattern-validate placeholder="{{::patientConfiguration.local()['placeholderForFamilyName']}}">
-                </div>
-            </article>
+           
             <article class="form-field patient-name-wrapper">
                 <div class="field-attribute">
                     <label for="patientName">{{ ::'REGISTRATION_LABEL_PATIENT_NAME' | translate}}<span
@@ -31,7 +18,7 @@
                             placeholder="{{ ::'REGISTRATION_LABEL_PATIENT_FIRSTNAME' | translate}}"
                             title="{{::'REGISTRATION_LABEL_PATIENT_ENTER_NAME' | translate}}">
 
-                        <input data-ng-switch-default type="text" id="givenName" ng-model="patient.givenName" non-blank
+                        <input data-ng-switch-default type="text" id="givenName" focus-me="true" ng-model="patient.givenName" non-blank
                             pattern-validate placeholder="{{ ::'REGISTRATION_LABEL_PATIENT_FIRSTNAME' | translate}}"
                             title="{{::'REGISTRATION_LABEL_PATIENT_ENTER_NAME' | translate}}">
                     </span>
@@ -95,6 +82,20 @@
                         ng-change="setCasteAsLastName()">
                 </div>
             </article>
+             <article class="form-field patient-name-wrapper" ng-if="::patientConfiguration.local()['showNameField']">
+                <div class="field-attribute">
+                    <label for="patientName">{{::patientConfiguration.local()['labelForNameField']}}</label>
+                </div>
+                <div class="field-value" id="patientNameLocal">
+                    <input type="text" id="givenNameLocal" ng-model="patient.givenNameLocal" pattern-validate
+                        placeholder="{{::patientConfiguration.local()['placeholderForGivenName']}}" >
+                    <input ng-show="::showMiddleName" type="text" id="middleNameLocal"
+                        ng-model="patient.middleNameLocal" pattern-validate
+                        placeholder="{{::patientConfiguration.local()['placeholderForMiddleName']}}">
+                    <input type="text" ng-show="::showLastName" id="familyNameLocal" ng-model="patient.familyNameLocal"
+                        pattern-validate placeholder="{{::patientConfiguration.local()['placeholderForFamilyName']}}">
+                </div>
+            </article>
         </section>
         <section class="form-field form-field-gender">
             <article class="form-field">
@@ -119,6 +120,8 @@
                     </div>-->
                 </div>
             </article>
+
+
         </section>
         <section class="age-wrapper">
             <div ng-if="::!dobMandatory">
@@ -130,6 +133,46 @@
                 <ng-include src="'views/age.html'"></ng-include>
             </div>
         </section>
+       
+        
+        <article class="form-field patient-name-wrapper" ng-if="::patientConfiguration.local()['showNameField']">
+            <div class="field-attribute">
+                <label for="patientName">Phone Number</label>
+            </div>
+            <div class="field-value" id="phoneNumber">
+                <input type="text"  id="phoneNumber" ng-model="patient.phoneNumber" pattern-validate>
+            </div>
+        </article>
+        <article class="form-field patient-name-wrapper" ng-if="::patientConfiguration.local()['showNameField']">
+            <div class="field-attribute">
+                <label for="patientName">National ID</label>
+            </div>
+            <div class="field-value" id="nationalId">
+                <input type="text"  id="nationalId" ng-model="patient.nationalId" pattern-validate>
+            </div>
+            <div class="field-attribute">
+                <label for="patientName">Birth Registration Number</label>
+            </div>
+            <div class="field-value" id="birthRegistrationId">
+                <input type="text"  id="birthRegistrationId" ng-model="patient.birthRegistrationId" pattern-validate>
+            </div>
+            <span ng-click="getPatientInfo()" style="margin-left: 20px;    
+            border-radius: 3px;
+            background: linear-gradient(to bottom, #FFF, #DDD);
+            background-color: #DDD;
+            border: #DDD 1px solid;
+            padding: 6px 20px 7px;
+            display: inline-block;
+            line-height: 1.2em;
+            color: #363463;
+            cursor: pointer;
+            min-width: 0;
+            max-width: 300px;
+            text-decoration: none;">Get Patient Info</span>
+        </article>
+        <article class="form-field patient-name-wrapper" ng-if="::patientConfiguration.local()['showNameField']">
+            
+        </article>
         <legend class="registraion_legend">
             <span class="mylegend"> {{ ::'REGISTRATION_LABEL_ADDRESS_INFO' | translate}}</span>
         </legend>

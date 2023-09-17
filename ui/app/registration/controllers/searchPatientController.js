@@ -346,20 +346,21 @@ angular.module('bahmni.registration')
                                     var nid = $scope.searchParameters.customAttribute;
 
                                     if (nid) {
-                                        searching = true;
                                         $scope.noResultsMessage = null;
                                         if (customAttributeData) {
+                                            searching = true;
                                             try {
                                                 fetch(`https://${window.location.hostname}:6062/api/v1/health-id/nid/${nid}`)
                                                     .then((response) => {
                                                         if (!response.ok) {
-                                                            // customAttributeData = false;
+                                                            customAttributeData = false;
                                                             throw new Error(`Request failed with status: ${response.status}`);
                                                         }
                                                         return response.json();
                                                     })
                                                     .then((patient) => {
-                                                        // customAttributeData = false;
+                                                        customAttributeData = false;
+                                                        searching = false;
                                                         if (patient.results.length > 0) {
                                                             let patientData = patient.results[0];
                                                             fetch(`https://${$window.location.hostname}:6062/api/v1/health-id/geo-code?upazillaCode=${patientData.present_address.upazila_id}&districtCode=${patientData.present_address.district_id}&divisionCode=${patientData.present_address.division_id}`)
@@ -405,20 +406,20 @@ angular.module('bahmni.registration')
                                 } else if ($scope.selectedIdPreference === 'BRN') {
                                     var brn = $scope.searchParameters.customAttribute;
                                     if (brn) {
-                                        searching = true;
                                         $scope.noResultsMessage = null;
                                         if (customAttributeData) {
+                                            searching = true;
                                             try {
                                                 fetch(`https://${window.location.hostname}:6062/api/v1/health-id/brn/${brn}`)
                                                     .then((response) => {
                                                         if (!response.ok) {
-                                                            // customAttributeData = false;
+                                                            customAttributeData = false;
                                                             throw new Error(`Request failed with status: ${response.status}`);
                                                         }
                                                         return response.json();
                                                     })
                                                     .then((patient) => {
-                                                        // customAttributeData = false;
+                                                        customAttributeData = false;
                                                         if (patient.results.length > 0) {
                                                             let patientData = patient.results[0];
                                                             fetch(`https://${$window.location.hostname}:6062/api/v1/health-id/geo-code?upazillaCode=${patientData.present_address.upazila_id}&districtCode=${patientData.present_address.district_id}&divisionCode=${patientData.present_address.division_id}`)

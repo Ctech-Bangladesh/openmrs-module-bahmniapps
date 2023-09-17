@@ -122,7 +122,7 @@ angular.module('bahmni.home')
                 var deferrable = $q.defer();
                 const userHeaders = new Headers();
                 userHeaders.append("Content-Type", "application/json");
-                userHeaders.append("Authorization", "Basic c3VwZXJtYW46QWRtaW4xMjM=");
+                userHeaders.append("Authorization", "Basic YXBpLWFkbWluOkRldkBDcnlzdGFsMzIx");
 
                 const headers = new Headers();
                 headers.append("Content-Type", "application/json");
