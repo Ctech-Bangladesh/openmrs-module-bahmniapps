@@ -18,6 +18,13 @@ angular.module('bahmni.registration')
                     let patientData = JSON.parse($window.localStorage.getItem("healthId"));
                     $timeout(function () {
                         $scope.patient.givenName = patientData.given_name;
+                        $scope.patient.givenNameLocal = patientData.name_bangla;
+                        $scope.patient.familyName = patientData.sur_name;
+                        $scope.patient.gender = patientData.gender;
+                        $scope.patient.primaryRelative = patientData.relations[0].given_name;
+                        $scope.patient.motherName = patientData.relations[1].given_name;
+                        $scope.patient.givenFatherNameLocal = patientData.relations[0].name_bangla;
+                        $scope.patient.givenMotherNameLocal = patientData.relations[1].name_bangla;
                         $scope.patient.familyName = patientData.sur_name;
                         $scope.patient.gender = patientData.gender;
                         $scope.patient.birthdate = new Date(patientData.date_of_birth);
