@@ -196,11 +196,11 @@ angular.module('bahmni.registration')
                                     $scope.patient.nationalId = nidData.citizen_nid ? nidData.citizen_nid : $scope.patient.nationalId;
                                     $scope.patient.birthRegistrationId = nidData.bin_BRN ? nidData.bin_BRN : $scope.patient.birthRegistrationId;
 
-                                    if (nidData.permanentHouseholdNoText) {
-                                        $scope.patient.address.address1 = nidData.permanentHouseholdNoText;
-                                        $scope.patient.address.display = nidData.permanentHouseholdNoText;
+                                    if (nidData.presentHouseholdNoText) {
+                                        $scope.patient.address.address1 = nidData.presentHouseholdNoText;
+                                        $scope.patient.address.display = nidData.presentHouseholdNoText;
                                     } else {
-                                        const parts = [
+                                        const addressComponents = [
                                             nidData.presentHouseholdNo.houseOrHoldingNo,
                                             nidData.presentHouseholdNo.villageOrRoad,
                                             nidData.presentHouseholdNo.mouzaOrMoholla,
@@ -209,26 +209,10 @@ angular.module('bahmni.registration')
                                             nidData.presentHouseholdNo.district,
                                             nidData.presentHouseholdNo.division
                                         ];
-
-                                        // Filter out empty parts (undefined, null, or empty strings)
-                                        const filteredParts = parts.filter(part => !!part);
-
-                                        // Join the non-empty parts with a comma and space
-                                        $scope.patient.address.address1 = filteredParts.join(', ');
-                                        $scope.patient.address.display = filteredParts.join(', ');
+                                        const nidAddressData = addressComponents.filter(item => item !== "." && item !== "" && item !== "-" && item !== "--" && item !== "," && item !== null).join(', ');
+                                        $scope.patient.address.address1 = nidAddressData;
+                                        $scope.patient.address.display = nidAddressData;
                                     }
-                                    const addressComponents = [
-                                        nidData.presentHouseholdNo.houseOrHoldingNo,
-                                        nidData.presentHouseholdNo.villageOrRoad,
-                                        nidData.presentHouseholdNo.mouzaOrMoholla,
-                                        nidData.presentHouseholdNo.unionOrWard,
-                                        nidData.presentHouseholdNo.upazilla,
-                                        nidData.presentHouseholdNo.district,
-                                        nidData.presentHouseholdNo.division
-                                    ];
-                                    const nidAddressData = addressComponents.filter(item => item !== "." && item !== "" && item !== "-" && item !== "," && item !== null).join(', ');
-                                    $scope.patient.address.address1 = nidData.permanentHouseholdNoText ? nidData.permanentHouseholdNoText : nidAddressData;
-                                    $scope.patient.address.display = nidData.permanentHouseholdNoText ? nidData.permanentHouseholdNoText : nidAddressData;
                                     spinner.hide(spinnerToken);
                                     messagingService.showMessage("info", "Patient information retrieved successfully");
                                 });
