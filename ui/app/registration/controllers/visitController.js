@@ -5,6 +5,7 @@ angular.module('bahmni.registration')
         'auditLogService', 'formService', 'registrationCardPrinter',
         function ($window, $cookies, $scope, $http, $rootScope, $state, $bahmniCookieStore, patientService, encounterService, $stateParams, spinner, $timeout, $q, appService, openmrsPatientMapper, contextChangeHandler, messagingService, sessionService, visitService, $location, $translate, auditLogService, formService, registrationCardPrinter) {
             var vm = this;
+            $scope.providerName = localStorage.getItem('providerName');
             var patientUuid = $stateParams.patientUuid;
             var extensions = appService.getAppDescriptor().getExtensions("org.bahmni.registration.conceptSetGroup.observations", "config");
             var formExtensions = appService.getAppDescriptor().getExtensions("org.bahmni.registration.conceptSetGroup.observations", "forms");

@@ -6,6 +6,7 @@ angular.module('bahmni.registration')
             var dateUtil = Bahmni.Common.Util.DateUtil;
             $scope.actions = {};
             var errorMessage;
+            $scope.providerName = localStorage.getItem('providerName');
             const healthIDEnable = appService.getAppDescriptor().getConfigValue("healthIdEnable");
             var configValueForEnterId = appService.getAppDescriptor().getConfigValue('showEnterID');
             $scope.addressHierarchyConfigs = appService.getAppDescriptor().getConfigValue("addressHierarchy");
@@ -31,143 +32,217 @@ angular.module('bahmni.registration')
 
                 };
             };
-            $scope.getPatientInfo = function () {
-                console.log('heloo brooo', $scope.patient.nationalId, $scope.patient.birthRegistrationId, $scope.patient.birthdate, convertToYYYYMMDD($scope.patient.birthdate));
-                const isNationalIdPresent = $scope.patient.nationalId;
-                const endPoint = isNationalIdPresent ? `nid/${$scope.patient.nationalId}` : `brn/${$scope.patient.birthRegistrationId}`;
-                fetch(`https://${$window.location.hostname}:6062/api/v1/health-id/${endPoint}`)
+            const resetPatient = () => {
+                $scope.patient.givenName = '';
+                $scope.patient.givenNameLocal = '';
+
+                $scope.patient.primaryRelative = '';
+                $scope.patient.motherName = '';
+                $scope.patient.givenFatherNameLocal = '';
+                $scope.patient.givenMotherNameLocal = '';
+
+                $scope.patient.address.address1 = '';
+                $scope.patient.address.display = '';
+                $scope.patient.extraIdentifiers[0].identifier = '';
+                $scope.patient.extraIdentifiers[0].registrationNumber = '';
+            };
+            const checkHealthID = async (spinnerToken, endPoint) => {
+                return await fetch(`https://${$window.location.hostname}:6062/api/v1/health-id/${endPoint}`)
                     .then((response) => {
                         if (!response.ok) {
+                            $timeout(function () {
+                                resetPatient();
+                                messagingService.showMessage("error", "Something went wrong in MCI Server, Please try again.");
+                                spinner.hide(spinnerToken);
+                            });
                             // throw new Error(`Request failed with status: ${response.status}`);
                         }
                         return response.json();
-                    })
-                    .then((res) => {
-                        if (res.results.length > 0) {
-                            const patientData = res.results[0];
-                            fetch(`https://${$window.location.hostname}:6062/api/v1/health-id/geo-code?upazillaCode=${patientData.present_address.upazila_id}&districtCode=${patientData.present_address.district_id}&divisionCode=${patientData.present_address.division_id}`)
-                                .then((response) => {
-                                    if (!response.ok) {
-                                        throw new Error(`Request failed with status: ${response.status}`);
-                                    }
-                                    return response.json();
-                                })
-                                .then((res) => {
-                                    if (res) {
-                                        $timeout(function () {
-                                            $scope.patient.givenName = patientData.given_name;
-                                            $scope.patient.familyName = patientData.sur_name;
-                                            $scope.patient.gender = patientData.gender;
-                                            $scope.patient.birthdate = new Date(
-                                                patientData.date_of_birth
-                                            );
-                                            var currentDate = new Date();
-                                            var birthDate = new Date(patientData.date_of_birth);
-                                            var years =
-                                                currentDate.getFullYear() - birthDate.getFullYear();
-                                            var months = currentDate.getMonth() - birthDate.getMonth();
-                                            var days = currentDate.getDate() - birthDate.getDate();
-                                            if (months < 0 || (months === 0 && days < 0)) {
-                                                years--;
-                                                months += 12;
-                                            }
-                                            if (days < 0) {
-                                                var prevMonthDate = new Date(
-                                                    currentDate.getFullYear(),
-                                                    currentDate.getMonth() - 1,
-                                                    0
-                                                );
-                                                days =
-                                                    prevMonthDate.getDate() -
-                                                    birthDate.getDate() +
-                                                    currentDate.getDate();
-                                                months--;
-                                            }
-                                            var stateProvince = res.content.division;
-                                            var countyDistrict = res.content.district;
-                                            var upazila = res.content.upazilla;
-                                            $scope.patient.age.years = years;
-                                            $scope.patient.age.months = months;
-                                            $scope.patient.age.days = days;
-                                            $scope.patient.extraIdentifiers[0].identifier =
-                                                patientData.hid;
-                                            $scope.patient.extraIdentifiers[0].registrationNumber =
-                                                patientData.hid;
-                                            $scope.patient.nationalId = patientData.nid;
-                                            $scope.patient.address.address1 =
-                                                patientData.present_address.address_line;
-                                            $scope.patient.address.display =
-                                                patientData.present_address.address_line;
-                                            $scope.patient.address.stateProvince = stateProvince;
-                                            $scope.patient.address.countyDistrict = countyDistrict;
-                                            $scope.patient.address.address5 = upazila;
-                                        });
-                                        // return patientCreate($scope.patient, jumpAccepted);
-                                    }
-                                });
-                        } else {
-                            fetch(`https://${$window.location.hostname}:6062/api/v1/health-id/nid-verify`,
-                                {
-                                    method: "POST",
-                                    body: JSON.stringify(patientNIDData($scope.patient)),
-                                    headers: {
-                                        "Content-Type": "application/json"
-                                    }
-                                }
-                            )
-                                .then((response) => {
-                                    if (!response.ok) {
-                                        $scope.patient.nationalId = 'Not Verified';
-                                        // throw new Error(`Request failed with status: ${response.status}`);
-                                    }
-                                    return response.json();
-                                })
-                                .then((response) => {
-                                    if (response.verifyToken) {
-                                        $timeout(function () {
-                                            const nidData = response.citizenData;
-                                            $scope.patient.givenName = nidData.fullName_English;
-                                            $scope.patient.givenNameLocal = nidData.fullName_Bangla;
-                                            $scope.patient.gender = nidData.gender === 1 ? 'M' : nidData.gender === 2 ? 'F' : 'O';
-
-                                            $scope.patient.primaryRelative = nidData.fatherName_English;
-                                            $scope.patient.motherName = nidData.motherName_English;
-                                            $scope.patient.givenFatherNameLocal = nidData.fatherName_Bangla;
-                                            $scope.patient.givenMotherNameLocal = nidData.motherName_Bangla;
-
-                                            $scope.patient.birthdate = new Date(nidData.dob);
-                                            var currentDate = new Date();
-                                            var birthDate = new Date(nidData.dob);
-                                            var years = currentDate.getFullYear() - birthDate.getFullYear();
-                                            var months = currentDate.getMonth() - birthDate.getMonth();
-                                            var days = currentDate.getDate() - birthDate.getDate();
-                                            if (months < 0 || (months === 0 && days < 0)) {
-                                                years--;
-                                                months += 12;
-                                            }
-                                            if (days < 0) {
-                                                var prevMonthDate = new Date(
-                                                    currentDate.getFullYear(),
-                                                    currentDate.getMonth() - 1,
-                                                    0
-                                                );
-                                                days = prevMonthDate.getDate() - birthDate.getDate() + currentDate.getDate();
-                                                months--;
-                                            }
-                                            $scope.patient.age.years = years;
-                                            $scope.patient.age.months = months;
-                                            $scope.patient.age.days = days;
-                                            $scope.patient.nationalId = nidData.citizen_nid ? nidData.citizen_nid : $scope.patient.nationalId;
-                                            $scope.patient.birthRegistrationId = nidData.bin_BRN ? nidData.bin_BRN : $scope.patient.birthRegistrationId;
-
-                                            $scope.patient.address.address1 = nidData.permanentHouseholdNoText ? nidData.permanentHouseholdNoText : `${nidData.presentHouseholdNo.houseOrHoldingNo}, ${nidData.presentHouseholdNo.villageOrRoad}, ${nidData.presentHouseholdNo.mouzaOrMoholla}, ${nidData.presentHouseholdNo.unionOrWard}, ${nidData.presentHouseholdNo.upazilla}, ${nidData.presentHouseholdNo.district}, ${nidData.presentHouseholdNo.division}`;
-                                            $scope.patient.address.display = nidData.permanentHouseholdNoText ? nidData.permanentHouseholdNoText : `${nidData.presentHouseholdNo.houseOrHoldingNo}, ${nidData.presentHouseholdNo.villageOrRoad}, ${nidData.presentHouseholdNo.mouzaOrMoholla}, ${nidData.presentHouseholdNo.unionOrWard}, ${nidData.presentHouseholdNo.upazilla}, ${nidData.presentHouseholdNo.district}, ${nidData.presentHouseholdNo.division}`;
-                                        });
-                                    }
-                                });
-                        }
                     });
             };
+
+            $scope.getPatientInfo = async () => {
+                if (!$scope.patient.birthdate && (!$scope.patient.nationalId || !$scope.patient.birthRegistrationId)) {
+                    return $timeout(function () {
+                        messagingService.showMessage("error", "Please provide birth date and NID/Birth registration number");
+                    });
+                }
+                const isNationalIdPresent = $scope.patient.nationalId;
+                const endPoint = isNationalIdPresent ? `nid/${$scope.patient.nationalId}` : `brn/${$scope.patient.birthRegistrationId}`;
+                const spinnerToken = spinner.show();
+                const healthIdCheck = await checkHealthID(spinnerToken, endPoint);
+                if (healthIdCheck.results.length > 0) {
+                    const patientData = healthIdCheck.results[0];
+                    await fetch(`https://${$window.location.hostname}:6062/api/v1/health-id/geo-code?upazillaCode=${patientData.present_address.upazila_id}&districtCode=${patientData.present_address.district_id}&divisionCode=${patientData.present_address.division_id}`)
+                        .then((response) => {
+                            if (!response.ok) {
+                                throw new Error(`Request failed with status: ${response.status}`);
+                            }
+                            return response.json();
+                        })
+                        .then((res) => {
+                            if (res) {
+                                $timeout(function () {
+                                    resetPatient();
+                                    $scope.patient.givenName = patientData.given_name;
+                                    $scope.patient.familyName = patientData.sur_name;
+                                    $scope.patient.gender = patientData.gender;
+                                    $scope.patient.birthdate = new Date(
+                                        patientData.date_of_birth
+                                    );
+                                    var currentDate = new Date();
+                                    var birthDate = new Date(patientData.date_of_birth);
+                                    var years =
+                                        currentDate.getFullYear() - birthDate.getFullYear();
+                                    var months = currentDate.getMonth() - birthDate.getMonth();
+                                    var days = currentDate.getDate() - birthDate.getDate();
+                                    if (months < 0 || (months === 0 && days < 0)) {
+                                        years--;
+                                        months += 12;
+                                    }
+                                    if (days < 0) {
+                                        var prevMonthDate = new Date(
+                                            currentDate.getFullYear(),
+                                            currentDate.getMonth() - 1,
+                                            0
+                                        );
+                                        days =
+                                            prevMonthDate.getDate() -
+                                            birthDate.getDate() +
+                                            currentDate.getDate();
+                                        months--;
+                                    }
+                                    var stateProvince = res.content.division;
+                                    var countyDistrict = res.content.district;
+                                    var upazila = res.content.upazilla;
+                                    $scope.patient.age.years = years;
+                                    $scope.patient.age.months = months;
+                                    $scope.patient.age.days = days;
+                                    $scope.patient.extraIdentifiers[0].identifier =
+                                        patientData.hid;
+                                    $scope.patient.extraIdentifiers[0].registrationNumber =
+                                        patientData.hid;
+                                    $scope.patient.nationalId = patientData.nid;
+                                    $scope.patient.address.address1 =
+                                        patientData.present_address.address_line;
+                                    $scope.patient.address.display =
+                                        patientData.present_address.address_line;
+                                    $scope.patient.address.stateProvince = stateProvince;
+                                    $scope.patient.address.countyDistrict = countyDistrict;
+                                    $scope.patient.address.address5 = upazila;
+                                    spinner.hide(spinnerToken);
+                                    messagingService.showMessage("info", "Patient information retrieved successfully");
+                                });
+                                // return patientCreate($scope.patient, jumpAccepted);
+                            }
+                        });
+                } else {
+                    await fetch(`https://${$window.location.hostname}:6062/api/v1/health-id/nid-verify`,
+                        {
+                            method: "POST",
+                            body: JSON.stringify(patientNIDData($scope.patient)),
+                            headers: {
+                                "Content-Type": "application/json"
+                            }
+                        }
+                    )
+                        .then((response) => {
+                            if (!response.ok) {
+                                $timeout(function () {
+                                    resetPatient();
+                                    messagingService.showMessage("error", "Something went wrong in NID Server, Please try again.");
+                                    spinner.hide(spinnerToken);
+                                });
+                                // throw new Error(`Request failed with status: ${response.status}`);
+                            }
+                            return response.json();
+                        })
+                        .then((response) => {
+                            if (response.verifyToken) {
+                                $timeout(function () {
+                                    resetPatient();
+                                    const nidData = response.citizenData;
+                                    $scope.patient.givenName = nidData.fullName_English;
+                                    $scope.patient.givenNameLocal = nidData.fullName_Bangla;
+                                    $scope.patient.gender = nidData.gender === 1 ? 'M' : nidData.gender === 2 ? 'F' : 'O';
+
+                                    $scope.patient.primaryRelative = nidData.fatherName_English;
+                                    $scope.patient.motherName = nidData.motherName_English;
+                                    $scope.patient.givenFatherNameLocal = nidData.fatherName_Bangla;
+                                    $scope.patient.givenMotherNameLocal = nidData.motherName_Bangla;
+
+                                    $scope.patient.birthdate = new Date(nidData.dob);
+                                    var currentDate = new Date();
+                                    var birthDate = new Date(nidData.dob);
+                                    var years = currentDate.getFullYear() - birthDate.getFullYear();
+                                    var months = currentDate.getMonth() - birthDate.getMonth();
+                                    var days = currentDate.getDate() - birthDate.getDate();
+                                    if (months < 0 || (months === 0 && days < 0)) {
+                                        years--;
+                                        months += 12;
+                                    }
+                                    if (days < 0) {
+                                        var prevMonthDate = new Date(
+                                            currentDate.getFullYear(),
+                                            currentDate.getMonth() - 1,
+                                            0
+                                        );
+                                        days = prevMonthDate.getDate() - birthDate.getDate() + currentDate.getDate();
+                                        months--;
+                                    }
+                                    $scope.patient.age.years = years;
+                                    $scope.patient.age.months = months;
+                                    $scope.patient.age.days = days;
+                                    $scope.patient.nationalId = nidData.citizen_nid ? nidData.citizen_nid : $scope.patient.nationalId;
+                                    $scope.patient.birthRegistrationId = nidData.bin_BRN ? nidData.bin_BRN : $scope.patient.birthRegistrationId;
+
+                                    if (nidData.permanentHouseholdNoText) {
+                                        $scope.patient.address.address1 = nidData.permanentHouseholdNoText;
+                                        $scope.patient.address.display = nidData.permanentHouseholdNoText;
+                                    } else {
+                                        const parts = [
+                                            nidData.presentHouseholdNo.houseOrHoldingNo,
+                                            nidData.presentHouseholdNo.villageOrRoad,
+                                            nidData.presentHouseholdNo.mouzaOrMoholla,
+                                            nidData.presentHouseholdNo.unionOrWard,
+                                            nidData.presentHouseholdNo.upazilla,
+                                            nidData.presentHouseholdNo.district,
+                                            nidData.presentHouseholdNo.division
+                                        ];
+
+                                        // Filter out empty parts (undefined, null, or empty strings)
+                                        const filteredParts = parts.filter(part => !!part);
+
+                                        // Join the non-empty parts with a comma and space
+                                        $scope.patient.address.address1 = filteredParts.join(', ');
+                                        $scope.patient.address.display = filteredParts.join(', ');
+                                    }
+                                    const addressComponents = [
+                                        nidData.presentHouseholdNo.houseOrHoldingNo,
+                                        nidData.presentHouseholdNo.villageOrRoad,
+                                        nidData.presentHouseholdNo.mouzaOrMoholla,
+                                        nidData.presentHouseholdNo.unionOrWard,
+                                        nidData.presentHouseholdNo.upazilla,
+                                        nidData.presentHouseholdNo.district,
+                                        nidData.presentHouseholdNo.division
+                                    ];
+                                    const nidAddressData = addressComponents.filter(item => item !== "." && item !== "" && item !== "-" && item !== "," && item !== null).join(', ');
+                                    $scope.patient.address.address1 = nidData.permanentHouseholdNoText ? nidData.permanentHouseholdNoText : nidAddressData;
+                                    $scope.patient.address.display = nidData.permanentHouseholdNoText ? nidData.permanentHouseholdNoText : nidAddressData;
+                                    spinner.hide(spinnerToken);
+                                    messagingService.showMessage("info", "Patient information retrieved successfully");
+                                });
+                            } else {
+                                $timeout(function () {
+                                    resetPatient();
+                                    messagingService.showMessage("error", "Patient information not available");
+                                    spinner.hide(spinnerToken);
+                                });
+                            }
+                        });
+                }
+            };
+
             if (healthIDEnable) {
                 if ($window.localStorage.getItem("healthId")) {
                     let patientData = JSON.parse($window.localStorage.getItem("healthId"));
@@ -236,7 +311,7 @@ angular.module('bahmni.registration')
                 $http({
                     method: 'GET',
                     url: apiUrl
-                }).then(function mySuccess (response) {
+                }).then((response) => {
                     var result = response.data;
                     $scope.userName = result.userName;
                     $scope.totalReg = result.totalRegData[0];
@@ -763,51 +838,6 @@ angular.module('bahmni.registration')
                         }
                     );
                 };
-
-                // function transformData (data) {
-                //     var userUuid = $rootScope.currentUser.uuid;
-                //     if (data.nationalId) {
-                //         return {
-                //             performer: userUuid,
-                //             given_name: data.givenName,
-                //             sur_name: data.familyName,
-                //             mobile: data.phoneNumber,
-                //             date_of_birth: data.birthdate
-                //                 ? data.birthdate.toISOString().substring(0, 10)
-                //                 : null,
-                //             gender: data.gender,
-                //             nid: data.nationalId,
-                //             bin_brn: "",
-                //             present_address: {
-                //                 address_line: data.address.address1,
-                //                 division_id: divisionId,
-                //                 district_id: districtId,
-                //                 upazila_id: upazilaId
-                //             },
-                //             confidential: "No"
-                //         };
-                //     } else {
-                //         return {
-                //             performer: userUuid,
-                //             given_name: data.givenName,
-                //             sur_name: data.familyName,
-                //             mobile: data.phoneNumber,
-                //             date_of_birth: data.birthdate
-                //                 ? data.birthdate.toISOString().substring(0, 10)
-                //                 : null,
-                //             gender: data.gender,
-                //             nid: "",
-                //             bin_brn: data.birthRegistrationId,
-                //             present_address: {
-                //                 address_line: data.address.address1,
-                //                 division_id: divisionId,
-                //                 district_id: districtId,
-                //                 upazila_id: upazilaId
-                //             },
-                //             confidential: "No"
-                //         };
-                //     }
-                // }
             };
 
             var createPatient = function (jumpAccepted) {

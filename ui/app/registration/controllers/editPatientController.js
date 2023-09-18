@@ -7,6 +7,7 @@ angular.module('bahmni.registration')
                   appService, messagingService, $rootScope, auditLogService, registrationCardPrinter) {
             var dateUtil = Bahmni.Common.Util.DateUtil;
             var uuid = $stateParams.patientUuid;
+            $scope.providerName = localStorage.getItem('providerName');
             $scope.allowRePrint = false;
             $scope.patient = {};
             $scope.actions = {};

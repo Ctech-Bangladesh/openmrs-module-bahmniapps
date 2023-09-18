@@ -8,6 +8,7 @@ angular.module('bahmni.registration')
             $scope.extraIdentifierTypes = _.filter($rootScope.patientConfiguration.identifierTypes, function (identifierType) {
                 return !identifierType.primary;
             });
+            $scope.providerName = localStorage.getItem('providerName');
             var searching = false;
             var maxAttributesFromConfig = 5;
             const healthIDEnable = appService.getAppDescriptor().getConfigValue("healthIdEnable");
