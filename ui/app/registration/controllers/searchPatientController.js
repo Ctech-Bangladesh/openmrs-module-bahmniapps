@@ -210,7 +210,7 @@ angular.module('bahmni.registration')
                                                 $timeout(function () {
                                                     searching = false;
                                                     $scope.patientIdentifier = { 'patientIdentifier': nid };
-                                                    $scope.noResultsMessage = 'REGISTRATION_LABEL_COULD_NOT_FIND_PATIENT';
+                                                    $scope.noResultsMessage = 'REGISTRATION_NO_RESULTS_FOUND';
                                                 });
                                             }
                                         })
@@ -218,7 +218,7 @@ angular.module('bahmni.registration')
                                             $timeout(function () {
                                                 searching = false;
                                                 $scope.patientIdentifier = { 'patientIdentifier': nid };
-                                                $scope.noResultsMessage = 'REGISTRATION_LABEL_COULD_NOT_FIND_PATIENT';
+                                                $scope.noResultsMessage = 'REGISTRATION_NO_RESULTS_FOUND';
                                             });
                                             console.error("Error:", error);
                                         });
@@ -227,7 +227,7 @@ angular.module('bahmni.registration')
                                 }
                             } else {
                                 $scope.patientIdentifier = { 'patientIdentifier': nid };
-                                $scope.noResultsMessage = 'REGISTRATION_LABEL_COULD_NOT_FIND_PATIENT';
+                                $scope.noResultsMessage = 'REGISTRATION_NO_RESULTS_FOUND';
                             }
                         } else if ($scope.selectedIdPreference === 'BRN' && $scope.results.length === 0) {
                             var brn = $scope.searchParameters.brn;
@@ -268,15 +268,15 @@ angular.module('bahmni.registration')
                                                 $timeout(function () {
                                                     searching = false;
                                                     $scope.patientIdentifier = { 'patientIdentifier': brn };
-                                                    $scope.noResultsMessage = 'REGISTRATION_LABEL_COULD_NOT_FIND_PATIENT';
+                                                    $scope.noResultsMessage = 'REGISTRATION_NO_RESULTS_FOUND';
                                                 });
                                             }
                                         })
                                         .catch((error) => {
                                             $timeout(function () {
                                                 searching = false;
-                                                $scope.patientIdentifier = { 'patientIdentifier': patientIdentifier };
-                                                $scope.noResultsMessage = 'REGISTRATION_LABEL_COULD_NOT_FIND_PATIENT';
+                                                $scope.patientIdentifier = { 'patientIdentifier': brn };
+                                                $scope.noResultsMessage = 'REGISTRATION_NO_RESULTS_FOUND';
                                             });
                                             console.error("Error:", error);
                                         });
@@ -284,8 +284,8 @@ angular.module('bahmni.registration')
                                     console.error("Caught an exception:", error);
                                 }
                             } else {
-                                $scope.patientIdentifier = { 'patientIdentifier': patientIdentifier };
-                                $scope.noResultsMessage = 'REGISTRATION_LABEL_COULD_NOT_FIND_PATIENT';
+                                $scope.patientIdentifier = { 'patientIdentifier': brn };
+                                $scope.noResultsMessage = 'REGISTRATION_NO_RESULTS_FOUND';
                             }
                         } else if ($scope.selectedIdPreference === 'phoneNumber' && $scope.results.length === 0) {
                             var phoneNumber = $scope.searchParameters.phoneNumber;
@@ -311,16 +311,16 @@ angular.module('bahmni.registration')
                                             } else {
                                                 $timeout(function () {
                                                     searching = false;
-                                                    $scope.patientIdentifier = { 'patientIdentifier': nid };
-                                                    $scope.noResultsMessage = 'REGISTRATION_LABEL_COULD_NOT_FIND_PATIENT';
+                                                    $scope.patientIdentifier = { 'patientIdentifier': phoneNumber };
+                                                    $scope.noResultsMessage = 'REGISTRATION_NO_RESULTS_FOUND';
                                                 });
                                             }
                                         })
                                         .catch((error) => {
                                             $timeout(function () {
                                                 searching = false;
-                                                $scope.patientIdentifier = { 'patientIdentifier': nid };
-                                                $scope.noResultsMessage = 'REGISTRATION_LABEL_COULD_NOT_FIND_PATIENT';
+                                                $scope.patientIdentifier = { 'patientIdentifier': phoneNumber };
+                                                $scope.noResultsMessage = 'REGISTRATION_NO_RESULTS_FOUND';
                                             });
                                             console.error("Error:", error);
                                         });

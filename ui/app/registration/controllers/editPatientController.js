@@ -40,11 +40,9 @@ angular.module('bahmni.registration')
                     let obsData = response.data;
                     $scope.obsData = obsData;
                     obsData.forEach(key => {
-                        console.log(key);
                         $scope.allowRePrint = false;
                         if (key.complexData != null) {
                             if (key.encounterDateTime != '') {
-                                console.log(key.encounterDateTime);
                                 $scope.allowRePrint = true;
                             }
                         }
