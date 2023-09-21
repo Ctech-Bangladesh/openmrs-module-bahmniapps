@@ -1,4 +1,5 @@
 <div class="reg-body-wrapper">
+    
     <div class="edit-patient simple-form-ui">
         <form name="myForm" single-submit="update()">
             <div class="box-container box-container-default">
@@ -15,6 +16,7 @@
                         <div ng-model="patient.image" capture-photo class="capture-photo-btn"></div>
                  </span>
                 </div>
+             
                 <article class="form-field">
                     <div class="field-attribute">
                         <label class="control-label">{{::'REGISTRATION_LABEL_REGISTRATION_DATE' | translate}}</label>
@@ -24,6 +26,61 @@
                         <span class="uneditable-input text-only">{{patient.registrationDate | bahmniDate}}</span>
                     </div>
                 </article>
+                <section>
+                    <article class="form-field patient-name-wrapper" ng-if="::patientConfiguration.local()['showNameField']">
+                        <div class="field-attribute">
+                            <label for="patientName">National ID</label>
+                        </div>
+                        <div class="field-value" id="nationalId">
+                            <input type="text" id="nationalId" ng-model="patient.nationalId" pattern-validate>
+                        </div>
+                        <div class="field-attribute">
+                            <label for="patientName">Birth Registration Number</label>
+                        </div>
+                        <div class="field-value" id="birthRegistrationId">
+                            <input type="text" id="birthRegistrationId" ng-model="patient.birthRegistrationId" pattern-validate>
+                        </div>
+                      
+                    </article>
+                    <section class="age-wrapper">
+                        <div style="display: flex;" ng-if="::!dobMandatory">
+                            <div style="width: 50%;">
+                                <ng-include src="'views/dob.html'"></ng-include>
+                            </div>
+                           <div style="width: 50%;position: relative; left: -260px;margin-top: 5px;">
+                            <ng-include src="'views/age.html'"></ng-include>
+                           </div>
+                            
+                        </div>
+                        <div ng-if="::dobMandatory">
+                            <ng-include src="'views/age.html'"></ng-include>
+                            <ng-include src="'views/dob.html'"></ng-include>
+                        </div>
+                    </section>
+                    <!-- <span style="position: relative;left: 220px; margin: 5px 0px;" ng-click="getPatientInfo()" class="getPatientBtn">Get Patient Info</span> -->
+                    <article class="form-field existing-patient">
+                        <div class="field-value field-value-has-identifier">
+                            <input type="text" id="registrationNumber"
+                                   ng-model="patient.primaryIdentifier.registrationNumber"
+                                   placeholder="{{:: patient.primaryIdentifier.identifierType.description}}"
+                                   non-blank="patient.primaryIdentifier.isIdentifierRequired()" pattern-validate
+                                   ng-change="patient.primaryIdentifier.generate()"
+                                   focus-on="patient.primaryIdentifier.hasOldIdentifier"
+                                   ng-show="patient.primaryIdentifier.hasOldIdentifier || !patient.primaryIdentifier.hasIdentifierSources()">
+                            <div ng-show="::patient.primaryIdentifier.hasIdentifierSources() && showEnterID" class="fl">
+                                <div class="field-attribute hasOldIdentifier-field-attribute">
+                                    <label for="hasOldIdentifier" class="control-label">{{::'REGISTRATION_LABEL_ENTER_ID'
+                                        | translate}}</label>
+                                </div>
+                                <div class="field-value">
+                                    <input class="input-label-inline" ng-show="::showEnterID" type="checkbox"
+                                           id="hasOldIdentifier" ng-model="patient.primaryIdentifier.hasOldIdentifier"
+                                           ng-change="patient.primaryIdentifier.clearRegistrationNumber()">
+                                </div>
+                            </div>
+                        </div>
+                    </article>
+                </section>
             </div>
             <ng-include src="'views/patientcommon.html'"></ng-include>
             <patient-action></patient-action>

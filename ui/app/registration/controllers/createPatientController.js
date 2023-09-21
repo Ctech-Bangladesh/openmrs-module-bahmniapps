@@ -6,6 +6,7 @@ angular.module('bahmni.registration')
             var dateUtil = Bahmni.Common.Util.DateUtil;
             $scope.actions = {};
             var errorMessage;
+            $scope.getPatientBtnHide = false;
             $scope.providerName = localStorage.getItem('providerName');
             const healthIDEnable = appService.getAppDescriptor().getConfigValue("healthIdEnable");
             var configValueForEnterId = appService.getAppDescriptor().getConfigValue('showEnterID');
@@ -60,7 +61,6 @@ angular.module('bahmni.registration')
                         return response.json();
                     });
             };
-
             $scope.getPatientInfo = async () => {
                 if (!$scope.patient.birthdate && (!$scope.patient.nationalId || !$scope.patient.birthRegistrationId)) {
                     return $timeout(function () {
@@ -71,7 +71,7 @@ angular.module('bahmni.registration')
                 const endPoint = isNationalIdPresent ? `nid/${$scope.patient.nationalId}` : `brn/${$scope.patient.birthRegistrationId}`;
                 const spinnerToken = spinner.show();
                 const healthIdCheck = await checkHealthID(spinnerToken, endPoint);
-                if (healthIdCheck.results.length > 0) {
+                if (healthIdCheck.results && healthIdCheck.results.length > 0) {
                     const patientData = healthIdCheck.results[0];
                     await fetch(`https://${$window.location.hostname}:6062/api/v1/health-id/geo-code?upazillaCode=${patientData.present_address.upazila_id}&districtCode=${patientData.present_address.district_id}&divisionCode=${patientData.present_address.division_id}`)
                         .then((response) => {
@@ -130,12 +130,50 @@ angular.module('bahmni.registration')
                                     $scope.patient.address.stateProvince = stateProvince;
                                     $scope.patient.address.countyDistrict = countyDistrict;
                                     $scope.patient.address.address5 = upazila;
-                                    spinner.hide(spinnerToken);
-                                    messagingService.showMessage("info", "Patient information retrieved successfully");
+                                    fetch(`https://${$window.location.hostname}:6062/api/v1/health-id/${patientData.hid}`)
+                                        .then((response) => {
+                                            if (!response.ok) {
+                                                throw new Error(`Request failed with status: ${response.status}`);
+                                            }
+                                            return response.json();
+                                        })
+                                        .then((res) => {
+                                            if (res.statusCode === 200) {
+                                                $timeout(function () {
+                                                    const patientData = res.content;
+                                                    $scope.patient.givenNameLocal = patientData.name_bangla;
+                                                    $scope.patient.phoneNumber = patientData.phone_number ? patientData.phone_number.number : '';
+                                                    if (patientData.relations) {
+                                                        const fatherRelation = patientData.relations.find(relation => relation.type === 'FTH');
+                                                        const motherRelation = patientData.relations.find(relation => relation.type === 'MTH');
+                                                        if (fatherRelation) {
+                                                            $scope.patient.primaryRelative = fatherRelation.given_name;
+                                                            $scope.patient.givenFatherNameLocal = fatherRelation.name_bangla;
+                                                        }
+                                                        if (motherRelation) {
+                                                            $scope.patient.motherName = motherRelation.given_name;
+                                                            $scope.patient.givenMotherNameLocal = motherRelation.name_bangla;
+                                                        }
+                                                    }
+                                                    $scope.getPatientBtnHide = true;
+                                                    spinner.hide(spinnerToken);
+                                                    messagingService.showMessage("info", "Patient information retrieved successfully");
+                                                });
+                                            }
+                                        })
+                                        .catch((error) => {
+                                            console.error("Error:", error);
+                                        });
                                 });
                                 // return patientCreate($scope.patient, jumpAccepted);
                             }
                         });
+                } else if (healthIdCheck.http_status === 400) {
+                    $timeout(function () {
+                        resetPatient();
+                        spinner.hide(spinnerToken);
+                        messagingService.showMessage("error", "Invalid BRN/NID");
+                    });
                 } else {
                     await fetch(`https://${$window.location.hostname}:6062/api/v1/health-id/nid-verify`,
                         {
@@ -231,9 +269,11 @@ angular.module('bahmni.registration')
                 if ($window.localStorage.getItem("healthId")) {
                     let patientData = JSON.parse($window.localStorage.getItem("healthId"));
                     $timeout(function () {
+                        $scope.getPatientBtnHide = true;
                         $scope.patient.givenName = patientData.given_name;
                         $scope.patient.givenNameLocal = patientData.name_bangla;
                         $scope.patient.familyName = patientData.sur_name;
+                        $scope.patient.phoneNumber = patientData.phone_number ? patientData.phone_number.number : '';
                         $scope.patient.gender = patientData.gender;
                         if (patientData.relations) {
                             const fatherRelation = patientData.relations.find(relation => relation.type === 'FTH');

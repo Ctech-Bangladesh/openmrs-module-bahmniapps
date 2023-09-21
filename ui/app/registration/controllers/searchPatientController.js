@@ -27,7 +27,6 @@ angular.module('bahmni.registration')
                 return columnName;
             };
             $scope.selectedIdPreference = 'patientID';
-            var customAttributeData = false;
             $scope.idPreference = function (selectedValue) {
                 $scope.selectedIdPreference = selectedValue;
             };
@@ -141,18 +140,196 @@ angular.module('bahmni.registration')
                     });
                 }
             };
-
+            $scope.hidRedirect = function (data) {
+                const spinnerToken = spinner.show();
+                fetch(`https://${$window.location.hostname}:6062/api/v1/health-id/${data.hid}`)
+                    .then((response) => {
+                        if (!response.ok) {
+                            throw new Error(`Request failed with status: ${response.status}`);
+                        }
+                        return response.json();
+                    })
+                    .then((res) => {
+                        if (res.statusCode === 200) {
+                            $timeout(function () {
+                                const patientAllData = res.content;
+                                localStorage.setItem("healthId", JSON.stringify(patientAllData));
+                                window.location.href = "/bahmni/registration/#/patient/new";
+                                spinner.hide(spinnerToken);
+                            });
+                        }
+                    })
+                    .catch((error) => {
+                        console.error("Error:", error);
+                    });
+            };
+            $scope.nidPatient = [];
             var showSearchResults = function (searchPromise) {
+                $scope.nidPatient = [];
                 $scope.noMoreResultsPresent = false;
                 if (searchPromise) {
                     searchPromise.then(function (data) {
                         $scope.results = data.pageOfResults;
-                        if ($scope.results.length === 0) {
-                            customAttributeData = true;
-                        } else {
-                            customAttributeData = false;
+                        if ($scope.selectedIdPreference === 'NID' && $scope.results.length === 0) {
+                            var nid = $scope.searchParameters.nid;
+                            if (nid) {
+                                $scope.noResultsMessage = null;
+                                searching = true;
+                                try {
+                                    fetch(`https://${window.location.hostname}:6062/api/v1/health-id/nid/${nid}`)
+                                        .then((response) => {
+                                            if (!response.ok) {
+                                                throw new Error(`Request failed with status: ${response.status}`);
+                                            }
+                                            return response.json();
+                                        })
+                                        .then((patient) => {
+                                            searching = false;
+                                            if (patient.results.length > 0) {
+                                                let patientData = patient.results[0];
+                                                fetch(`https://${$window.location.hostname}:6062/api/v1/health-id/${patientData.hid}`)
+                                                    .then((response) => {
+                                                        if (!response.ok) {
+                                                            throw new Error(`Request failed with status: ${response.status}`);
+                                                        }
+                                                        return response.json();
+                                                    })
+                                                    .then((res) => {
+                                                        if (res.statusCode === 200) {
+                                                            $timeout(function () {
+                                                                const patientAllData = res.content;
+                                                                localStorage.setItem("healthId", JSON.stringify(patientAllData));
+                                                                window.location.href = "/bahmni/registration/#/patient/new";
+                                                            });
+                                                        }
+                                                    })
+                                                    .catch((error) => {
+                                                        console.error("Error:", error);
+                                                    });
+                                            } else {
+                                                $timeout(function () {
+                                                    searching = false;
+                                                    $scope.patientIdentifier = { 'patientIdentifier': nid };
+                                                    $scope.noResultsMessage = 'REGISTRATION_LABEL_COULD_NOT_FIND_PATIENT';
+                                                });
+                                            }
+                                        })
+                                        .catch((error) => {
+                                            $timeout(function () {
+                                                searching = false;
+                                                $scope.patientIdentifier = { 'patientIdentifier': nid };
+                                                $scope.noResultsMessage = 'REGISTRATION_LABEL_COULD_NOT_FIND_PATIENT';
+                                            });
+                                            console.error("Error:", error);
+                                        });
+                                } catch (error) {
+                                    console.error("Caught an exception:", error);
+                                }
+                            } else {
+                                $scope.patientIdentifier = { 'patientIdentifier': nid };
+                                $scope.noResultsMessage = 'REGISTRATION_LABEL_COULD_NOT_FIND_PATIENT';
+                            }
+                        } else if ($scope.selectedIdPreference === 'BRN' && $scope.results.length === 0) {
+                            var brn = $scope.searchParameters.brn;
+                            if (brn) {
+                                $scope.noResultsMessage = null;
+                                searching = true;
+                                try {
+                                    fetch(`https://${window.location.hostname}:6062/api/v1/health-id/brn/${brn}`)
+                                        .then((response) => {
+                                            if (!response.ok) {
+                                                throw new Error(`Request failed with status: ${response.status}`);
+                                            }
+                                            return response.json();
+                                        })
+                                        .then((patient) => {
+                                            if (patient.results.length > 0) {
+                                                let patientData = patient.results[0];
+                                                fetch(`https://${$window.location.hostname}:6062/api/v1/health-id/${patientData.hid}`)
+                                                    .then((response) => {
+                                                        if (!response.ok) {
+                                                            throw new Error(`Request failed with status: ${response.status}`);
+                                                        }
+                                                        return response.json();
+                                                    })
+                                                    .then((res) => {
+                                                        if (res.statusCode === 200) {
+                                                            $timeout(function () {
+                                                                const patientAllData = res.content;
+                                                                localStorage.setItem("healthId", JSON.stringify(patientAllData));
+                                                                window.location.href = "/bahmni/registration/#/patient/new";
+                                                            });
+                                                        }
+                                                    })
+                                                    .catch((error) => {
+                                                        console.error("Error:", error);
+                                                    });
+                                            } else {
+                                                $timeout(function () {
+                                                    searching = false;
+                                                    $scope.patientIdentifier = { 'patientIdentifier': brn };
+                                                    $scope.noResultsMessage = 'REGISTRATION_LABEL_COULD_NOT_FIND_PATIENT';
+                                                });
+                                            }
+                                        })
+                                        .catch((error) => {
+                                            $timeout(function () {
+                                                searching = false;
+                                                $scope.patientIdentifier = { 'patientIdentifier': patientIdentifier };
+                                                $scope.noResultsMessage = 'REGISTRATION_LABEL_COULD_NOT_FIND_PATIENT';
+                                            });
+                                            console.error("Error:", error);
+                                        });
+                                } catch (error) {
+                                    console.error("Caught an exception:", error);
+                                }
+                            } else {
+                                $scope.patientIdentifier = { 'patientIdentifier': patientIdentifier };
+                                $scope.noResultsMessage = 'REGISTRATION_LABEL_COULD_NOT_FIND_PATIENT';
+                            }
+                        } else if ($scope.selectedIdPreference === 'phoneNumber' && $scope.results.length === 0) {
+                            var phoneNumber = $scope.searchParameters.phoneNumber;
+                            if (phoneNumber) {
+                                $scope.noResultsMessage = null;
+                                searching = true;
+                                try {
+                                    fetch(`https://${window.location.hostname}:6062/api/v1/health-id/mobile/${phoneNumber}`)
+                                        .then((response) => {
+                                            if (!response.ok) {
+                                                throw new Error(`Request failed with status: ${response.status}`);
+                                            }
+                                            return response.json();
+                                        })
+                                        .then((patient) => {
+                                            searching = false;
+                                            if (patient.results.length > 0) {
+                                                $timeout(function () {
+                                                    let patientData = patient.results;
+                                                    $scope.nidPatient = patientData;
+                                                    searching = false;
+                                                });
+                                            } else {
+                                                $timeout(function () {
+                                                    searching = false;
+                                                    $scope.patientIdentifier = { 'patientIdentifier': nid };
+                                                    $scope.noResultsMessage = 'REGISTRATION_LABEL_COULD_NOT_FIND_PATIENT';
+                                                });
+                                            }
+                                        })
+                                        .catch((error) => {
+                                            $timeout(function () {
+                                                searching = false;
+                                                $scope.patientIdentifier = { 'patientIdentifier': nid };
+                                                $scope.noResultsMessage = 'REGISTRATION_LABEL_COULD_NOT_FIND_PATIENT';
+                                            });
+                                            console.error("Error:", error);
+                                        });
+                                } catch (error) {
+                                    console.error("Caught an exception:", error);
+                                }
+                            }
                         }
-                        $scope.noResultsMessage = $scope.results.length === 0 ? 'REGISTRATION_NO_RESULTS_FOUND' : null;
+                        // $scope.noResultsMessage = $scope.results.length === 0 ? 'REGISTRATION_NO_RESULTS_FOUND' : null;
                     });
                 }
             };
@@ -238,7 +415,6 @@ angular.module('bahmni.registration')
             };
 
             initialize();
-
             $scope.disableSearchButton = function () {
                 return !$scope.searchParameters.name && !$scope.searchParameters.addressFieldValue && !$scope.searchParameters.customAttribute && !$scope.searchParameters.programAttributeFieldValue;
             };
@@ -248,37 +424,89 @@ angular.module('bahmni.registration')
             }, function () {
                 showSearchResults(searchBasedOnQueryParameters(0));
             });
-
+            var customAttributeSearch = function () {
+                var searchParameters = $location.search();
+                $scope.searchParameters.addressFieldValue = searchParameters.addressFieldValue || '';
+                $scope.searchParameters.name = searchParameters.name || '';
+                $scope.searchParameters.customAttribute = searchParameters.customAttribute || '';
+                $scope.searchParameters.programAttributeFieldValue = searchParameters.programAttributeFieldValue || '';
+                $scope.searchParameters.addressSearchResultsConfig = searchParameters.addressSearchResultsConfig || '';
+                $scope.searchParameters.personSearchResultsConfig = searchParameters.personSearchResultsConfig || '';
+                $scope.searchParameters.registrationNumber = searchParameters.registrationNumber || searchParameters.healthIDNumber || "";
+                if (hasSearchParameters()) {
+                    searching = true;
+                    var searchPromise = patientService.search(
+                        $scope.searchParameters.name,
+                        undefined,
+                        $scope.addressSearchConfig.field,
+                        $scope.searchParameters.addressFieldValue,
+                        $scope.searchParameters.customAttribute,
+                        undefined,
+                        $scope.customAttributesSearchConfig.fields,
+                        $scope.programAttributesSearchConfig.field,
+                        $scope.searchParameters.programAttributeFieldValue,
+                        $scope.addressSearchResultsConfig.fields,
+                        $scope.personSearchResultsConfig.fields
+                    ).then(function (response) {
+                        mapExtraIdentifiers(response);
+                        mapCustomAttributesSearchResults(response);
+                        mapAddressAttributesSearchResults(response);
+                        mapProgramAttributesSearchResults(response);
+                        return response;
+                    });
+                    searchPromise['finally'](function () {
+                        searching = false;
+                    });
+                    return searchPromise;
+                }
+            };
             $scope.searchById = function () {
+                $scope.nidPatient = [];
                 $scope.noResultsMessage = null;
                 if (!isUserPrivilegedForSearch()) {
                     showInsufficientPrivMessage();
                     return;
                 }
-                if (!$scope.searchParameters.registrationNumber) {
+                if (!$scope.searchParameters.registrationNumber && !$scope.searchParameters.nid && !$scope.searchParameters.brn && !$scope.searchParameters.healthID && !$scope.searchParameters.phoneNumber) {
                     return;
                 }
                 $scope.results = [];
 
-                var patientIdentifier = $scope.searchParameters.registrationNumber;
                 if ($scope.selectedIdPreference === 'NID') {
                     $location.search({
-                        customAttribute: $scope.searchParameters.registrationNumber,
-                        programAttributeFieldName: $scope.programAttributesSearchConfig.field,
-                        patientAttributes: $scope.customAttributesSearchConfig.fields,
-                        programAttributeFieldValue: $scope.searchParameters.programAttributeFieldValue,
-                        addressSearchResultsConfig: $scope.addressSearchResultsConfig.fields,
-                        personSearchResultsConfig: $scope.personSearchResultsConfig.fields
+                        customAttribute: $scope.searchParameters.nid
                     });
+                    customAttributeSearch();
                 } else if ($scope.selectedIdPreference === 'BRN') {
                     $location.search({
-                        customAttribute: $scope.searchParameters.registrationNumber,
+                        customAttribute: $scope.searchParameters.brn
+                    });
+                    customAttributeSearch();
+                } else if ($scope.selectedIdPreference === 'phoneNumber') {
+                    $location.search({
+                        customAttribute: $scope.searchParameters.phoneNumber
+                    });
+                    customAttributeSearch();
+                } else if ($scope.selectedIdPreference === 'HID') {
+                    $location.search({
+                        registrationNumber: $scope.searchParameters.healthID,
                         programAttributeFieldName: $scope.programAttributesSearchConfig.field,
                         patientAttributes: $scope.customAttributesSearchConfig.fields,
                         programAttributeFieldValue: $scope.searchParameters.programAttributeFieldValue,
                         addressSearchResultsConfig: $scope.addressSearchResultsConfig.fields,
                         personSearchResultsConfig: $scope.personSearchResultsConfig.fields
                     });
+                    healthIDandPatientIDSearch();
+                } else if ($scope.selectedIdPreference === 'patientID') {
+                    $location.search({
+                        registrationNumber: $scope.searchParameters.registrationNumber,
+                        programAttributeFieldName: $scope.programAttributesSearchConfig.field,
+                        patientAttributes: $scope.customAttributesSearchConfig.fields,
+                        programAttributeFieldValue: $scope.searchParameters.programAttributeFieldValue,
+                        addressSearchResultsConfig: $scope.addressSearchResultsConfig.fields,
+                        personSearchResultsConfig: $scope.personSearchResultsConfig.fields
+                    });
+                    healthIDandPatientIDSearch();
                 } else {
                     $location.search({
                         registrationNumber: $scope.searchParameters.registrationNumber,
@@ -288,8 +516,11 @@ angular.module('bahmni.registration')
                         addressSearchResultsConfig: $scope.addressSearchResultsConfig.fields,
                         personSearchResultsConfig: $scope.personSearchResultsConfig.fields
                     });
+                    healthIDandPatientIDSearch();
                 }
-
+            };
+            var healthIDandPatientIDSearch = function () {
+                var patientIdentifier = $scope.selectedIdPreference === 'HID' ? $scope.searchParameters.healthID : $scope.searchParameters.registrationNumber;
                 var searchPromise = patientService.search(undefined, patientIdentifier, $scope.addressSearchConfig.field,
                     undefined, undefined, undefined, $scope.customAttributesSearchConfig.fields,
                     $scope.programAttributesSearchConfig.field, $scope.searchParameters.programAttributeFieldValue,
@@ -310,7 +541,7 @@ angular.module('bahmni.registration')
                         } else {
                             if (healthIDEnable) {
                                 if ($scope.selectedIdPreference === 'HID') {
-                                    var healthId = $scope.searchParameters.registrationNumber;
+                                    var healthId = $scope.searchParameters.healthID;
                                     if (healthId) {
                                         searching = true;
                                         $scope.noResultsMessage = null;
@@ -338,126 +569,6 @@ angular.module('bahmni.registration')
                                                 });
                                         } catch (error) {
                                             console.error("Caught an exception:", error);
-                                        }
-                                    } else {
-                                        $scope.patientIdentifier = { 'patientIdentifier': patientIdentifier };
-                                        $scope.noResultsMessage = 'REGISTRATION_LABEL_COULD_NOT_FIND_PATIENT';
-                                    }
-                                } else if ($scope.selectedIdPreference === 'NID') {
-                                    var nid = $scope.searchParameters.customAttribute;
-
-                                    if (nid) {
-                                        $scope.noResultsMessage = null;
-                                        if (customAttributeData) {
-                                            searching = true;
-                                            try {
-                                                fetch(`https://${window.location.hostname}:6062/api/v1/health-id/nid/${nid}`)
-                                                    .then((response) => {
-                                                        if (!response.ok) {
-                                                            customAttributeData = false;
-                                                            throw new Error(`Request failed with status: ${response.status}`);
-                                                        }
-                                                        return response.json();
-                                                    })
-                                                    .then((patient) => {
-                                                        customAttributeData = false;
-                                                        searching = false;
-                                                        if (patient.results.length > 0) {
-                                                            let patientData = patient.results[0];
-                                                            fetch(`https://${$window.location.hostname}:6062/api/v1/health-id/geo-code?upazillaCode=${patientData.present_address.upazila_id}&districtCode=${patientData.present_address.district_id}&divisionCode=${patientData.present_address.division_id}`)
-                                                                .then((response) => {
-                                                                    if (!response.ok) {
-                                                                        throw new Error(`Request failed with status: ${response.status}`);
-                                                                    }
-                                                                    return response.json();
-                                                                })
-                                                                .then((res) => {
-                                                                    const address = res.content;
-                                                                    patientData.present_address.upazila_id = address.upazilla;
-                                                                    patientData.present_address.district_id = address.district;
-                                                                    patientData.present_address.division_id = address.division;
-                                                                    localStorage.setItem("healthId", JSON.stringify(patientData));
-                                                                    window.location.href = "/bahmni/registration/#/patient/new";
-                                                                });
-                                                        } else {
-                                                            $timeout(function () {
-                                                                searching = false;
-                                                                $scope.patientIdentifier = { 'patientIdentifier': patientIdentifier };
-                                                                $scope.noResultsMessage = 'REGISTRATION_LABEL_COULD_NOT_FIND_PATIENT';
-                                                            });
-                                                        }
-                                                    })
-                                                    .catch((error) => {
-                                                        $timeout(function () {
-                                                            searching = false;
-                                                            $scope.patientIdentifier = { 'patientIdentifier': patientIdentifier };
-                                                            $scope.noResultsMessage = 'REGISTRATION_LABEL_COULD_NOT_FIND_PATIENT';
-                                                        });
-                                                        console.error("Error:", error);
-                                                    });
-                                            } catch (error) {
-                                                // customAttributeData = false;
-                                                console.error("Caught an exception:", error);
-                                            }
-                                        }
-                                    } else {
-                                        $scope.patientIdentifier = { 'patientIdentifier': patientIdentifier };
-                                        $scope.noResultsMessage = 'REGISTRATION_LABEL_COULD_NOT_FIND_PATIENT';
-                                    }
-                                } else if ($scope.selectedIdPreference === 'BRN') {
-                                    var brn = $scope.searchParameters.customAttribute;
-                                    if (brn) {
-                                        $scope.noResultsMessage = null;
-                                        if (customAttributeData) {
-                                            searching = true;
-                                            try {
-                                                fetch(`https://${window.location.hostname}:6062/api/v1/health-id/brn/${brn}`)
-                                                    .then((response) => {
-                                                        if (!response.ok) {
-                                                            customAttributeData = false;
-                                                            throw new Error(`Request failed with status: ${response.status}`);
-                                                        }
-                                                        return response.json();
-                                                    })
-                                                    .then((patient) => {
-                                                        customAttributeData = false;
-                                                        if (patient.results.length > 0) {
-                                                            let patientData = patient.results[0];
-                                                            fetch(`https://${$window.location.hostname}:6062/api/v1/health-id/geo-code?upazillaCode=${patientData.present_address.upazila_id}&districtCode=${patientData.present_address.district_id}&divisionCode=${patientData.present_address.division_id}`)
-                                                                .then((response) => {
-                                                                    if (!response.ok) {
-                                                                        throw new Error(`Request failed with status: ${response.status}`);
-                                                                    }
-                                                                    return response.json();
-                                                                })
-                                                                .then((res) => {
-                                                                    const address = res.content;
-                                                                    patientData.present_address.upazila_id = address.upazilla;
-                                                                    patientData.present_address.district_id = address.district;
-                                                                    patientData.present_address.division_id = address.division;
-                                                                    localStorage.setItem("healthId", JSON.stringify(patientData));
-                                                                    window.location.href = "/bahmni/registration/#/patient/new";
-                                                                });
-                                                        } else {
-                                                            $timeout(function () {
-                                                                searching = false;
-                                                                $scope.patientIdentifier = { 'patientIdentifier': patientIdentifier };
-                                                                $scope.noResultsMessage = 'REGISTRATION_LABEL_COULD_NOT_FIND_PATIENT';
-                                                            });
-                                                        }
-                                                    })
-                                                    .catch((error) => {
-                                                        $timeout(function () {
-                                                            searching = false;
-                                                            $scope.patientIdentifier = { 'patientIdentifier': patientIdentifier };
-                                                            $scope.noResultsMessage = 'REGISTRATION_LABEL_COULD_NOT_FIND_PATIENT';
-                                                        });
-                                                        console.error("Error:", error);
-                                                    });
-                                            } catch (error) {
-                                                // customAttributeData = false;
-                                                console.error("Caught an exception:", error);
-                                            }
                                         }
                                     } else {
                                         $scope.patientIdentifier = { 'patientIdentifier': patientIdentifier };
