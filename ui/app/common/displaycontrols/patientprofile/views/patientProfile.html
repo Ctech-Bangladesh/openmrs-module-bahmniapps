@@ -1,5 +1,6 @@
 <div>
     <div class="dashboard-patientInformation-section" id="patient_information" ng-if="::isDirectiveReady">
+        <!-- {{patient}} -->
         <section bindonce="patient" class="block patientInformation dashboard-section" ng-class="::{'more': patientSummary.show}">
             <table class="patient dashboard-table">
                 <tbody>
@@ -23,6 +24,16 @@
                              <i class="ipd-indication fa fa-bed" ng-if="::hasBeenAdmitted"></i>
                          </div>
                      </td>
+                </tr>
+                <tr ng-if="::designationAndMinistryShow && patient.designation.value" >
+                    <td class="name">{{ patient.designation.label }}</td>
+                    <td class="value">{{::patient.designation.value}}
+                    </td>
+                </tr>
+                <tr ng-if="::designationAndMinistryShow && patient.bdMinistry.value.display" >
+                    <td class="name">{{ patient.bdMinistry.label }}</td>
+                    <td class="value">{{::patient.bdMinistry.value.display}}
+                    </td>
                 </tr>
                 <tr ng-if="::showBirthDate" >
                     <td class="name">{{ 'DOB_LABEL' | translate }}</td>

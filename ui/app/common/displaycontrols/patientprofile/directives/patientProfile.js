@@ -30,9 +30,9 @@
         return _.get(admissionStatus, 'value') === "Admitted";
     };
     angular.module('bahmni.common.displaycontrol.patientprofile')
-        .directive('patientProfile', ['patientService', 'spinner', '$sce', '$rootScope', '$stateParams', '$window', '$translate',
+        .directive('patientProfile', ['patientService', 'appService', 'spinner', '$sce', '$rootScope', '$stateParams', '$window', '$translate',
             'configurations', '$q', 'visitService',
-            function (patientService, spinner, $sce, $rootScope, $stateParams, $window, $translate, configurations, $q, visitService) {
+            function (patientService, appService, spinner, $sce, $rootScope, $stateParams, $window, $translate, configurations, $q, visitService) {
                 var controller = function ($scope) {
                     $scope.isProviderRelationship = function (relationship) {
                         return _.includes($rootScope.relationshipTypeMap.provider, relationship.relationshipType.aIsToB);
@@ -78,6 +78,7 @@
                         $scope.showBirthDate = $scope.config.showDOB !== false;
                         $scope.showBirthDate = $scope.showBirthDate && !!$scope.patient.birthdate;
                     };
+                    $scope.designationAndMinistryShow = appService.getAppDescriptor().getConfigValue("designationAndMinistryShow");
                     var initPromise = $q.all([assignPatientDetails(), assignRelationshipDetails()]);
                     initPromise.then(onDirectiveReady);
                     initPromise.then(setHasBeenAdmittedOnVisitUuidChange);
