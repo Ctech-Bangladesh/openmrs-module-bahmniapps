@@ -581,7 +581,6 @@ angular.module('bahmni.registration')
                                             if (res.verifyToken) {
                                                 const nidData = res;
                                                 const HIDPayloadData = transformNidVerifyData($scope.patient, nidData);
-                                                console.log(HIDPayloadData);
                                                 fetch(`https://${$window.location.hostname}:6062/api/v1/health-id`,
                                                     {
                                                         method: "POST",
