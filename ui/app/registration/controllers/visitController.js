@@ -5,6 +5,7 @@ angular.module('bahmni.registration')
         'auditLogService', 'formService', 'registrationCardPrinter',
         function ($window, $cookies, $scope, $http, $rootScope, $state, $bahmniCookieStore, patientService, encounterService, $stateParams, spinner, $timeout, $q, appService, openmrsPatientMapper, contextChangeHandler, messagingService, sessionService, visitService, $location, $translate, auditLogService, formService, registrationCardPrinter) {
             var vm = this;
+            $scope.providerName = localStorage.getItem('providerName');
             var patientUuid = $stateParams.patientUuid;
             var extensions = appService.getAppDescriptor().getExtensions("org.bahmni.registration.conceptSetGroup.observations", "config");
             var formExtensions = appService.getAppDescriptor().getExtensions("org.bahmni.registration.conceptSetGroup.observations", "forms");
@@ -12,7 +13,20 @@ angular.module('bahmni.registration')
             var selectedProvider = $rootScope.currentProvider;
             var regEncounterTypeUuid = $rootScope.regEncounterConfiguration.encounterTypes[Bahmni.Registration.Constants.registrationEncounterType];
             var visitLocationUuid = $rootScope.visitLocation;
-
+            function reloadPageOnce () {
+                const visitPage = localStorage.getItem('visitPage');
+                const shouldReload = localStorage.getItem('shouldReload');
+                if (visitPage === 'true') {
+                    if (!shouldReload) {
+                        localStorage.setItem('shouldReload', 'true');
+                        location.reload();
+                    } else {
+                        localStorage.removeItem('shouldReload');
+                    }
+                }
+            }
+            reloadPageOnce();
+            $window.localStorage.removeItem('healthId');
             var getPatient = function () {
                 var deferred = $q.defer();
                 patientService.get(patientUuid).then(function (openMRSPatient) {
@@ -281,8 +295,8 @@ angular.module('bahmni.registration')
             //     return registrationCardPrinter.print($scope.defaultPrint.templateUrl, $scope.patient, mapRegistrationObservations(), $scope.encounterDateTime);
             // };
 
-
             var afterSave = function () {
+                localStorage.setItem('visitPage', 'false');
                 var forwardUrl = appService.getAppDescriptor().getConfigValue("afterVisitSaveForwardUrl");
                 var afterSave = appService.getAppDescriptor().getConfigValue("afterSavePrint");
                 var queueManagement = appService.getAppDescriptor().getConfigValue("queueManagement");
@@ -306,7 +320,7 @@ angular.module('bahmni.registration')
                     $http({
                         method: "GET",
                         url: apiURL
-                    }).then(function mySuccess(response) {
+                    }).then(function mySuccess (response) {
                         var obsdata = response.data;
                         $scope.obsData = obsdata;
                         patientService.get(patientUuid).then(function (openMRSPatient) {
@@ -328,8 +342,8 @@ angular.module('bahmni.registration')
                                         generateQueue(queue);
                                         $http({
                                             method: "GET",
-                                            url: "/openmrs/module/queuemanagement/getToken.form?identifier=" + identifier + "&dateCreated=" + formatDate[0],
-                                        }).then(function mySuccess(response) {
+                                            url: "/openmrs/module/queuemanagement/getToken.form?identifier=" + identifier + "&dateCreated=" + formatDate[0]
+                                        }).then(function mySuccess (response) {
                                             var newData = response.data.token;
                                             $scope.serial.push(newData);
                                         });
@@ -341,7 +355,6 @@ angular.module('bahmni.registration')
                             );
                         });
                         if (afterSave.print === true) {
-
                             $scope.observations = $scope.obsData || $scope.observations;
                             var value = $cookies.get("bahmni.user.location");
                             if (JSON.parse(value).name.toLowerCase().includes('emergency')) {
@@ -399,21 +412,21 @@ angular.module('bahmni.registration')
                 return forms;
             };
 
-            var isObjectEmpty = function (obj) {
-                return Object.keys(obj).length === 0;
-            };
+            // var isObjectEmpty = function (obj) {
+            //     return Object.keys(obj).length === 0;
+            // };
 
             $scope.allowSave = false;
-            $timeout(function () {
-                $(".Select-multi-value-wrapper .Select-input input").keypress(function () {
-                    let value = [];
-                    value = $(this).val().toString();
-                    if (isObjectEmpty(value) != true) {
-                        $scope.allowSave = true;
-                        $timeout();
-                    }
-                }).keypress();
-            }, 3000);
+            // $timeout(function () {
+            //     $(".Select-multi-value-wrapper .Select-input input").keypress(function () {
+            //         let value = [];
+            //         value = $(this).val().toString();
+            //         if (isObjectEmpty(value) != true) {
+            //             $scope.allowSave = true;
+            //             $timeout();
+            //         }
+            //     }).keypress();
+            // }, 3000);
 
             $scope.isFormTemplate = function (data) {
                 return data.formUuid;

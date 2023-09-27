@@ -1,8 +1,8 @@
 'use strict';
 
 angular.module('bahmni.home')
-    .controller('LoginController', ['$rootScope', '$scope', '$window', '$location', 'sessionService', 'initialData', 'spinner', '$q', '$stateParams', '$bahmniCookieStore', 'localeService', '$translate', 'userService', 'auditLogService',
-        function ($rootScope, $scope, $window, $location, sessionService, initialData, spinner, $q, $stateParams, $bahmniCookieStore, localeService, $translate, userService, auditLogService) {
+    .controller('LoginController', ['$rootScope', '$scope', 'messagingService', '$window', '$location', 'sessionService', 'initialData', 'spinner', '$q', '$stateParams', '$bahmniCookieStore', 'localeService', '$translate', 'userService', 'auditLogService',
+        function ($rootScope, $scope, messagingService, $window, $location, sessionService, initialData, spinner, $q, $stateParams, $bahmniCookieStore, localeService, $translate, userService, auditLogService) {
             var redirectUrl = $location.search()['from'];
             var landingPagePath = "/dashboard";
             var loginPagePath = "/login";
@@ -26,7 +26,7 @@ angular.module('bahmni.home')
 
             var logAuditForLoginAttempts = function (eventType, isFailedEvent) {
                 if ($scope.loginInfo.username) {
-                    var messageParams = isFailedEvent ? {userName: $scope.loginInfo.username} : undefined;
+                    var messageParams = isFailedEvent ? { userName: $scope.loginInfo.username } : undefined;
                     auditLogService.log(undefined, eventType, messageParams, 'MODULE_LABEL_LOGIN_KEY');
                 }
             };
@@ -38,7 +38,7 @@ angular.module('bahmni.home')
                 var localTime = new Date().toLocaleString();
                 var localtimeZone = getLocalTimeZone();
                 var localeTimeZone = localTime + " " + localtimeZone;
-                $scope.timeZoneObject = { serverTime: serverTime, localeTimeZone: localeTimeZone};
+                $scope.timeZoneObject = { serverTime: serverTime, localeTimeZone: localeTimeZone };
                 if (offset && !new Date().toString().includes(offset)) {
                     $scope.warning = "Warning";
                     $scope.warningMessage = "WARNING_SERVER_TIME_ZONE_MISMATCH";
@@ -62,7 +62,7 @@ angular.module('bahmni.home')
                     _.forEach(localeList, function (locale) {
                         var localeLanguage = findLanguageByLocale(locale);
                         if (_.isUndefined(localeLanguage)) {
-                            $scope.locales.push({"code": locale, "nativeName": locale});
+                            $scope.locales.push({ "code": locale, "nativeName": locale });
                         } else {
                             $scope.locales.push(localeLanguage);
                         }
@@ -117,10 +117,15 @@ angular.module('bahmni.home')
                 $scope.loginInfo.currentLocation = getLastLoggedinLocation();
             };
 
-            $scope.login = function () {
+            $scope.login = async function () {
                 $scope.errorMessageTranslateKey = null;
                 var deferrable = $q.defer();
+                const userHeaders = new Headers();
+                userHeaders.append("Content-Type", "application/json");
+                userHeaders.append("Authorization", "Basic YXBpLWFkbWluOkRldkBDcnlzdGFsMzIx");
 
+                const headers = new Headers();
+                headers.append("Content-Type", "application/json");
                 var ensureNoSessionIdInRoot = function () {
                     // See https://bahmni.mingle.thoughtworks.com/projects/bahmni_emr/cards/2934
                     // The cookie should ideally not be set at root, and is interfering with
@@ -130,41 +135,78 @@ angular.module('bahmni.home')
                         expires: 1
                     });
                 };
-
-                sessionService.loginUser($scope.loginInfo.username, $scope.loginInfo.password, $scope.loginInfo.currentLocation, $scope.loginInfo.otp).then(
-                    function (data) {
-                        ensureNoSessionIdInRoot();
-                        if (data && data.firstFactAuthorization) {
-                            $scope.showOTP = true;
-                            deferrable.resolve(data);
-                            return;
-                        }
-                        sessionService.loadCredentials().then(function () {
-                            onSuccessfulAuthentication();
-                            $rootScope.currentUser.addDefaultLocale($scope.selectedLocale);
-                            userService.savePreferences().then(
-                                function () { deferrable.resolve(); },
-                                function (error) { deferrable.reject(error); }
-                            );
-                            logAuditForLoginAttempts("USER_LOGIN_SUCCESS");
-                        }, function (error) {
-                            $scope.errorMessageTranslateKey = error;
-                            deferrable.reject(error);
-                            logAuditForLoginAttempts("USER_LOGIN_FAILED", true);
-                        }
-                        );
-                    },
-                    function (error) {
-                        $scope.errorMessageTranslateKey = error;
-                        if (error === 'LOGIN_LABEL_MAX_FAILED_ATTEMPTS' || error == 'LOGIN_LABEL_OTP_EXPIRED') {
-                            deleteUserCredentialsAndShowLoginPage();
-                        } else if (error == 'LOGIN_LABEL_WRONG_OTP_MESSAGE_KEY') {
-                            delete $scope.loginInfo.otp;
-                        }
-                        deferrable.reject(error);
-                        logAuditForLoginAttempts("USER_LOGIN_FAILED", true);
+                const checkAndFormatPassword = (password) => {
+                    if (password.search(/[A-Z]/) === -1) {
+                        return password.charAt(0).toUpperCase() + password.slice(1) + '123';
+                    } else {
+                        return password;
                     }
-                );
+                };
+                const updateUserPassword = async (userPayload, uuid) => {
+                    return await fetch(
+                        `https://${$window.location.hostname}/openmrs/ws/rest/v1/password/${uuid}`,
+                        {
+                            method: "POST",
+                            body: JSON.stringify(userPayload),
+                            headers: userHeaders
+                        }
+                    );
+                };
+
+                const loginBahmni = (hrisLoggedIn, uuid) => {
+                    sessionService.loginUser($scope.loginInfo.username, checkAndFormatPassword($scope.loginInfo.password), $scope.loginInfo.currentLocation, $scope.loginInfo.otp).then(
+                        function (data) {
+                            ensureNoSessionIdInRoot();
+                            if (data && data.firstFactAuthorization) {
+                                $scope.showOTP = true;
+                                deferrable.resolve(data);
+                                return;
+                            }
+                            sessionService.loadCredentials().then(function () {
+                                onSuccessfulAuthentication();
+                                $rootScope.currentUser.addDefaultLocale($scope.selectedLocale);
+                                fetch(`/openmrs/ws/rest/v1/provider?user=${$rootScope.currentUser.uuid}`)
+                                    .then(res => res.json())
+                                    .then(data => {
+                                        localStorage.setItem('providerName', data.results[0].display);
+                                    });
+                                userService.savePreferences().then(
+                                    function () { deferrable.resolve(); },
+                                    function (error) {
+                                        deferrable.reject(error);
+                                    }
+                                );
+                                logAuditForLoginAttempts("USER_LOGIN_SUCCESS");
+                            }, function (error) {
+                                $scope.errorMessageTranslateKey = error;
+                                deferrable.reject(error);
+                                logAuditForLoginAttempts("USER_LOGIN_FAILED", true);
+                            }
+                            );
+                        },
+                        function (error) {
+                            if (error === 'LOGIN_LABEL_LOGIN_ERROR_MESSAGE_KEY' && hrisLoggedIn) {
+                                // check if user exists in the system, if exists already and is not able to login,
+                                const userData = {
+                                    "newPassword": checkAndFormatPassword($scope.loginInfo.password)
+                                };
+                                const updateBahmniUserPassword = updateUserPassword(userData, uuid);
+                                if (updateBahmniUserPassword) {
+                                    return loginBahmni(false);
+                                }
+                            } else {
+                                $scope.errorMessageTranslateKey = error;
+                                if (error === 'LOGIN_LABEL_MAX_FAILED_ATTEMPTS' || error === 'LOGIN_LABEL_OTP_EXPIRED') {
+                                    deleteUserCredentialsAndShowLoginPage();
+                                } else if (error === 'LOGIN_LABEL_WRONG_OTP_MESSAGE_KEY') {
+                                    delete $scope.loginInfo.otp;
+                                }
+                                deferrable.reject(error);
+                                logAuditForLoginAttempts("USER_LOGIN_FAILED", true);
+                            }
+                        }
+                    );
+                };
 
                 var deleteUserCredentialsAndShowLoginPage = function () {
                     $scope.showOTP = false;
@@ -196,5 +238,242 @@ angular.module('bahmni.home')
                         }
                     }
                 );
+                const checkInternet = async () => {
+                    return await fetch(`https://${$window.location.hostname}:6062/check-internet`)
+                        .then((response) => {
+                            return response.json();
+                        });
+                };
+
+                const userPayloadData = async (inputData) => {
+                    const transformedData = {
+                        username: inputData.userName,
+                        password: inputData.password,
+                        person: {
+                            names: [
+                                {
+                                    givenName: inputData.name.trim(),
+                                    preferred: true
+                                }
+                            ],
+                            gender: inputData.gender.charAt(0).toUpperCase(),
+                            age: 0,
+                            birthdate: new Date(inputData.birthDate).toISOString(),
+                            birthdateEstimated: false,
+                            dead: false,
+                            addresses: [
+                                {
+                                    preferred: true,
+                                    address1: inputData.address.text
+                                }
+                            ],
+                            deathdateEstimated: false
+                        },
+                        systemId: inputData.systemId,
+                        roles: inputData.roles
+                    };
+
+                    return transformedData;
+                };
+                const createUser = async (userPayload) => {
+                    return await fetch(
+                        `https://${$window.location.hostname}/openmrs/ws/rest/v1/user`,
+                        {
+                            method: "POST",
+                            body: JSON.stringify(userPayload),
+                            headers: userHeaders
+                        }
+                    )
+                        .then((response) => {
+                            return response.json();
+                        });
+                };
+                const createProvider = async (providerData) => {
+                    return await fetch(
+                        `https://${$window.location.hostname}/openmrs/ws/rest/v1/provider`,
+                        {
+                            method: "POST",
+                            body: JSON.stringify(providerData),
+                            headers: userHeaders
+                        }
+                    )
+                        .then((response) => {
+                            return response.json();
+                        });
+                };
+                const createBahmniHRISUser = async (userPayload) => {
+                    return await fetch(
+                        `https://${$window.location.hostname}:6062/api/v1/hris-user`,
+                        {
+                            method: "POST",
+                            body: JSON.stringify(userPayload),
+                            headers: headers
+                        }
+                    )
+                        .then((response) => {
+                            return response.json();
+                        });
+                };
+                const hrisLogin = async (dataBody) => {
+                    return await fetch(
+                        `https://${$window.location.hostname}:6062/api/v1/hris/signin`,
+                        {
+                            method: "POST",
+                            body: JSON.stringify(dataBody),
+                            headers: headers
+                        }
+                    )
+                        .then((response) => {
+                            return response.json();
+                        });
+                };
+                const getUserRolesUuid = async (roles) => {
+                    return await fetch(`https://${$window.location.hostname}:6062/api/v1/hris/bahmni-roles`, {
+                        method: "POST",
+                        body: JSON.stringify(roles),
+                        headers: headers
+                    })
+                        .then((response) => {
+                            return response.json();
+                        });
+                };
+                const checkUserName = async (username) => {
+                    return await fetch(`https://${$window.location.hostname}:6062/api/v1/hris/bahmni-user/${username}`)
+                        .then((response) => {
+                            return response.json();
+                        });
+                };
+
+                const getProviderFromHRIS = async (token) => {
+                    return await fetch(`https://${$window.location.hostname}:6062/api/v1/hris/token/${token}`)
+                        .then((response) => {
+                            return response.json();
+                        });
+                };
+                const getProviderDataFromHRIS = async (id) => {
+                    return await fetch(`https://${$window.location.hostname}:6062/api/v1/hris/provider/${id}`)
+                        .then((response) => {
+                            return response.json();
+                        });
+                };
+
+                const generateUsername = async (name) => {
+                    const generateRandomUsername = () => {
+                        return `HRIS-${name.split(' ')[1]}-${Math.floor(Math.random() * 9000) + 1000}`;
+                    };
+                    const username = generateRandomUsername();
+                    const userAvailable = await checkUserName(username);
+                    if (userAvailable.statusCode === 404) {
+                        return username;
+                    } else {
+                        return generateUsername(name);
+                    }
+                };
+
+                try {
+                    const dataBody = {
+                        "email": $scope.loginInfo.username,
+                        "password": $scope.loginInfo.password
+                    };
+                    // is ok status === 200
+                    const internetAvailability = await checkInternet();
+                    if (internetAvailability.content) {
+                        const hrisRes = await hrisLogin(dataBody);
+                        if (hrisRes.error) {
+                            // messagingService.showMessage('error', hrisRes.message);
+                            // deferrable.reject(hrisRes.error);
+
+                            // const isHRISUser = true;
+                            // if (isHRISUser) {
+                            //     messagingService.showMessage('error', hrisRes.message);
+                            //     return;
+                            // }
+
+                            return loginBahmni(false);
+                        } else {
+                            const userAvailable = await checkUserName($scope.loginInfo.username);
+                            if (userAvailable.statusCode === 404) {
+                                const accessToken = hrisRes.access_token;
+                                if (accessToken) {
+                                    const providerRes = await getProviderFromHRIS(accessToken);
+                                    const checkProvider = providerRes.profiles.find(p => p.name === 'provider');
+                                    if (!checkProvider) {
+                                        alert("You do not have privileges to access this system");
+                                        return loginBahmni(false);
+                                    } else {
+                                        const getUserData = await getProviderDataFromHRIS(checkProvider.id);
+                                        if (getUserData.telecom.length > 0) {
+                                            const userEmailData = getUserData.telecom.filter(data => data.system === 'email');
+                                            if (userEmailData.length > 0) {
+                                                const userEmail = userEmailData[0].value;
+                                                const roles = {
+                                                    names: [
+                                                        "Admin-App",
+                                                        "InPatient-App",
+                                                        "Reports-App",
+                                                        "Doctor"
+                                                    ]
+                                                };
+                                                const roleDataRes = await getUserRolesUuid(roles);
+                                                const roleData = roleDataRes.content.uuidList
+                                                    .map(item => ({
+                                                        "uuid": item
+                                                    }));
+                                                const userData = { ...getUserData };
+                                                const userName = await generateUsername(userData.name);
+                                                userData.userName = userName;
+                                                userData.systemId = userEmail;
+                                                userData.roles = roleData;
+                                                userData.password = checkAndFormatPassword($scope.loginInfo.password);
+
+                                                const userPayload = await userPayloadData(userData);
+                                                const createBahmniUser = await createUser(userPayload);
+                                                if (createBahmniUser) {
+                                                    const providerData = {
+                                                        "name": createBahmniUser.person.display,
+                                                        "description": null,
+                                                        "person": createBahmniUser.person.uuid,
+                                                        "identifier": null,
+                                                        "attributes": [],
+                                                        "retired": false
+                                                    };
+                                                    const createBahmniProvider = await createProvider(providerData);
+                                                    if (createBahmniProvider) {
+                                                        const bahmniUserPayload = {
+                                                            userUuid: createBahmniUser.uuid,
+                                                            personUuid: createBahmniUser.person.uuid,
+                                                            providerUuid: createBahmniProvider.uuid,
+                                                            object: JSON.stringify(getUserData),
+                                                            activeStatus: getUserData.active,
+                                                            url: getUserData.url,
+                                                            providerId: getUserData.id
+
+                                                        };
+                                                        const createBahmniHRIS = await createBahmniHRISUser(bahmniUserPayload);
+                                                        if (createBahmniHRIS) {
+                                                            return loginBahmni(false);
+                                                        } else {
+                                                            return loginBahmni(false);
+                                                        }
+                                                    } else {
+                                                        return loginBahmni(false);
+                                                    }
+                                                } else { return loginBahmni(false); }
+                                            } else { return loginBahmni(false); }
+                                        }
+                                    }
+                                } else {
+                                    return loginBahmni(false);
+                                }
+                            } else {
+                                return loginBahmni(true, userAvailable.content);
+                            }
+                        }
+                    } else {
+                        return loginBahmni(false);
+                    }
+                } catch (err) {
+                    console.log(err);
+                }
             };
         }]);

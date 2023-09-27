@@ -43,7 +43,7 @@
             <li>
                 <a class="log-out" log-out><i class="fa fa-power-off fa-white small"></i> {{"LOGOUT_TRANSLATION_KEY"| translate}}
                 <span ng-show="$parent.currentUser.username">
-                    ({{$parent.currentUser.username}}-
+                    ({{providerName}}-
                 </span>
                 <span ng-show="$parent.currentUser.currentLocation">
                     {{$parent.currentUser.currentLocation | translate}})

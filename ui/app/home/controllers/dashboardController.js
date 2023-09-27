@@ -5,12 +5,15 @@ angular.module('bahmni.home')
         function ($scope, $state, appService, locationService, spinner, $bahmniCookieStore, $window, $q) {
             $scope.appExtensions = appService.getAppDescriptor().getExtensions($state.current.data.extensionPointId, "link") || [];
             $scope.selectedLocationUuid = {};
-
             var isOnline = function () {
                 return $window.navigator.onLine;
             };
-
+            $scope.providerName = localStorage.getItem('providerName');
+            const healthIDEnable = appService.getAppDescriptor().getConfigValue("healthIDEnable");
             $scope.isVisibleExtension = function (extension) {
+                if (extension.id === "bahmni.registration" && healthIDEnable) {
+                    extension.url = `https://${$window.location.hostname}:6062/health-id/`;
+                }
                 return extension.exclusiveOnlineModule ? isOnline() : extension.exclusiveOfflineModule ? !isOnline() : true;
             };
 
@@ -42,7 +45,7 @@ angular.module('bahmni.home')
                 $bahmniCookieStore.put(Bahmni.Common.Constants.locationCookieName, {
                     name: selectedLocation.display,
                     uuid: selectedLocation.uuid
-                }, {path: '/', expires: 7});
+                }, { path: '/', expires: 7 });
                 $window.location.reload();
             };
 

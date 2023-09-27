@@ -7,6 +7,7 @@ angular.module('bahmni.registration')
                   appService, messagingService, $rootScope, auditLogService, registrationCardPrinter) {
             var dateUtil = Bahmni.Common.Util.DateUtil;
             var uuid = $stateParams.patientUuid;
+            $scope.providerName = localStorage.getItem('providerName');
             $scope.allowRePrint = false;
             $scope.patient = {};
             $scope.actions = {};
@@ -34,16 +35,14 @@ angular.module('bahmni.registration')
                     "&scope=latest";
                 $http({
                     method: "GET",
-                    url: apiURL,
-                }).then(function mySuccess(response) {
+                    url: apiURL
+                }).then(function mySuccess (response) {
                     let obsData = response.data;
                     $scope.obsData = obsData;
                     obsData.forEach(key => {
-                        console.log(key);
                         $scope.allowRePrint = false;
                         if (key.complexData != null) {
                             if (key.encounterDateTime != '') {
-                                console.log(key.encounterDateTime);
                                 $scope.allowRePrint = true;
                             }
                         }
