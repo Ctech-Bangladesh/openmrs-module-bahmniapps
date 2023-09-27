@@ -12,7 +12,20 @@ angular.module('bahmni.registration')
             var selectedProvider = $rootScope.currentProvider;
             var regEncounterTypeUuid = $rootScope.regEncounterConfiguration.encounterTypes[Bahmni.Registration.Constants.registrationEncounterType];
             var visitLocationUuid = $rootScope.visitLocation;
-
+            function reloadPageOnce () {
+                const visitPage = localStorage.getItem('visitPage');
+                const shouldReload = localStorage.getItem('shouldReload');
+                if (visitPage === 'true') {
+                    if (!shouldReload) {
+                        localStorage.setItem('shouldReload', 'true');
+                        location.reload();
+                    } else {
+                        localStorage.removeItem('shouldReload');
+                    }
+                }
+            }
+            reloadPageOnce();
+            $window.localStorage.removeItem('healthId');
             var getPatient = function () {
                 var deferred = $q.defer();
                 $window.localStorage.removeItem('refresh');

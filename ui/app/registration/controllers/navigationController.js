@@ -5,7 +5,13 @@ angular.module('bahmni.registration')
         function ($scope, $rootScope, $location, sessionService, $window, appService, $sce) {
             $scope.extensions = appService.getAppDescriptor().getExtensions("org.bahmni.registration.navigation", "link");
             $scope.goTo = function (url) {
-                $location.url(url);
+                if ($window.localStorage.getItem('healthId') && url === '/patient/new') {
+                    window.location.reload();
+                    $window.localStorage.removeItem('healthId');
+                } else {
+                    $window.localStorage.removeItem('healthId');
+                    $location.url(url);
+                }
             };
 
             $scope.htmlLabel = function (label) {
