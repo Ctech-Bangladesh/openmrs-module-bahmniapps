@@ -32,7 +32,7 @@
                          placeholder="{{ ::'REGISTRATION_LABEL_PATIENT_FIRSTNAME' | translate}}"
                          title="{{::'REGISTRATION_LABEL_PATIENT_ENTER_NAME' | translate}}">
 
-                  <input data-ng-switch-default
+                  <input     ng-disabled="patient.access" data-ng-switch-default
                          type="text" id="givenName" ng-model="patient.givenName" non-blank pattern-validate
                          placeholder="{{ ::'REGISTRATION_LABEL_PATIENT_FIRSTNAME' | translate}}"
                          title="{{::'REGISTRATION_LABEL_PATIENT_ENTER_NAME' | translate}}">
@@ -41,13 +41,14 @@
               <span data-ng-switch="::isAutoComplete('givenName')"
                     ng-if="::!patientConfiguration.local()['showNameField']">
                   <input data-ng-switch-when="true"
+              
                          type="text" id="givenName" ng-model="$parent.patient.givenName" non-blank pattern-validate
                          my-autocomplete source="getAutoCompleteList" response-map="getDataResults"
                          data-item-type="personName"
                          placeholder="{{ ::'REGISTRATION_LABEL_PATIENT_FIRSTNAME' | translate}}"
                          title="{{::'REGISTRATION_LABEL_PATIENT_ENTER_NAME' | translate}}" focus-me="true">
 
-                  <input data-ng-switch-default
+                  <input  data-ng-switch-default
                          type="text" id="givenName" ng-model="patient.givenName" non-blank pattern-validate
                          placeholder="{{ ::'REGISTRATION_LABEL_PATIENT_FIRSTNAME' | translate}}"
                          title="{{::'REGISTRATION_LABEL_PATIENT_ENTER_NAME' | translate}}" focus-me="true">
@@ -68,7 +69,7 @@
               </span>
 
               <span ng-show="::showLastName" data-ng-switch="::isAutoComplete('familyName')">
-                  <input data-ng-switch-when="true"
+                  <input ng-disabled="patient.access" data-ng-switch-when="true"
                          type="text" id="familyName" ng-model="$parent.patient.familyName"  pattern-validate
                          my-autocomplete source="getAutoCompleteList" response-map="getDataResults"
                          data-item-type="personName"
@@ -109,7 +110,7 @@
                 </div>
 
                 <div class="field-value">
-                    <select id="gender" ng-model="patient.gender" required="required" title="{{ 'REGISTRATION_LABEL_SELECT_GENDER'|translate }}"
+                    <select ng-disabled="patient.access" id="gender" ng-model="patient.gender" required="required" title="{{ 'REGISTRATION_LABEL_SELECT_GENDER'|translate }}"
                             ng-options="genderMap[genderCode] for genderCode in genderCodes track by genderCode" ng-change="handleUpdate('gender')">
                         <option value="">{{ ::'REGISTRATION_LABEL_SELECT_GENDER' | translate}}</option>
                     </select>

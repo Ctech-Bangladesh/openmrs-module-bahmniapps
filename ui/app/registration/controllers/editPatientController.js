@@ -25,32 +25,6 @@ angular.module('bahmni.registration')
                 });
             };
 
-            $timeout(function () {
-                let apiURL = "/openmrs/ws/rest/v1/bahmnicore/observations?" +
-                    "concept=Registration+Fee+Type&concept=Free+Type&" +
-                    "concept=Temporary+Categories&concept=Opd+Consultation+Room&" +
-                    "patientUuid=" +
-                    uuid +
-                    "&scope=latest";
-                $http({
-                    method: "GET",
-                    url: apiURL,
-                }).then(function mySuccess(response) {
-                    let obsData = response.data;
-                    $scope.obsData = obsData;
-                    obsData.forEach(key => {
-                        console.log(key);
-                        $scope.allowRePrint = false;
-                        if (key.complexData != null) {
-                            if (key.encounterDateTime != '') {
-                                console.log(key.encounterDateTime);
-                                $scope.allowRePrint = true;
-                            }
-                        }
-                    });
-                });
-            }, 500);
-
             $scope.reprint = function () {
                 let reprint = appService.getAppDescriptor().getConfigValue("afterSavePrint");
                 $scope.observations = $scope.obsData || $scope.observations;
@@ -127,4 +101,42 @@ angular.module('bahmni.registration')
                 auditLogService.log($scope.patient.uuid, Bahmni.Registration.StateNameEvenTypeMap['patient.edit'], undefined, "MODULE_LABEL_REGISTRATION_KEY");
                 messagingService.showMessage("info", "REGISTRATION_LABEL_SAVED");
             };
+            let apiUrl = `/openmrs/module/bahmnicustomutil/check-user-role/${$rootScope.currentUser.person.uuid}.form`;
+            $http({
+                method: 'GET',
+                url: apiUrl
+            }).then(function mySuccess (response) {
+                var result = response.data;
+                if (!result) {
+                    $timeout(function () {
+                        $scope.allowRePrint = false;
+                        $scope.patient.access = true;
+                    }, 100);
+                } else {
+                    $timeout(function () {
+                        let apiURL = "/openmrs/ws/rest/v1/bahmnicore/observations?" +
+                            "concept=Registration+Fee+Type&concept=Free+Type&" +
+                            "concept=Temporary+Categories&concept=Opd+Consultation+Room&" +
+                            "patientUuid=" +
+                            uuid +
+                            "&scope=latest";
+                        $http({
+                            method: "GET",
+                            url: apiURL
+                        }).then(function mySuccess (response) {
+                            let obsData = response.data;
+                            $scope.obsData = obsData;
+                            obsData.forEach(key => {
+                                $scope.allowRePrint = false;
+                                if (key.complexData != null) {
+                                    if (key.encounterDateTime != '') {
+                                        $scope.allowRePrint = true;
+                                    }
+                                }
+                            });
+                        });
+                    }, 500);
+                    $scope.patient.access = false;
+                }
+            });
         }]);
