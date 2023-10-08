@@ -111,7 +111,7 @@ angular.module('bahmni.registration')
                     $timeout(function () {
                         $scope.allowRePrint = false;
                         $scope.patient.access = true;
-                    }, 300);
+                    }, 500);
                 } else {
                     $timeout(function () {
                         let apiURL = "/openmrs/ws/rest/v1/bahmnicore/observations?" +
