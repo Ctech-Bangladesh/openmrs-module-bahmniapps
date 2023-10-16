@@ -111,13 +111,6 @@
                     </div>
                 </div>
             <span class="grouped-buttons">
-                 <a class=" btn--left btn--success "
-                    ng-hide="singlePagePrescriptionHide"
-                    ng-if="visitHistory.activeVisit || retrospectiveEntry || allowConsultation()"
-                    ng-click="singlePagePrescription()"
-                    accesskey="{{'CONSULTATION_SHORTCUT_KEY' | translate}}"
-                    ng-bind-html="'CONSULTATION_TAB_KEY' | translate">
-                 </a>
                 <a class=" btn--left btn--success " ng-if="visitHistory.activeVisit || retrospectiveEntry || allowConsultation()"
                     ng-click="openConsultation()" accesskey="{{'CONSULTATION_SHORTCUT_KEY' | translate}}"
                     ng-bind-html="'OBS_TAB_KEY ' | translate">
