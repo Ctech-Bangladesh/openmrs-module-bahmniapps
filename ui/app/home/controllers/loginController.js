@@ -474,6 +474,7 @@ angular.module('bahmni.home')
                     }
                 } catch (err) {
                     console.log(err);
+                    return loginBahmni(false);
                 }
             };
         }]);
