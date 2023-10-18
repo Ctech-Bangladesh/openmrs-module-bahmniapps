@@ -655,6 +655,7 @@ angular.module('bahmni.registration')
                                                                     })
                                                                     .catch((error) => {
                                                                         console.error("Error:", error);
+                                                                        return patientCreate($scope.patient, jumpAccepted, spinnerToken);
                                                                     });
                                                             } else if (res.statusCode === 208) {
                                                                 res.content.present_address.division = res.content.present_address.division_id;
@@ -723,6 +724,7 @@ angular.module('bahmni.registration')
                                                         })
                                                         .catch((error) => {
                                                             console.error("Error:", error);
+                                                            return patientCreate($scope.patient, jumpAccepted, spinnerToken);
                                                             // errorMessage = 'There was an error';
                                                         });
                                                 } else {
