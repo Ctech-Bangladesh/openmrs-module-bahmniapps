@@ -3,7 +3,7 @@
         <label for="birthdate">{{ ::'REGISTRATION_LABEL_DOB' | translate}}<span class="asterick" ng-show="::dobMandatory">*</span></label>
     </div>
     <div class="field-value">
-        <input id="birthdate" type="date" ng-model="patient.birthdate"  max="{{::today}}"
+        <input ng-disabled="patient.access" id="birthdate" type="date" ng-model="patient.birthdate"  max="{{::today}}"
                ng-change="patient.calculateAge()" ng-blur="handleUpdate('birthdate')" ng-required="::dobMandatory">
     </div>
     <!-- <div class="showOn-desktop-registration">
@@ -27,6 +27,6 @@
         <label for="birthtime">{{ ::'REGISTRATION_LABEL_BIRTH_TIME' | translate}}</label>
     </div>
     <div ng-show="::showBirthTime" class="field-value">
-        <input id="birthtime" type="time" ng-model="patient.birthtime" ng-blur="handleUpdate('birthtime')">
+        <input ng-disabled="patient.access" id="birthtime" type="time" ng-model="patient.birthtime" ng-blur="handleUpdate('birthtime')">
     </div>
 </article>

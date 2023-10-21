@@ -12,23 +12,11 @@ angular.module('bahmni.registration')
             var selectedProvider = $rootScope.currentProvider;
             var regEncounterTypeUuid = $rootScope.regEncounterConfiguration.encounterTypes[Bahmni.Registration.Constants.registrationEncounterType];
             var visitLocationUuid = $rootScope.visitLocation;
-            function reloadPageOnce () {
-                const visitPage = localStorage.getItem('visitPage');
-                const shouldReload = localStorage.getItem('shouldReload');
-                if (visitPage === 'true') {
-                    if (!shouldReload) {
-                        localStorage.setItem('shouldReload', 'true');
-                        location.reload();
-                    } else {
-                        localStorage.removeItem('shouldReload');
-                    }
-                }
-            }
-            reloadPageOnce();
+
+            $scope.providerName = localStorage.getItem('providerName');
             $window.localStorage.removeItem('healthId');
             var getPatient = function () {
                 var deferred = $q.defer();
-                $window.localStorage.removeItem('refresh');
                 patientService.get(patientUuid).then(function (openMRSPatient) {
                     deferred.resolve(openMRSPatient);
                     $scope.patient = openmrsPatientMapper.map(openMRSPatient);
@@ -351,7 +339,7 @@ angular.module('bahmni.registration')
                     method: 'POST',
                     url: '/openmrs/module/queuemanagement/generate.form',
                     data: JSON.stringify(queueData),
-                    headers: {'Content-Type': 'application/json'}
+                    headers: { 'Content-Type': 'application/json' }
                 });
             };
 
