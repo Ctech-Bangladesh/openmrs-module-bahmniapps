@@ -465,7 +465,6 @@ angular.module('bahmni.registration')
                 let divisionId = "";
                 let districtId = "";
                 let upazilaId = "";
-                const spinnerToken = spinner.show();
                 fetch(
                     `https://${$window.location.hostname}:6062/api/v1/health-id/geo-code/${districtName}/${upazilaName}`,
                     {
@@ -477,7 +476,7 @@ angular.module('bahmni.registration')
                 )
                     .then((response) => {
                         if (!response.ok) {
-                            return patientCreate($scope.patient, jumpAccepted, spinnerToken);
+                            return patientCreate($scope.patient, jumpAccepted);
                         }
                         return response.json();
                     })
@@ -493,7 +492,7 @@ angular.module('bahmni.registration')
                             fetch(`https://${$window.location.hostname}:6062/api/v1/health-id/${endPoint}`)
                                 .then((response) => {
                                     if (!response.ok) {
-                                        return patientCreate($scope.patient, jumpAccepted, spinnerToken);
+                                        return patientCreate($scope.patient, jumpAccepted);
                                         // throw new Error(`Request failed with status: ${response.status}`);
                                     }
                                     return response.json();
@@ -556,7 +555,7 @@ angular.module('bahmni.registration')
                                                     $scope.patient.address.stateProvince = stateProvince;
                                                     $scope.patient.address.countyDistrict = countyDistrict;
                                                     $scope.patient.address.address5 = upazila;
-                                                    return patientCreate($scope.patient, jumpAccepted, spinnerToken);
+                                                    return patientCreate($scope.patient, jumpAccepted);
                                                 }
                                             });
                                     } else {
@@ -572,7 +571,7 @@ angular.module('bahmni.registration')
                                             .then((response) => {
                                                 if (!response.ok) {
                                                     $scope.patient.nationalId = 'Not Verified';
-                                                    return patientCreate($scope.patient, jumpAccepted, spinnerToken);
+                                                    return patientCreate($scope.patient, jumpAccepted);
                                                     // throw new Error(`Request failed with status: ${response.status}`);
                                                 }
                                                 return response.json();
@@ -592,7 +591,7 @@ angular.module('bahmni.registration')
                                                     )
                                                         .then((response) => {
                                                             if (!response.ok) {
-                                                                return patientCreate($scope.patient, jumpAccepted, spinnerToken);
+                                                                return patientCreate($scope.patient, jumpAccepted);
                                                             }
                                                             return response.json();
                                                         })
@@ -650,12 +649,12 @@ angular.module('bahmni.registration')
                                                                             $scope.patient.address.countyDistrict = patientData.present_address.district_id;
                                                                             $scope.patient.address.stateProvince = patientData.present_address.division_id;
 
-                                                                            return patientCreate($scope.patient, jumpAccepted, spinnerToken);
+                                                                            return patientCreate($scope.patient, jumpAccepted);
                                                                         }
                                                                     })
                                                                     .catch((error) => {
                                                                         console.error("Error:", error);
-                                                                        return patientCreate($scope.patient, jumpAccepted, spinnerToken);
+                                                                        return patientCreate($scope.patient, jumpAccepted);
                                                                     });
                                                             } else if (res.statusCode === 208) {
                                                                 res.content.present_address.division = res.content.present_address.division_id;
@@ -714,34 +713,34 @@ angular.module('bahmni.registration')
                                                                 $scope.patient.address.stateProvince = stateProvince;
                                                                 $scope.patient.address.countyDistrict = countyDistrict;
                                                                 $scope.patient.address.address5 = upazila;
-                                                                return patientCreate($scope.patient, jumpAccepted, spinnerToken);
+                                                                return patientCreate($scope.patient, jumpAccepted);
                                                             } else if (res.statusCode === 400) {
                                                                 $scope.patient.nationalId = 'Not Verified';
-                                                                return patientCreate($scope.patient, jumpAccepted, spinnerToken);
+                                                                return patientCreate($scope.patient, jumpAccepted);
                                                             } else {
-                                                                return patientCreate($scope.patient, jumpAccepted, spinnerToken);
+                                                                return patientCreate($scope.patient, jumpAccepted);
                                                             }
                                                         })
                                                         .catch((error) => {
                                                             console.error("Error:", error);
-                                                            return patientCreate($scope.patient, jumpAccepted, spinnerToken);
+                                                            return patientCreate($scope.patient, jumpAccepted);
                                                             // errorMessage = 'There was an error';
                                                         });
                                                 } else {
                                                     $scope.patient.nationalId = 'Not Verified';
                                                     $scope.patient.birthRegistrationId = 'Not Verified';
-                                                    return patientCreate($scope.patient, jumpAccepted, spinnerToken);
+                                                    return patientCreate($scope.patient, jumpAccepted);
                                                 }
                                             });
                                     }
                                 });
                         } else {
-                            return patientCreate($scope.patient, jumpAccepted, spinnerToken);
+                            return patientCreate($scope.patient, jumpAccepted);
                         }
                     })
                     .catch(err => {
                         console.log('caught it!', err);
-                        return patientCreate($scope.patient, jumpAccepted, spinnerToken);
+                        return patientCreate($scope.patient, jumpAccepted);
                     });
                 const transformNIDData = (data) => {
                     return {
@@ -809,13 +808,12 @@ angular.module('bahmni.registration')
                         confidential: 'No'
                     };
                 };
-                const patientCreate = (patientData, jumpAccepted, spinnerToken) => {
+                const patientCreate = (patientData, jumpAccepted) => {
                     return patientService.create(patientData, jumpAccepted).then(
                         function (response) {
                             copyPatientProfileDataToScope(response);
                         },
                         function (response) {
-                            spinner.hide(spinnerToken);
                             if (response.status === 412) {
                                 var data = _.map(response.data, function (data) {
                                     return {
@@ -844,7 +842,6 @@ angular.module('bahmni.registration')
             };
 
             var createPatient = function (jumpAccepted) {
-                localStorage.setItem('visitPage', 'true');
                 if (healthIDEnable) {
                     $scope.generateHealthId(jumpAccepted);
                     return new Promise(function (resolve, reject) {
