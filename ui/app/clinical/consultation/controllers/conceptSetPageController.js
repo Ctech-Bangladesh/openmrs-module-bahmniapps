@@ -1,11 +1,11 @@
 'use strict';
 
 angular.module('bahmni.clinical')
-    .controller('ConceptSetPageController', ['$scope', '$rootScope', '$stateParams', 'conceptSetService',
-        'clinicalAppConfigService', 'messagingService', 'configurations', '$state', 'spinner',
+    .controller('ConceptSetPageController', ['$scope', '$rootScope', '$stateParams', 'conceptSetService', 'appService',
+        'clinicalAppConfigService', 'messagingService', 'configurations', '$state', 'spinner', '$window',
         'contextChangeHandler', '$q', '$translate', 'formService',
-        function ($scope, $rootScope, $stateParams, conceptSetService,
-            clinicalAppConfigService, messagingService, configurations, $state, spinner,
+        function ($scope, $rootScope, $stateParams, conceptSetService, appService,
+            clinicalAppConfigService, messagingService, configurations, $state, spinner, $window,
             contextChangeHandler, $q, $translate, formService) {
             $scope.consultation.selectedObsTemplate = $scope.consultation.selectedObsTemplate || [];
             $scope.allTemplates = $scope.allTemplates || [];
@@ -18,7 +18,8 @@ angular.module('bahmni.clinical')
             var fields = ['uuid', 'name:(name,display)', 'names:(uuid,conceptNameType,name)'];
             var customRepresentation = Bahmni.ConceptSet.CustomRepresentationBuilder.build(fields, 'setMembers', numberOfLevels);
             var allConceptSections = [];
-
+            const customDeathCertificate = appService.getAppDescriptor().getConfigValue("customDeathCertificate");
+            $scope.customDeathCertificate = customDeathCertificate;
             var init = function () {
                 if (!($scope.allTemplates !== undefined && $scope.allTemplates.length > 0)) {
                     spinner.forPromise(conceptSetService.getConcept({
@@ -194,7 +195,9 @@ angular.module('bahmni.clinical')
             $scope.stopAutoClose = function ($event) {
                 $event.stopPropagation();
             };
-
+            $scope.redirectDeathCertificate = function ($event) {
+                $window.location.href = `https://${$window.location.hostname}:6060/deathCertificate/${$scope.patient.uuid}`;
+            };
             $scope.addTemplate = function (template) {
                 $scope.scrollingEnabled = true;
                 $scope.showTemplatesList = false;
