@@ -136,10 +136,11 @@ angular.module('bahmni.home')
                     });
                 };
                 const checkAndFormatPassword = (password) => {
-                    if (password.search(/[A-Z]/) === -1) {
-                        return password.charAt(0).toUpperCase() + password.slice(1) + '123';
+                    const formattedPassword = (password.search(/[A-Z]/) === -1 || password.search(/[a-z]/) === -1) ? password.charAt(0).toUpperCase() + password.charAt(1).toLowerCase() + password.slice(2) : password;
+                    if (formattedPassword !== password) {
+                        return formattedPassword + (/\d/.test(formattedPassword) ? '' : '123');
                     } else {
-                        return password;
+                        return password + (/\d/.test(password) ? '' : '123');
                     }
                 };
                 const updateUserPassword = async (userPayload, uuid) => {
