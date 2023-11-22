@@ -289,6 +289,18 @@ angular.module('bahmni.home')
                             return response.json();
                         });
                 };
+                const getDesignationUuid = async () => {
+                    return await fetch(
+                        `https://${$window.location.hostname}/openmrs/ws/rest/v1/providerattributetype?q=Designation`,
+                        {
+                            method: "GET",
+                            headers: userHeaders
+                        }
+                    )
+                        .then((response) => {
+                            return response.json();
+                        });
+                };
                 const createProvider = async (providerData) => {
                     return await fetch(
                         `https://${$window.location.hostname}/openmrs/ws/rest/v1/provider`,
@@ -430,34 +442,40 @@ angular.module('bahmni.home')
                                                 const userPayload = await userPayloadData(userData);
                                                 const createBahmniUser = await createUser(userPayload);
                                                 if (createBahmniUser) {
-                                                    const providerData = {
-                                                        "name": createBahmniUser.person.display,
-                                                        "description": null,
-                                                        "person": createBahmniUser.person.uuid,
-                                                        "identifier": null,
-                                                        "attributes": [],
-                                                        "retired": false
-                                                    };
-                                                    const createBahmniProvider = await createProvider(providerData);
-                                                    if (createBahmniProvider) {
-                                                        const bahmniUserPayload = {
-                                                            userUuid: createBahmniUser.uuid,
-                                                            personUuid: createBahmniUser.person.uuid,
-                                                            providerUuid: createBahmniProvider.uuid,
-                                                            object: JSON.stringify(getUserData),
-                                                            activeStatus: getUserData.active,
-                                                            url: getUserData.url,
-                                                            providerId: getUserData.id
-
+                                                    const designationUuid = await getDesignationUuid();
+                                                    if (designationUuid) {
+                                                        const providerData = {
+                                                            "name": createBahmniUser.person.display,
+                                                            "description": null,
+                                                            "person": createBahmniUser.person.uuid,
+                                                            "identifier": null,
+                                                            "attributes": [{
+                                                                "attributeType": designationUuid.results[0].uuid,
+                                                                "value": getUserData.properties.designation
+                                                            }],
+                                                            "retired": false
                                                         };
-                                                        const createBahmniHRIS = await createBahmniHRISUser(bahmniUserPayload);
-                                                        if (createBahmniHRIS) {
-                                                            return loginBahmni(false);
+                                                        const createBahmniProvider = await createProvider(providerData);
+                                                        if (createBahmniProvider) {
+                                                            const bahmniUserPayload = {
+                                                                userUuid: createBahmniUser.uuid,
+                                                                personUuid: createBahmniUser.person.uuid,
+                                                                providerUuid: createBahmniProvider.uuid,
+                                                                object: JSON.stringify(getUserData),
+                                                                activeStatus: getUserData.active,
+                                                                url: getUserData.url,
+                                                                providerId: getUserData.id
+
+                                                            };
+                                                            const createBahmniHRIS = await createBahmniHRISUser(bahmniUserPayload);
+                                                            if (createBahmniHRIS) {
+                                                                return loginBahmni(false);
+                                                            } else {
+                                                                return loginBahmni(false);
+                                                            }
                                                         } else {
                                                             return loginBahmni(false);
                                                         }
-                                                    } else {
-                                                        return loginBahmni(false);
                                                     }
                                                 } else { return loginBahmni(false); }
                                             } else { return loginBahmni(false); }
