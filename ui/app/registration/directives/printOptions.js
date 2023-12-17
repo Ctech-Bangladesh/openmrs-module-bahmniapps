@@ -66,7 +66,6 @@ angular.module('bahmni.registration')
                             withCredentials: true
                         });
                     };
-
                     var getProviderDesignation = function (providerUuid) {
                         var params = {
                             q: "bahmni.sqlGet.providerDesignation2",
@@ -85,6 +84,25 @@ angular.module('bahmni.registration')
                             withCredentials: true
                         });
                     };
+                    var getVisitData = function () {
+                        return $http.get(`/openmrs/ws/rest/v1/visit?latest=true&patient=${$stateParams.patientUuid}&v=custom:(uuid,visitType,startDatetime,stopDatetime,location,encounters:(uuid))`, {
+                            method: "GET",
+                            withCredentials: true
+                        });
+                    };
+                    var getDiagnosis = function (visitUuid) {
+                        return $http.get(`/openmrs/ws/rest/v1/bahmnicore/diagnosis/search?patientUuid=${$stateParams.patientUuid}&visitUuid=${visitUuid}`, {
+                            method: "GET",
+                            withCredentials: true
+                        });
+                    };
+                    $q.all([getVisitData()]).then(function (response) {
+                        if (response[0].data.results.length > 0) {
+                            $q.all([getDiagnosis(response[0].data.results[0].uuid)]).then(function (response) {
+                                $scope.observations.diagnosis = response[0].data;
+                            });
+                        }
+                    });
                     $q.all([getTemporaryCategoryNotes()]).then(function (response) {
                         if (response[0].data.results.length > 0) {
                             $q.all([getApiData(response[0].data.results[0].links[0].uri.split('/openmrs')[1])]).then(function (response) {
