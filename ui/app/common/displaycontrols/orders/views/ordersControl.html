@@ -12,7 +12,7 @@
     <div>
         <section class="block hierarchy"  ng-if="::config.showHeader" ng-hide="::noOrdersMessage">
             <ul class="form-field">
-                <li ng-repeat="bahmniOrder in ::bahmniOrders">
+                <li ng-repeat="bahmniOrder in ::orderResult">
                     <span class="tree-list-item row-click toggle-container" toggle="bahmniOrder.isOpen">
                         <i class="fa fa-caret-right"></i>
                         <i class="fa fa-caret-down"></i>
@@ -26,9 +26,38 @@
                         </span>
                     </span>
                     <ul bm-show="bahmniOrder.isOpen">
-                        <bahmni-observation patient="::patient" visitUuid="::visitUuid" section="::section" config="::config"
-                                            section-title=""
-                                            observations="::bahmniOrder.bahmniObservations" message="::message"></bahmni-observation>
+                        <table class="dashboard-table">
+                            <tbody>
+                                <td ng-show="bahmniOrder.result.length === 0">
+                                    <span>
+                                        No observations captured for this order.
+                                    </span>
+                                </td>
+                                <tr ng-repeat="result in ::bahmniOrder.result">
+                                   
+                                    <td>
+                                        <span>
+                                            <b>Test Name:</b>&nbsp; {{result.test.testName}}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span>
+                                            <b>Result:</b>&nbsp; {{result.result}}
+                                        </span>
+                                    </td>
+                                    <td ng-if="result.test.department === 'Microbiology'">
+                                        <span>
+                                            <b>Result B:</b>&nbsp; {{result.resultB}}
+                                        </span>
+                                    </td>
+                                    <td ng-if="result.test.department === 'Microbiology'">
+                                        <span>
+                                            <b>Result C:</b>&nbsp; {{result.resultC}}
+                                        </span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </ul>
                 </li>
             </ul>
