@@ -37,6 +37,11 @@ angular.module('bahmni.common.displaycontrol.orders')
                         } else {
                             $scope.bahmniOrders[0].isOpen = true;
                         }
+                        function matchStrings (str1, str2) {
+                            const cleanStr1 = str1.toLowerCase().replace(/[\s,.-]/g, '');
+                            const cleanStr2 = str2.toLowerCase().replace(/[\s,.-]/g, '');
+                            return cleanStr1.includes(cleanStr2) || cleanStr2.includes(cleanStr1);
+                        }
                         let orderData = $scope.bahmniOrders;
                         let apiUrl = `https://${$window.location.hostname}:5555/public/patient/identifiers/${$scope.patient.identifier}`;
                         $http.get(apiUrl)
@@ -47,7 +52,7 @@ angular.module('bahmni.common.displaycontrol.orders')
                                     const singleTestResult = labResult[0].singleTestResults;
                                     const resultArray = orderData.map(item1 => {
                                         if (item1.concept.conceptClass === "LabSet") {
-                                            const matchingItem2 = groupTestResult.find(item2 => item1.concept.name === item2.groupTest.groupTestName);
+                                            const matchingItem2 = groupTestResult.find(item2 => matchStrings(item1.concept.name, item2.groupTest.groupTestName));
                                             if (matchingItem2) {
                                                 return {
                                                     ...item1,
@@ -60,7 +65,7 @@ angular.module('bahmni.common.displaycontrol.orders')
                                                 };
                                             }
                                         } else {
-                                            const matchingItem2 = singleTestResult.find(item2 => item1.concept.name === item2.test.testName && item2.result !== "");
+                                            const matchingItem2 = singleTestResult.find(item2 => matchStrings(item1.concept.name, item2.test.testName) && item2.result !== "");
                                             if (matchingItem2) {
                                                 return {
                                                     ...item1,
