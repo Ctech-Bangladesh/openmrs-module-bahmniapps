@@ -6,6 +6,7 @@ angular.module('bahmni.common.patient')
         var controller = function ($scope) {
             $scope.activeVisit = $scope.visitHistory.activeVisit;
             $scope.providerName = localStorage.getItem('providerName');
+            $scope.providerFacility = localStorage.getItem('providerFacility');
             var DateUtil = Bahmni.Common.Util.DateUtil;
             var retrieveProviderCookieData = function () {
                 return $bahmniCookieStore.get(Bahmni.Common.Constants.grantProviderAccessDataCookieName);

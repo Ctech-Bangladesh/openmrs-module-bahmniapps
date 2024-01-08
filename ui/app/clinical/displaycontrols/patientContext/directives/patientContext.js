@@ -5,7 +5,24 @@ angular.module('bahmni.clinical')
         var controller = function ($scope, $rootScope) {
             var patientContextConfig = appService.getAppDescriptor().getConfigValue('patientContext') || {};
             $scope.initPromise = patientService.getPatientContext($scope.patient.uuid, $state.params.enrollment, patientContextConfig.personAttributes, patientContextConfig.programAttributes, patientContextConfig.additionalPatientIdentifiers);
-
+            const storedHospitalName = localStorage.getItem('hospitalName');
+            if (storedHospitalName) {
+                $scope.hospitalName = storedHospitalName;
+            } else {
+                fetch(`/openmrs/module/queuemanagement/hospitalData.form`)
+                    .then((response) => {
+                        return response.text();
+                    })
+                    .then(res => {
+                        $timeout(function () {
+                            $scope.hospitalName = res;
+                        });
+                        localStorage.setItem('hospitalName', res);
+                    })
+                    .catch(error => {
+                        console.error('Error fetching hospital data:', error);
+                    });
+            }
             $scope.initPromise.then(function (response) {
                 $scope.patientContext = response.data;
                 var programAttributes = $scope.patientContext.programAttributes;

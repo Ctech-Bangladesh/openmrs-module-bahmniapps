@@ -13,6 +13,24 @@ angular.module('bahmni.registration')
                     $location.url(url);
                 }
             };
+            const storedHospitalName = localStorage.getItem('hospitalName');
+            if (storedHospitalName) {
+                $scope.hospitalName = storedHospitalName;
+            } else {
+                fetch(`/openmrs/module/queuemanagement/hospitalData.form`)
+                    .then((response) => {
+                        return response.text();
+                    })
+                    .then(res => {
+                        $timeout(function () {
+                            $scope.hospitalName = res;
+                        });
+                        localStorage.setItem('hospitalName', res);
+                    })
+                    .catch(error => {
+                        console.error('Error fetching hospital data:', error);
+                    });
+            }
 
             $scope.htmlLabel = function (label) {
                 return $sce.trustAsHtml(label);

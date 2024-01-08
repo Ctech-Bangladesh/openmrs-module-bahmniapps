@@ -9,6 +9,7 @@ angular.module('bahmni.registration')
                 return !identifierType.primary;
             });
             $scope.providerName = localStorage.getItem('providerName');
+            $scope.providerFacility = localStorage.getItem('providerFacility');
             var searching = false;
             var maxAttributesFromConfig = 5;
             const healthIDEnable = appService.getAppDescriptor().getConfigValue("healthIdEnable");

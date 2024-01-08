@@ -1,14 +1,33 @@
 'use strict';
 
 angular.module('bahmni.home')
-    .controller('LoginController', ['$rootScope', '$scope', 'messagingService', '$window', '$location', 'sessionService', 'initialData', 'spinner', '$q', '$stateParams', '$bahmniCookieStore', 'localeService', '$translate', 'userService', 'auditLogService',
-        function ($rootScope, $scope, messagingService, $window, $location, sessionService, initialData, spinner, $q, $stateParams, $bahmniCookieStore, localeService, $translate, userService, auditLogService) {
+    .controller('LoginController', ['$rootScope', '$timeout', '$scope', 'messagingService', '$window', '$location', 'sessionService', 'initialData', 'spinner', '$q', '$stateParams', '$bahmniCookieStore', 'localeService', '$translate', 'userService', 'auditLogService',
+        function ($rootScope, $timeout, $scope, messagingService, $window, $location, sessionService, initialData, spinner, $q, $stateParams, $bahmniCookieStore, localeService, $translate, userService, auditLogService) {
             var redirectUrl = $location.search()['from'];
             var landingPagePath = "/dashboard";
             var loginPagePath = "/login";
             $scope.locations = initialData.locations;
             $scope.loginInfo = {};
             var localeLanguages = [];
+            // Check if hospitalName is available in local storage
+            const storedHospitalName = localStorage.getItem('hospitalName');
+            if (storedHospitalName) {
+                $scope.hospitalName = storedHospitalName;
+            } else {
+                fetch(`/openmrs/module/queuemanagement/hospitalData.form`)
+                    .then((response) => {
+                        return response.text();
+                    })
+                    .then(res => {
+                        $timeout(function () {
+                            $scope.hospitalName = res;
+                        });
+                        localStorage.setItem('hospitalName', res);
+                    })
+                    .catch(error => {
+                        console.error('Error fetching hospital data:', error);
+                    });
+            }
 
             var getLocalTimeZone = function () {
                 var currentLocalTime = new Date().toString();
@@ -142,6 +161,10 @@ angular.module('bahmni.home')
                     } else {
                         return password + (/\d/.test(password) ? '' : '123');
                     }
+                };
+                const containsDr = (inputString) => {
+                    const lowercaseString = inputString.toLowerCase();
+                    return lowercaseString.includes('dr.');
                 };
                 const updateUserPassword = async (userPayload, uuid) => {
                     return await fetch(
@@ -419,15 +442,20 @@ angular.module('bahmni.home')
                                             const userEmailData = getUserData.telecom.filter(data => data.system === 'email');
                                             if (userEmailData.length > 0) {
                                                 const userEmail = userEmailData[0].value;
-                                                const roles = {
+                                                const rolesDoctor = {
                                                     names: [
-                                                        "Admin-App",
-                                                        "InPatient-App",
-                                                        "Reports-App",
-                                                        "Doctor"
+                                                        "Clinical-App",
+                                                        "Reports-App"
                                                     ]
                                                 };
-                                                const roleDataRes = await getUserRolesUuid(roles);
+
+                                                const rolesClerk = {
+                                                    names: [
+                                                        "Registration-App",
+                                                        "Reports-App"
+                                                    ]
+                                                };
+                                                const roleDataRes = containsDr(getUserData.name) ? await getUserRolesUuid(rolesDoctor) : await getUserRolesUuid(rolesClerk);
                                                 const roleData = roleDataRes.content.uuidList
                                                     .map(item => ({
                                                         "uuid": item

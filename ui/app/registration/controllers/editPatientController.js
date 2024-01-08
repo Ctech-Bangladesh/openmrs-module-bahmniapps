@@ -8,6 +8,7 @@ angular.module('bahmni.registration')
             var dateUtil = Bahmni.Common.Util.DateUtil;
             var uuid = $stateParams.patientUuid;
             $scope.providerName = localStorage.getItem('providerName');
+            $scope.providerFacility = localStorage.getItem('providerFacility');
             $scope.patient = {};
             $scope.actions = {};
             $scope.addressHierarchyConfigs = appService.getAppDescriptor().getConfigValue("addressHierarchy");

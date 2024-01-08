@@ -6,6 +6,9 @@
                     <span class="nav-link" ng-bind-html="::extension | titleTranslate"></span></a>
             </li>
         </ul>
+        <div style="text-align:center;position: absolute;bottom: 20px;left:350px;color:white;">
+            <p><b>{{hospitalName}}</b></p>
+        </div>
         <div class="reg-header-right fr">
             <div ui-view="headerExtension" class="print-action-items fl"></div>
 
@@ -17,6 +20,9 @@
                 <li>
                     <a><i class="fa fa-user fa-white small"></i><span ng-bind="providerName"></span></a>
                 </li>
+                <li  ng-if="providerFacility">
+                    <a><i class="fa fa-home fa-white small"></i><span ng-bind="providerFacility"></span></a>
+                </li>
                 <li>
                     <i class="fa fa-map-marker fa-white small"></i><span>{{:: currentUser.currentLocation | translate}}</span>
                 </li>
@@ -25,4 +31,5 @@
                 </li>
             </ul>
         </div>
+      
 </header>

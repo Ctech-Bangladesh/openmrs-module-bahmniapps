@@ -188,7 +188,6 @@ angular.module('bahmni.common.patientSearch')
                 //         $window.open(appService.getAppDescriptor().formatUrl(link.url, options, true), link.newTab ? "_blank" : "_self");
                 //     }
                 // }
-                console.log(patient);
                 fetch(`https://${$window.location.hostname}/openmrs/ws/rest/v1/patient/${patient.uuid}?v=full`)
                     .then((response) => {
                         if (!response.ok) {

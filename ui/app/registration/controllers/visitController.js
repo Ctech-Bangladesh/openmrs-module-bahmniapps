@@ -14,6 +14,7 @@ angular.module('bahmni.registration')
             var visitLocationUuid = $rootScope.visitLocation;
 
             $scope.providerName = localStorage.getItem('providerName');
+            $scope.providerFacility = localStorage.getItem('providerFacility');
             $window.localStorage.removeItem('healthId');
             var getPatient = function () {
                 var deferred = $q.defer();

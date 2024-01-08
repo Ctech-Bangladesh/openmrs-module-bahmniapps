@@ -33,7 +33,7 @@
             </button>
             <button ng-show="visitHistory.activeVisit" class="save-consultation completeConsultation" ng-click="completeConsultation(visitHistory.activeVisit.uuid)">
                 <i class="fa fa-print"></i>
-                <span class="text">Certificate</span>
+                <span class="text">Prescription</span>
             </button>
         </div>
     </div>
@@ -111,16 +111,16 @@
                     </div>
                 </div>
             <span class="grouped-buttons">
-                 <a class=" btn--left btn--success "
+                 <!-- <a class=" btn--left btn--success "
                     ng-hide="singlePagePrescriptionHide"
                     ng-if="visitHistory.activeVisit || retrospectiveEntry || allowConsultation()"
                     ng-click="singlePagePrescription()"
                     accesskey="{{'CONSULTATION_SHORTCUT_KEY' | translate}}"
                     ng-bind-html="'CONSULTATION_TAB_KEY' | translate">
-                 </a>
+                 </a> -->
                 <a class=" btn--left btn--success " ng-if="visitHistory.activeVisit || retrospectiveEntry || allowConsultation()"
                     ng-click="openConsultation()" accesskey="{{'CONSULTATION_SHORTCUT_KEY' | translate}}"
-                    ng-bind-html="'OBS_TAB_KEY ' | translate">
+                    ng-bind-html="'CONSULTATION_TAB_KEY ' | translate">
                 </a>
                 <a class="btn--right btn--success " title="{{'OPEN_IN_NEW_WINDOW'|translate}}"
                    ng-if="visitHistory.activeVisit || retrospectiveEntry"

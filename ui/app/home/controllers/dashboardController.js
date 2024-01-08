@@ -1,15 +1,63 @@
 'use strict';
 
 angular.module('bahmni.home')
-    .controller('DashboardController', ['$scope', '$state', 'appService', 'locationService', 'spinner', '$bahmniCookieStore', '$window', '$q',
-        function ($scope, $state, appService, locationService, spinner, $bahmniCookieStore, $window, $q) {
+    .controller('DashboardController', ['$scope', '$timeout', '$cookies', '$http', '$state', 'appService', 'locationService', 'spinner', '$bahmniCookieStore', '$window', '$q',
+        function ($scope, $timeout, $cookies, $http, $state, appService, locationService, spinner, $bahmniCookieStore, $window, $q) {
             $scope.appExtensions = appService.getAppDescriptor().getExtensions($state.current.data.extensionPointId, "link") || [];
             $scope.selectedLocationUuid = {};
 
             var isOnline = function () {
                 return $window.navigator.onLine;
             };
+            var user = $cookies.get("bahmni.user");
+            var getUser = function (data) {
+                return $http.get(`/openmrs/ws/rest/v1/user?username=${data}&v=custom:(username,uuid,person:(uuid,),privileges:(name,retired),userProperties)`, {
+                    method: "GET",
+                    withCredentials: true
+                });
+            };
+            const storedHospitalName = localStorage.getItem('hospitalName');
+            if (storedHospitalName) {
+                $scope.hospitalName = storedHospitalName;
+            } else {
+                fetch(`/openmrs/module/queuemanagement/hospitalData.form`)
+                    .then((response) => {
+                        return response.text();
+                    })
+                    .then(res => {
+                        $timeout(function () {
+                            $scope.hospitalName = res;
+                        });
+                        localStorage.setItem('hospitalName', res);
+                    })
+                    .catch(error => {
+                        console.error('Error fetching hospital data:', error);
+                    });
+            }
+            $q.all([getUser(JSON.parse(user))]).then(function (response) {
+                // const createBahmniHRIS = createBahmniHRISUser(bahmniUserPayload);
+                if (response[0].data.results.length > 0) {
+                    const userData = response[0].data.results[0];
+                    fetch(`https://${$window.location.hostname}:6062/api/v1/hris-user/${userData.person.uuid}`)
+                        .then((response) => {
+                            return response.json();
+                        })
+                        .then(res => {
+                            if (res?.content?.object) {
+                                const userProviderData = JSON.parse(res.content.object);
+                                $timeout(function () {
+                                    $scope.providerFacility = userProviderData.organization.display;
+                                });
+                                localStorage.setItem('providerFacility', userProviderData.organization.display);
+                            } else {
+                                localStorage.removeItem('providerFacility');
+                            }
+
+                        });
+                }
+            });
             $scope.providerName = localStorage.getItem('providerName');
+            // $scope.providerFacility = localStorage.getItem('providerFacility');
             const healthIDEnable = appService.getAppDescriptor().getConfigValue("healthIDEnable");
             $scope.isVisibleExtension = function (extension) {
                 if (extension.id === "bahmni.registration" && healthIDEnable) {
@@ -46,7 +94,7 @@ angular.module('bahmni.home')
                 $bahmniCookieStore.put(Bahmni.Common.Constants.locationCookieName, {
                     name: selectedLocation.display,
                     uuid: selectedLocation.uuid
-                }, {path: '/', expires: 7});
+                }, { path: '/', expires: 7 });
                 $window.location.reload();
             };
 

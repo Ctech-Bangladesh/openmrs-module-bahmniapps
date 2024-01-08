@@ -8,6 +8,7 @@ angular.module('bahmni.registration')
             var errorMessage;
             $scope.getPatientBtnHide = false;
             $scope.providerName = localStorage.getItem('providerName');
+            $scope.providerFacility = localStorage.getItem('providerFacility');
             const healthIDEnable = appService.getAppDescriptor().getConfigValue("healthIdEnable");
             var configValueForEnterId = appService.getAppDescriptor().getConfigValue('showEnterID');
             $scope.addressHierarchyConfigs = appService.getAppDescriptor().getConfigValue("addressHierarchy");
