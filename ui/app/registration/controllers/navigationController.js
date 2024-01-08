@@ -17,15 +17,22 @@ angular.module('bahmni.registration')
             if (storedHospitalName) {
                 $scope.hospitalName = storedHospitalName;
             } else {
-                fetch(`/openmrs/module/queuemanagement/hospitalData.form`)
+                const userHeaders = new Headers();
+                userHeaders.append("Content-Type", "application/json");
+                userHeaders.append("Authorization", "Basic YXBpLWFkbWluOkRldkBDcnlzdGFsMzIx");
+                fetch(`https://${$window.location.hostname}/openmrs/ws/rest/v1/location?tags=Visit+Location&v=full`, {
+                    method: "GET",
+                    headers: userHeaders
+                })
                     .then((response) => {
-                        return response.text();
+                        return response.json();
                     })
                     .then(res => {
+                        var hospitalName = res.results[0].display;
                         $timeout(function () {
-                            $scope.hospitalName = res;
+                            $scope.hospitalName = hospitalName;
                         });
-                        localStorage.setItem('hospitalName', res);
+                        localStorage.setItem('hospitalName', hospitalName);
                     })
                     .catch(error => {
                         console.error('Error fetching hospital data:', error);

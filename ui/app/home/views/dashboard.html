@@ -24,8 +24,8 @@
                         <span ng-bind="providerName"></span>
                     </a>
                 </li>
-                <li>
-                    <a><i class="fa fa-home fa-white small"></i><span ng-if="providerFacility"
+                <li ng-if="providerFacility">
+                    <a><i class="fa fa-home fa-white small"></i><span 
                             ng-bind="providerFacility"></span></a>
                 </li>
                 <li>
