@@ -1,8 +1,8 @@
 'use strict';
 
 angular.module('bahmni.clinical')
-    .controller('PatientListHeaderController', ['$scope', '$rootScope', '$bahmniCookieStore', 'providerService', 'spinner', 'locationService', '$window', 'ngDialog', 'retrospectiveEntryService', '$translate',
-        function ($scope, $rootScope, $bahmniCookieStore, providerService, spinner, locationService, $window, ngDialog, retrospectiveEntryService, $translate) {
+    .controller('PatientListHeaderController', ['$scope', '$timeout', '$rootScope', '$bahmniCookieStore', 'providerService', 'spinner', 'locationService', '$window', 'ngDialog', 'retrospectiveEntryService', '$translate',
+        function ($scope, $timeout, $rootScope, $bahmniCookieStore, providerService, spinner, locationService, $window, ngDialog, retrospectiveEntryService, $translate) {
             var DateUtil = Bahmni.Common.Util.DateUtil;
             $scope.maxStartDate = DateUtil.getDateWithoutTime(DateUtil.today());
             var selectedProvider = {};
@@ -10,6 +10,25 @@ angular.module('bahmni.clinical')
             $scope.locationPickerPrivilege = Bahmni.Common.Constants.locationPickerPrivilege;
             $scope.onBehalfOfPrivilege = Bahmni.Common.Constants.onBehalfOfPrivilege;
             $scope.selectedLocationUuid = {};
+
+            const storedHospitalName = localStorage.getItem('hospitalName');
+            if (storedHospitalName) {
+                $scope.hospitalName = storedHospitalName;
+            } else {
+                fetch(`/openmrs/module/queuemanagement/hospitalData.form`)
+                    .then((response) => {
+                        return response.text();
+                    })
+                    .then(res => {
+                        $timeout(function () {
+                            $scope.hospitalName = res;
+                        });
+                        localStorage.setItem('hospitalName', res);
+                    })
+                    .catch(error => {
+                        console.error('Error fetching hospital data:', error);
+                    });
+            }
             $scope.getProviderList = function () {
                 return function (searchAttrs) {
                     return providerService.search(searchAttrs.term);
