@@ -180,17 +180,54 @@ angular.module('bahmni.common.patientSearch')
                 if ($scope.search.searchType.links) {
                     link = _.find($scope.search.searchType.links, { linkColumn: heading }) || link;
                 }
-                if (link.url && link.url !== null) {
-                    if (link.url === "#/default/patient/{{patientUuid}}/dashboard?encounterUuid=active") {
-                        $window.location.href = (`https://${$window.location.hostname}:5555/public/to-patient-clinical-dashboard/${patient.uuid}`);
-                    }
-                    else {
-                        $window.open(appService.getAppDescriptor().formatUrl(link.url, options, true), link.newTab ? "_blank" : "_self");
-                    }
-                }
                 // if (link.url && link.url !== null) {
-                //     $window.open(appService.getAppDescriptor().formatUrl(link.url, options, true), link.newTab ? "_blank" : "_self");
+                //     if (link.url === "#/default/patient/{{patientUuid}}/dashboard?encounterUuid=active") {
+                //         $window.location.href = (`https://${$window.location.hostname}:5555/public/to-patient-clinical-dashboard/${patient.uuid}`);
+                //     }
+                //     else {
+                //         $window.open(appService.getAppDescriptor().formatUrl(link.url, options, true), link.newTab ? "_blank" : "_self");
+                //     }
                 // }
+                console.log(patient);
+                fetch(`https://${$window.location.hostname}/openmrs/ws/rest/v1/patient/${patient.uuid}?v=full`)
+                    .then((response) => {
+                        if (!response.ok) {
+                            throw new Error(`Request failed with status: ${response.status}`);
+                        }
+                        return response.json();
+                    })
+                    .then((res) => {
+                        const filterHealthId = res.identifiers.filter(data => data.identifierType.display === "Health Id");
+                        if (filterHealthId.length > 0) {
+                            fetch(`https://${window.location.hostname}/openmrs/ws/mci/download?hid=${filterHealthId[0].identifier}`)
+                            .then((response) => {
+                                if (!response.ok) {
+                                    throw new Error(`Request failed with status: ${response.status}`);
+                                }
+                                return response.json();
+                            })
+                            .then((res) => {
+                                if (res) {
+                                    if (link.url && link.url !== null) {
+                                        $window.open(appService.getAppDescriptor().formatUrl(link.url, options, true), link.newTab ? "_blank" : "_self");
+                                    }
+                                }
+                            })
+                            .catch((error) => {
+                                if (link.url && link.url !== null) {
+                                    $window.open(appService.getAppDescriptor().formatUrl(link.url, options, true), link.newTab ? "_blank" : "_self");
+                                }
+                                console.error("Error:", error);
+                            });
+                        } else {
+                            if (link.url && link.url !== null) {
+                                $window.open(appService.getAppDescriptor().formatUrl(link.url, options, true), link.newTab ? "_blank" : "_self");
+                            }
+                        }
+                    })
+                    .catch((error) => {
+                        console.error("Error:", error);
+                    });
             };
             var getPatientCountSeriallyBySearchIndex = function (index) {
                 if (index === $scope.search.searchTypes.length) {

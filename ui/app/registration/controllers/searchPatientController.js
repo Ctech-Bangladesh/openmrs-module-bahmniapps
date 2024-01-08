@@ -153,8 +153,7 @@ angular.module('bahmni.registration')
                         if (res.statusCode === 200) {
                             $timeout(function () {
                                 const patientAllData = res.content;
-                                localStorage.setItem("healthId", JSON.stringify(patientAllData));
-                                window.location.href = "/bahmni/registration/#/patient/new";
+                                healthIdPatientAdd(patientAllData.hid, res.content);
                                 spinner.hide(spinnerToken);
                             });
                         }
@@ -198,8 +197,7 @@ angular.module('bahmni.registration')
                                                         if (res.statusCode === 200) {
                                                             $timeout(function () {
                                                                 const patientAllData = res.content;
-                                                                localStorage.setItem("healthId", JSON.stringify(patientAllData));
-                                                                window.location.href = "/bahmni/registration/#/patient/new";
+                                                                healthIdPatientAdd(patientAllData.hid, res.content);
                                                             });
                                                         }
                                                     })
@@ -256,8 +254,7 @@ angular.module('bahmni.registration')
                                                         if (res.statusCode === 200) {
                                                             $timeout(function () {
                                                                 const patientAllData = res.content;
-                                                                localStorage.setItem("healthId", JSON.stringify(patientAllData));
-                                                                window.location.href = "/bahmni/registration/#/patient/new";
+                                                                healthIdPatientAdd(patientAllData.hid, res.content);
                                                             });
                                                         }
                                                     })
@@ -519,6 +516,25 @@ angular.module('bahmni.registration')
                     healthIDandPatientIDSearch();
                 }
             };
+            var healthIdPatientAdd = function (healthId, patientData) {
+                fetch(`https://${window.location.hostname}/openmrs/ws/mci/download?hid=${healthId}`)
+                    .then((response) => {
+                        if (!response.ok) {
+                            throw new Error(`Request failed with status: ${response.status}`);
+                        }
+                        return response.json();
+                    })
+                    .then((res) => {
+                        if (res) {
+                            window.location.href = `/bahmni/registration/#/patient/${res.uuid}`;
+                        }
+                    })
+                    .catch((error) => {
+                        localStorage.setItem("healthId", JSON.stringify(patientData));
+                        window.location.href = "/bahmni/registration/#/patient/new";
+                        console.error("Error:", error);
+                    });
+            };
             var healthIDandPatientIDSearch = function () {
                 var patientIdentifier = $scope.selectedIdPreference === 'HID' ? $scope.searchParameters.healthID : $scope.searchParameters.registrationNumber;
                 var searchPromise = patientService.search(undefined, patientIdentifier, $scope.addressSearchConfig.field,
@@ -555,8 +571,7 @@ angular.module('bahmni.registration')
                                                 })
                                                 .then((res) => {
                                                     if (res.statusCode === 200) {
-                                                        localStorage.setItem("healthId", JSON.stringify(res.content));
-                                                        window.location.href = "/bahmni/registration/#/patient/new";
+                                                        healthIdPatientAdd(healthId, res.content);
                                                     }
                                                 })
                                                 .catch((error) => {
