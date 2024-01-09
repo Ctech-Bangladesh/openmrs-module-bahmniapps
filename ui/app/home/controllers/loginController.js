@@ -25,11 +25,13 @@ angular.module('bahmni.home')
                         return response.json();
                     })
                     .then(res => {
-                        var hospitalName = res.results[0].display;
-                        $timeout(function () {
-                            $scope.hospitalName = hospitalName;
-                        });
-                        localStorage.setItem('hospitalName', hospitalName);
+                        if (res.results.length > 0) {
+                            var hospitalName = res.results[0].display;
+                            $timeout(function () {
+                                $scope.hospitalName = hospitalName;
+                            });
+                            localStorage.setItem('hospitalName', hospitalName);
+                        }
                     })
                     .catch(error => {
                         console.error('Error fetching hospital data:', error);

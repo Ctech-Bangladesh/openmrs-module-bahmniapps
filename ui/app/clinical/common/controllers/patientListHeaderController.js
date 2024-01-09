@@ -11,31 +11,7 @@ angular.module('bahmni.clinical')
             $scope.onBehalfOfPrivilege = Bahmni.Common.Constants.onBehalfOfPrivilege;
             $scope.selectedLocationUuid = {};
 
-            const storedHospitalName = localStorage.getItem('hospitalName');
-            if (storedHospitalName) {
-                $scope.hospitalName = storedHospitalName;
-            } else {
-                const userHeaders = new Headers();
-                userHeaders.append("Content-Type", "application/json");
-                userHeaders.append("Authorization", "Basic YXBpLWFkbWluOkRldkBDcnlzdGFsMzIx");
-                fetch(`https://${$window.location.hostname}/openmrs/ws/rest/v1/location?tags=Visit+Location&v=full`, {
-                    method: "GET",
-                    headers: userHeaders
-                })
-                    .then((response) => {
-                        return response.json();
-                    })
-                    .then(res => {
-                        var hospitalName = res.results[0].display;
-                        $timeout(function () {
-                            $scope.hospitalName = hospitalName;
-                        });
-                        localStorage.setItem('hospitalName', hospitalName);
-                    })
-                    .catch(error => {
-                        console.error('Error fetching hospital data:', error);
-                    });
-            }
+            $scope.hospitalName = localStorage.getItem('hospitalName');
             $scope.getProviderList = function () {
                 return function (searchAttrs) {
                     return providerService.search(searchAttrs.term);
