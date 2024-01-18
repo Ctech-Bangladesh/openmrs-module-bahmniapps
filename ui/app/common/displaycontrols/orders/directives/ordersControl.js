@@ -42,55 +42,55 @@ angular.module('bahmni.common.displaycontrol.orders')
                             const cleanStr2 = str2.toLowerCase().replace(/[\s,.-]/g, '');
                             return cleanStr1.includes(cleanStr2) || cleanStr2.includes(cleanStr1);
                         }
-                        // let orderData = $scope.bahmniOrders;
-                        // let apiUrl = `https://${$window.location.hostname}:5555/public/patient/identifiers/${$scope.patient.identifier}`;
-                        // $http.get(apiUrl)
-                        //     .then(function (res) {
-                        //         const labResult = res.data;
-                        //         if (labResult.length > 0) {
-                        //             const groupTestResult = labResult[0].groupTestResults;
-                        //             const singleTestResult = labResult[0].singleTestResults;
-                        //             const resultArray = orderData.map(item1 => {
-                        //                 if (item1.concept.conceptClass === "LabSet") {
-                        //                     const matchingItem2 = groupTestResult.find(item2 => matchStrings(item1.concept.name, item2.groupTest.groupTestName));
-                        //                     if (matchingItem2) {
-                        //                         return {
-                        //                             ...item1,
-                        //                             result: matchingItem2.singleTestResults.filter(data => data.result !== "")
-                        //                         };
-                        //                     } else {
-                        //                         return {
-                        //                             ...item1,
-                        //                             result: []
-                        //                         };
-                        //                     }
-                        //                 } else {
-                        //                     const matchingItem2 = singleTestResult.find(item2 => matchStrings(item1.concept.name, item2.test.testName) && item2.result !== "");
-                        //                     if (matchingItem2) {
-                        //                         return {
-                        //                             ...item1,
-                        //                             result: [matchingItem2]
-                        //                         };
-                        //                     } else {
-                        //                         return {
-                        //                             ...item1,
-                        //                             result: []
-                        //                         };
-                        //                     }
-                        //                 }
-                        //             });
-                        //             $timeout(function () { $scope.orderResult = resultArray; }, 100);
-                        //         }
-                        //         else {
-                        //             const resultArray = orderData.map(item1 => {
-                        //                 return {
-                        //                     ...item1,
-                        //                     result: []
-                        //                 };
-                        //             });
-                        //             $timeout(function () { $scope.orderResult = resultArray; }, 100);
-                        //         }
-                        //     });
+                        let orderData = $scope.bahmniOrders;
+                        let apiUrl = `https://${$window.location.hostname}:5555/public/patient/identifiers/${$scope.patient.identifier}`;
+                        $http.get(apiUrl)
+                            .then(function (res) {
+                                const labResult = res.data;
+                                if (labResult.length > 0) {
+                                    const groupTestResult = labResult[0].groupTestResults;
+                                    const singleTestResult = labResult[0].singleTestResults;
+                                    const resultArray = orderData.map(item1 => {
+                                        if (item1.concept.conceptClass === "LabSet") {
+                                            const matchingItem2 = groupTestResult.find(item2 => matchStrings(item1.concept.name, item2.groupTest.groupTestName));
+                                            if (matchingItem2) {
+                                                return {
+                                                    ...item1,
+                                                    result: matchingItem2.singleTestResults.filter(data => data.result !== "")
+                                                };
+                                            } else {
+                                                return {
+                                                    ...item1,
+                                                    result: []
+                                                };
+                                            }
+                                        } else {
+                                            const matchingItem2 = singleTestResult.find(item2 => matchStrings(item1.concept.name, item2.test.testName) && item2.result !== "");
+                                            if (matchingItem2) {
+                                                return {
+                                                    ...item1,
+                                                    result: [matchingItem2]
+                                                };
+                                            } else {
+                                                return {
+                                                    ...item1,
+                                                    result: []
+                                                };
+                                            }
+                                        }
+                                    });
+                                    $timeout(function () { $scope.orderResult = resultArray; }, 100);
+                                }
+                                else {
+                                    const resultArray = orderData.map(item1 => {
+                                        return {
+                                            ...item1,
+                                            result: []
+                                        };
+                                    });
+                                    $timeout(function () { $scope.orderResult = resultArray; }, 100);
+                                }
+                            });
                     });
                 };
                 $scope.getTitle = function (order) {
