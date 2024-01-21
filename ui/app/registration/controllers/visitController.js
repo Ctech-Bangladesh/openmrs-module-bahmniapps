@@ -40,11 +40,11 @@ angular.module('bahmni.registration')
                     if ($scope.observations.length > 0) {
                         var visitDetails = [];
                         $scope.observations.forEach(function (value) {
-                            if (value.conceptNameToDisplay === "Visit Details") {
+                            if (value.conceptNameToDisplay === "IPD Admission Category") {
                                 visitDetails.push(value);
                             }
                         });
-                        $scope.admissionFromAccess = visitDetails[0].groupMembers.filter(obs => obs.valueAsString === "Paid" || obs.valueAsString === "Free" || obs.valueAsString === "IPD Admission");
+                        $scope.admissionFromAccess = visitDetails.filter(obs => obs.valueAsString === "Paid" || obs.valueAsString === "Free" || obs.valueAsString === "IPD Admission");
                     }
                     var getUserRole = function () {
                         var params = {
@@ -88,8 +88,9 @@ angular.module('bahmni.registration')
                         if (JSON.parse(value).name.toLowerCase().includes('emergency')) {
                             $scope.opdTicketButton = false;
                             $scope.conceptSets = $scope.conceptSets.filter(data => data.conceptName !== "Room To Assign");
-                            let filterRoom = $scope.observations.filter(data => data.conceptNameToDisplay === 'Opd Consultation Room');
+                            let filterRoom = $scope.observations.filter(data => data.concept.name === 'Opd Consultation Room');
                             let checking = filterRoom.filter(data => data.formFieldPath.includes('Emergency'));
+
                             if (checking.length > 0) {
                                 $scope.emergencyTicketButton = true;
                             }
@@ -100,8 +101,9 @@ angular.module('bahmni.registration')
                         else {
                             $scope.emergencyTicketButton = false;
                             $scope.conceptSets = $scope.conceptSets.filter(data => data.conceptName !== "Room To Assign Emergency");
-                            let filterRoom = $scope.observations.filter(data => data.conceptNameToDisplay === 'Opd Consultation Room');
+                            let filterRoom = $scope.observations.filter(data => data.concept.name === 'Opd Consultation Room');
                             let checking = filterRoom.filter(data => !data.formFieldPath.includes('Emergency'));
+                    
                             if (checking.length > 0) {
                                 $scope.opdTicketButton = true;
                             }
