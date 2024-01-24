@@ -48,28 +48,21 @@ angular.module('bahmni.common.displaycontrol.orders')
                             .then(function (res) {
                                 const labResult = res.data;
                                 if (labResult.length > 0) {
-                                    const groupTestResult = labResult[0].groupTestResults;
-                                    const singleTestResult = labResult[0].singleTestResults;
+                                    const groupTestResult = labResult.map(data => data.groupTestResults).reduce((acc, currentArray) => acc.concat(currentArray), []);
+                                    const singleTestResult = labResult.map(data => data.singleTestResults).reduce((acc, currentArray) => acc.concat(currentArray), []);
                                     const resultArray = orderData.map(item1 => {
-                                        if (item1.concept.conceptClass === "LabSet") {
-                                            const matchingItem2 = groupTestResult.find(item2 => matchStrings(item1.concept.name, item2.groupTest.groupTestName));
-                                            if (matchingItem2) {
-                                                return {
-                                                    ...item1,
-                                                    result: matchingItem2.singleTestResults.filter(data => data.result !== "")
-                                                };
-                                            } else {
-                                                return {
-                                                    ...item1,
-                                                    result: []
-                                                };
-                                            }
+                                        const matchingItem2 = groupTestResult.find(item2 => matchStrings(item1.concept.name, item2.groupTest.groupTestName));
+                                        if (matchingItem2) {
+                                            return {
+                                                ...item1,
+                                                result: matchingItem2.singleTestResults.filter(data => data.result !== "")
+                                            };
                                         } else {
-                                            const matchingItem2 = singleTestResult.find(item2 => matchStrings(item1.concept.name, item2.test.testName) && item2.result !== "");
-                                            if (matchingItem2) {
+                                            const matchingItem3 = singleTestResult.find(item2 => matchStrings(item1.concept.name, item2.test.testName) && item2.result !== "");
+                                            if (matchingItem3) {
                                                 return {
                                                     ...item1,
-                                                    result: [matchingItem2]
+                                                    result: [matchingItem3]
                                                 };
                                             } else {
                                                 return {

@@ -30,28 +30,28 @@
                             <tbody>
                                 <td ng-show="bahmniOrder.result.length === 0">
                                     <span>
-                                        No observations captured for this order.
+                                        No result found for this test.
                                     </span>
                                 </td>
                                 <tr ng-repeat="result in ::bahmniOrder.result">
                                    
-                                    <td>
+                                    <td style="width: 50%;">
                                         <span>
-                                            <b>Test Name:</b>&nbsp; {{result.test.testName}}
+                                            &nbsp;<b>{{result.test.shortName}}</b>&nbsp;<small ng-if="result.test.unit !== ' '">({{result.test.unit}})</small>
                                         </span>
                                     </td>
                                     <td>
                                         <span>
-                                            <b>Result:</b>&nbsp; {{result.result}}
+                                             {{result.result}}
                                         </span>
                                     </td>
                                     <td ng-if="result.test.department === 'Microbiology'">
-                                        <span>
+                                        <span ng-if="result.resultB !== ''">
                                             <b>Result B:</b>&nbsp; {{result.resultB}}
                                         </span>
                                     </td>
                                     <td ng-if="result.test.department === 'Microbiology'">
-                                        <span>
+                                        <span ng-if="result.resultC !== ''">
                                             <b>Result C:</b>&nbsp; {{result.resultC}}
                                         </span>
                                     </td>
