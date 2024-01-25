@@ -23,8 +23,17 @@
     }
 </style>
 <div class="text-right">
-    <span class="regCount" style="float: right; font-size: 16px;">User : <b>{{providerName}}</b> | Paid : <b>{{totalReg[1]
+   <div style="margin-top: 10px">
+    <span class="regCount" style="float: right; font-size: 16px; height: 25px;">User : <b>{{providerName}}</b> | Paid :
+        <b>{{totalReg[1]
             || 0}}</b> | Free : <b>{{totalReg[2] || 0}}</b> | Total : <b>{{totalReg[0] || 0}}</b></span>
+   </div>
+    <div ng-show="tokenEnable" style="float: right; font-size: 16px; margin: 0px 10px;height: 40px;position: relative;z-index: 999;bottom: 5px;">
+        <span ><b>Select Counter :</b></span>
+        <select style="min-width: 197px; height: 25px;" ng-change="onCounterChange(selectedCounter)" ng-model="selectedCounter" ng-options="counter.name for counter in counters">
+        </select>
+        <span > | Last Serial: <b>{{lastSerial}}</b> |</span>
+    </div>
 </div>
 <div class="reg-body-wrapper">
     <div class="simple-form-ui new-patient">
@@ -74,8 +83,8 @@
                             <ng-include src="'views/dob.html'"></ng-include>
                         </div>
                     </section>
-                    <span ng-hide="getPatientBtnHide" style="position: relative;left: 220px; margin: 5px 0px;" ng-click="getPatientInfo()"
-                        class="getPatientBtn">Get Patient Info</span>
+                    <span ng-hide="getPatientBtnHide" style="position: relative;left: 220px; margin: 5px 0px;"
+                        ng-click="getPatientInfo()" class="getPatientBtn">Get Patient Info</span>
                     <article class="form-field existing-patient">
                         <div class="field-attribute">
                             <label class="control-label" for="patientID">{{::

@@ -4,6 +4,12 @@ angular.module('bahmni.registration')
     .controller('NavigationController', ['$scope', '$rootScope', '$location', 'sessionService', '$window', 'appService', '$sce',
         function ($scope, $rootScope, $location, sessionService, $window, appService, $sce) {
             $scope.extensions = appService.getAppDescriptor().getExtensions("org.bahmni.registration.navigation", "link");
+            const eAppointmentEnable = appService.getAppDescriptor().getConfigValue("eAppointmentEnable");
+            if (eAppointmentEnable) {
+                $scope.eAppointmentEnable = true;
+            } else {
+                $scope.eAppointmentEnable = false;
+            }
             $scope.goTo = function (url) {
                 if ($window.localStorage.getItem('healthId') && url === '/patient/new') {
                     window.location.reload();

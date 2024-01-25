@@ -10,6 +10,7 @@ angular.module('bahmni.registration')
             $scope.providerName = localStorage.getItem('providerName');
             $scope.providerFacility = localStorage.getItem('providerFacility');
             const healthIDEnable = appService.getAppDescriptor().getConfigValue("healthIdEnable");
+            const tokenEnable = appService.getAppDescriptor().getConfigValue("tokenEnable");
             var configValueForEnterId = appService.getAppDescriptor().getConfigValue('showEnterID');
             $scope.addressHierarchyConfigs = appService.getAppDescriptor().getConfigValue("addressHierarchy");
             $scope.disablePhotoCapture = appService.getAppDescriptor().getConfigValue("disablePhotoCapture");
@@ -34,6 +35,62 @@ angular.module('bahmni.registration')
 
                 };
             };
+            if (tokenEnable) {
+                $scope.tokenEnable = true;
+                $scope.counters = [];
+                $scope.lastSerial = 0;
+                const getLastNo = (counter) => {
+                    return fetch(`https://${$window.location.hostname}/openmrs/module/tokenqueue/reg/getLastNo.htm?counter=${counter}`)
+                        .then((response) => {
+                            return response.json();
+                        });
+                };
+                $scope.onCounterChange = function (e) {
+                    localStorage.setItem('selectedCounter', JSON.stringify(e));
+                    $scope.selectedCounter = e;
+                    getLastNo(e.id).then((response) => {
+                        $timeout(function () { $scope.lastSerial = response.slNo; }, 100);
+                    });
+                };
+                try {
+                    fetch(`https://${$window.location.hostname}/openmrs/ws/rest/v1/concept?s=byFullySpecifiedName&name=Registration+Counter&v=custom:(uuid,name,answers)`)
+                        .then((response) => {
+                            return response.json();
+                        })
+                        .then((res) => {
+                            const result = res.results[0].answers.map(data => { return { display: data.display, names: data.names }; });
+                            const filterCounter = result.reduce((acc, item) => {
+                                const counterName = item.names.find(name => name.display !== item.display);
+                                if (counterName) {
+                                    acc.push({ name: item.display, id: counterName.display });
+                                }
+                                return acc;
+                            }, []);
+                            $timeout(function () {
+                                $scope.counters = filterCounter;
+                                var storedCounter = JSON.parse(localStorage.getItem('selectedCounter'));
+                                if (storedCounter) {
+                                    var storeCounterFind = filterCounter.find(name => name.id === storedCounter.id);
+                                    $scope.selectedCounter = storeCounterFind;
+                                    getLastNo(storeCounterFind.id).then((response) => {
+                                        $timeout(function () { $scope.lastSerial = response.slNo; }, 100);
+                                    });
+                                } else {
+                                    $scope.selectedCounter = filterCounter[0];
+                                    getLastNo(filterCounter[0].id).then((response) => {
+                                        $timeout(function () { $scope.lastSerial = response.slNo; }, 100);
+                                    });
+                                    localStorage.setItem('selectedCounter', JSON.stringify(filterCounter[0]));
+                                }
+                            }, 100);
+                        });
+                } catch (err) {
+                    console.log(err);
+                }
+            } else {
+                $scope.tokenEnable = false;
+            }
+
             const resetPatient = () => {
                 $scope.patient.givenName = '';
                 $scope.patient.givenNameLocal = '';

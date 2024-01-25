@@ -8,6 +8,7 @@ angular.module('bahmni.registration')
             var patientUuid = $stateParams.patientUuid;
             var extensions = appService.getAppDescriptor().getExtensions("org.bahmni.registration.conceptSetGroup.observations", "config");
             var formExtensions = appService.getAppDescriptor().getExtensions("org.bahmni.registration.conceptSetGroup.observations", "forms");
+            const tokenEnable = appService.getAppDescriptor().getConfigValue("tokenEnable");
             var locationUuid = sessionService.getLoginLocationUuid();
             var selectedProvider = $rootScope.currentProvider;
             var regEncounterTypeUuid = $rootScope.regEncounterConfiguration.encounterTypes[Bahmni.Registration.Constants.registrationEncounterType];
@@ -343,7 +344,12 @@ angular.module('bahmni.registration')
                     headers: { 'Content-Type': 'application/json' }
                 });
             };
-
+            const closeRegistrationToken = () => {
+                var storedCounter = JSON.parse(localStorage.getItem('selectedCounter'));
+                if (storedCounter) {
+                    fetch(`https://${$window.location.hostname}/openmrs/module/tokenqueue/reg/done/removeRegToken.htm?counter=${storedCounter.id}&patientUuid=${patientUuid}`);
+                }
+            };
             var afterSave = function () {
                 var forwardUrl = appService.getAppDescriptor().getConfigValue("afterVisitSaveForwardUrl");
                 var queueManagement = appService.getAppDescriptor().getConfigValue("queueManagement");
@@ -362,6 +368,9 @@ angular.module('bahmni.registration')
                         method: "GET",
                         url: "/openmrs/ws/rest/v1/bahmnicore/observations?concept=Opd+Consultation+Room&patientUuid=" + patientUuid + "&scope=latest"
                     }).then(function mySuccess (response) {
+                        if (tokenEnable) {
+                            closeRegistrationToken();
+                        }
                         var obsdata = response.data;
                         patientService.get(patientUuid).then(function (openMRSPatient) {
                             $scope.patient = openmrsPatientMapper.map(openMRSPatient);
