@@ -454,14 +454,16 @@ angular.module('bahmni.home')
                                                 const rolesDoctor = {
                                                     names: [
                                                         "Clinical-App",
-                                                        "Reports-App"
+                                                        "Reports-App",
+                                                        "Privilege Level: Full"
                                                     ]
                                                 };
 
                                                 const rolesClerk = {
                                                     names: [
                                                         "Registration-App",
-                                                        "Reports-App"
+                                                        "Reports-App",
+                                                        "Privilege Level: Full"
                                                     ]
                                                 };
                                                 const roleDataRes = containsDr(getUserData.name) ? await getUserRolesUuid(rolesDoctor) : await getUserRolesUuid(rolesClerk);
