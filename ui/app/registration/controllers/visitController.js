@@ -368,9 +368,6 @@ angular.module('bahmni.registration')
                         method: "GET",
                         url: "/openmrs/ws/rest/v1/bahmnicore/observations?concept=Opd+Consultation+Room&patientUuid=" + patientUuid + "&scope=latest"
                     }).then(function mySuccess (response) {
-                        if (tokenEnable) {
-                            closeRegistrationToken();
-                        }
                         var obsdata = response.data;
                         patientService.get(patientUuid).then(function (openMRSPatient) {
                             $scope.patient = openmrsPatientMapper.map(openMRSPatient);
@@ -387,7 +384,7 @@ angular.module('bahmni.registration')
                                         roomId: roomId,
                                         dateCreated: formatDate[0]
                                     };
-                                    if (queueManagement.willUse == true) {
+                                    if (queueManagement.willUse === true) {
                                         generateQueue(queue);
                                         console.log("Queue Management Started... Queue Submitted :: " + queue);
                                     } else {
@@ -396,6 +393,9 @@ angular.module('bahmni.registration')
                                 }
                             });
                         });
+                        if (tokenEnable) {
+                            closeRegistrationToken();
+                        }
                     });
                 }, 500);
             };

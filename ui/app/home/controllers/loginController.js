@@ -277,6 +277,23 @@ angular.module('bahmni.home')
                             return response.json();
                         });
                 };
+                const userPayloadDataWithProvider = async (inputData, identifier) => {
+                    const transformedData = {
+                        username: inputData.userName,
+                        password: inputData.password,
+                        person: {
+                            uuid: identifier
+                        },
+                        systemId: inputData.systemId,
+                        roles: inputData.roles
+                    };
+
+                    return transformedData;
+                };
+                const extractFacilityId = async (url) => {
+                    const match = url.match(/\/(\d+)\.json$/);
+                    return match ? match[1] : null;
+                };
 
                 const userPayloadData = async (inputData) => {
                     const transformedData = {
@@ -286,6 +303,7 @@ angular.module('bahmni.home')
                             names: [
                                 {
                                     givenName: inputData.name.trim(),
+                                    familyName: `@ ${inputData.organization.display}`,
                                     preferred: true
                                 }
                             ],
@@ -321,9 +339,33 @@ angular.module('bahmni.home')
                             return response.json();
                         });
                 };
+                const getProvider = async (data) => {
+                    return await fetch(
+                        `https://${$window.location.hostname}/openmrs/ws/rest/v1/provider?v=full&q=${data}`,
+                        {
+                            method: "GET",
+                            headers: userHeaders
+                        }
+                    )
+                        .then((response) => {
+                            return response.json();
+                        });
+                };
                 const getDesignationUuid = async () => {
                     return await fetch(
                         `https://${$window.location.hostname}/openmrs/ws/rest/v1/providerattributetype?q=Designation`,
+                        {
+                            method: "GET",
+                            headers: userHeaders
+                        }
+                    )
+                        .then((response) => {
+                            return response.json();
+                        });
+                };
+                const getOrganizationUuid = async () => {
+                    return await fetch(
+                        `https://${$window.location.hostname}/openmrs/ws/rest/v1/providerattributetype?q=Organization`,
                         {
                             method: "GET",
                             headers: userHeaders
@@ -441,83 +483,131 @@ angular.module('bahmni.home')
                                 const accessToken = hrisRes.access_token;
                                 if (accessToken) {
                                     const providerRes = await getProviderFromHRIS(accessToken);
-                                    const checkProvider = providerRes.profiles.find(p => p.name === 'provider');
+                                    const checkProvider = providerRes.profiles.find(p => p.name.toLowerCase() === 'provider');
                                     if (!checkProvider) {
                                         alert("You do not have privileges to access this system");
                                         return loginBahmni(false);
                                     } else {
                                         const getUserData = await getProviderDataFromHRIS(checkProvider.id);
-                                        if (getUserData.telecom.length > 0) {
-                                            const userEmailData = getUserData.telecom.filter(data => data.system === 'email');
-                                            if (userEmailData.length > 0) {
-                                                const userEmail = userEmailData[0].value;
-                                                const rolesDoctor = {
-                                                    names: [
-                                                        "Clinical-App",
-                                                        "Reports-App",
-                                                        "Privilege Level: Full"
-                                                    ]
-                                                };
+                                        const providerIdentifier = getUserData.id;
+                                        // const providerIdentifier = 119;
 
-                                                const rolesClerk = {
-                                                    names: [
-                                                        "Registration-App",
-                                                        "Reports-App",
-                                                        "Privilege Level: Full"
-                                                    ]
-                                                };
-                                                const roleDataRes = containsDr(getUserData.name) ? await getUserRolesUuid(rolesDoctor) : await getUserRolesUuid(rolesClerk);
-                                                const roleData = roleDataRes.content.uuidList
-                                                    .map(item => ({
-                                                        "uuid": item
-                                                    }));
-                                                const userData = { ...getUserData };
-                                                const userName = await generateUsername(userData.name);
-                                                userData.userName = userName;
-                                                userData.systemId = userEmail;
-                                                userData.roles = roleData;
-                                                userData.password = checkAndFormatPassword($scope.loginInfo.password);
+                                        const isProviderAvailable = await getProvider(providerIdentifier);
+                                        const findProvider = isProviderAvailable.results.find(data => parseInt(data.identifier) === parseInt(providerIdentifier));
 
-                                                const userPayload = await userPayloadData(userData);
-                                                const createBahmniUser = await createUser(userPayload);
-                                                if (createBahmniUser) {
-                                                    const designationUuid = await getDesignationUuid();
-                                                    if (designationUuid) {
-                                                        const providerData = {
-                                                            "name": createBahmniUser.person.display,
-                                                            "description": null,
-                                                            "person": createBahmniUser.person.uuid,
-                                                            "identifier": null,
-                                                            "attributes": [{
-                                                                "attributeType": designationUuid.results[0].uuid,
-                                                                "value": getUserData.properties.designation
-                                                            }],
-                                                            "retired": false
-                                                        };
-                                                        const createBahmniProvider = await createProvider(providerData);
-                                                        if (createBahmniProvider) {
-                                                            const bahmniUserPayload = {
-                                                                userUuid: createBahmniUser.uuid,
-                                                                personUuid: createBahmniUser.person.uuid,
-                                                                providerUuid: createBahmniProvider.uuid,
-                                                                object: JSON.stringify(getUserData),
-                                                                activeStatus: getUserData.active,
-                                                                url: getUserData.url,
-                                                                providerId: getUserData.id
-
+                                        if (findProvider) {
+                                            if (getUserData.telecom.length > 0) {
+                                                const userEmailData = getUserData.telecom.filter(data => data.system === 'email');
+                                                if (userEmailData.length > 0) {
+                                                    const userEmail = userEmailData[0].value;
+                                                    const rolesDoctor = {
+                                                        names: [
+                                                            "Clinical-App",
+                                                            "Reports-App",
+                                                            "Privilege Level: Full"
+                                                        ]
+                                                    };
+                                                    const rolesClerk = {
+                                                        names: [
+                                                            "Registration-App",
+                                                            "Reports-App",
+                                                            "Privilege Level: Full"
+                                                        ]
+                                                    };
+                                                    const roleDataRes = containsDr(getUserData.name) ? await getUserRolesUuid(rolesDoctor) : await getUserRolesUuid(rolesClerk);
+                                                    const roleData = roleDataRes.content.uuidList
+                                                        .map(item => ({
+                                                            "uuid": item
+                                                        }));
+                                                    const userData = { ...getUserData };
+                                                    const userName = await generateUsername(userData.name);
+                                                    userData.userName = userName;
+                                                    userData.systemId = userEmail;
+                                                    userData.roles = roleData;
+                                                    userData.password = checkAndFormatPassword($scope.loginInfo.password);
+                                                    const userPayload = await userPayloadDataWithProvider(userData, findProvider.person.uuid);
+                                                    const createBahmniUser = await createUser(userPayload);
+                                                    if (createBahmniUser) {
+                                                        return loginBahmni(false);
+                                                    } else { return loginBahmni(false); }
+                                                } else { return loginBahmni(false); }
+                                            }
+                                        } else {
+                                            if (getUserData.telecom.length > 0) {
+                                                const userEmailData = getUserData.telecom.filter(data => data.system === 'email');
+                                                if (userEmailData.length > 0) {
+                                                    const userEmail = userEmailData[0].value;
+                                                    const rolesDoctor = {
+                                                        names: [
+                                                            "Clinical-App",
+                                                            "Reports-App",
+                                                            "Privilege Level: Full"
+                                                        ]
+                                                    };
+                                                    const rolesClerk = {
+                                                        names: [
+                                                            "Registration-App",
+                                                            "Reports-App",
+                                                            "Privilege Level: Full"
+                                                        ]
+                                                    };
+                                                    const roleDataRes = containsDr(getUserData.name) ? await getUserRolesUuid(rolesDoctor) : await getUserRolesUuid(rolesClerk);
+                                                    const roleData = roleDataRes.content.uuidList
+                                                        .map(item => ({
+                                                            "uuid": item
+                                                        }));
+                                                    const userData = { ...getUserData };
+                                                    const userName = await generateUsername(userData.name);
+                                                    userData.userName = userName;
+                                                    userData.systemId = userEmail;
+                                                    userData.roles = roleData;
+                                                    userData.password = checkAndFormatPassword($scope.loginInfo.password);
+                                                    const userPayload = await userPayloadData(userData);
+                                                    const createBahmniUser = await createUser(userPayload);
+                                                    if (createBahmniUser) {
+                                                        const designationUuid = await getDesignationUuid();
+                                                        const organizationUuid = await getOrganizationUuid();
+                                                        const organizationValue = await extractFacilityId(getUserData.organization.reference);
+                                                        if (designationUuid && organizationUuid) {
+                                                            const providerData = {
+                                                                "name": `${userPayload.person.names[0].givenName} ${userPayload.person.names[0].familyName}`,
+                                                                "description": null,
+                                                                "person": createBahmniUser.person.uuid,
+                                                                "identifier": providerIdentifier,
+                                                                "attributes": [{
+                                                                    "attributeType": designationUuid.results[0].uuid,
+                                                                    "value": getUserData.properties.designation
+                                                                },
+                                                                {
+                                                                    "attributeType": organizationUuid.results[0].uuid,
+                                                                    "value": organizationValue
+                                                                }],
+                                                                "retired": false
                                                             };
-                                                            const createBahmniHRIS = await createBahmniHRISUser(bahmniUserPayload);
-                                                            if (createBahmniHRIS) {
-                                                                return loginBahmni(false);
+                                                            const createBahmniProvider = await createProvider(providerData);
+                                                            if (createBahmniProvider) {
+                                                                const bahmniUserPayload = {
+                                                                    userUuid: createBahmniUser.uuid,
+                                                                    personUuid: createBahmniUser.person.uuid,
+                                                                    providerUuid: createBahmniProvider.uuid,
+                                                                    object: JSON.stringify(getUserData),
+                                                                    activeStatus: getUserData.active,
+                                                                    url: getUserData.url,
+                                                                    providerId: getUserData.id
+                                                                };
+                                                                const createBahmniHRIS = await createBahmniHRISUser(bahmniUserPayload);
+                                                                if (createBahmniHRIS) {
+                                                                    return loginBahmni(false);
+                                                                } else {
+                                                                    return loginBahmni(false);
+                                                                }
                                                             } else {
                                                                 return loginBahmni(false);
                                                             }
-                                                        } else {
-                                                            return loginBahmni(false);
                                                         }
-                                                    }
+                                                    } else { return loginBahmni(false); }
                                                 } else { return loginBahmni(false); }
-                                            } else { return loginBahmni(false); }
+                                            }
                                         }
                                     }
                                 } else {
