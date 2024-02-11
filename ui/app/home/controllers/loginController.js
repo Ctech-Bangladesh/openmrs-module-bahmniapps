@@ -528,8 +528,24 @@ angular.module('bahmni.home')
                                                     const userPayload = await userPayloadDataWithProvider(userData, findProvider.person.uuid);
                                                     const createBahmniUser = await createUser(userPayload);
                                                     if (createBahmniUser) {
+                                                        const bahmniUserPayload = {
+                                                            userUuid: createBahmniUser.uuid,
+                                                            personUuid: createBahmniUser.person.uuid,
+                                                            providerUuid: findProvider.uuid,
+                                                            object: JSON.stringify(getUserData),
+                                                            activeStatus: getUserData.active,
+                                                            url: getUserData.url,
+                                                            providerId: getUserData.id
+                                                        };
+                                                        const createBahmniHRIS = await createBahmniHRISUser(bahmniUserPayload);
+                                                        if (createBahmniHRIS) {
+                                                            return loginBahmni(false);
+                                                        } else {
+                                                            return loginBahmni(false);
+                                                        }
+                                                    } else {
                                                         return loginBahmni(false);
-                                                    } else { return loginBahmni(false); }
+                                                    }
                                                 } else { return loginBahmni(false); }
                                             }
                                         } else {
