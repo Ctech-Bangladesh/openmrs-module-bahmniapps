@@ -538,9 +538,19 @@ angular.module('bahmni.registration')
                     const nidData = nidInformation.citizenData;
                     // const userUuid = $rootScope.currentUser.uuid;
                     const isNationalIdPresent = data.nationalId;
+                    const fullName = nidData.fullName_English.trim();
+                    const nameParts = fullName.split(' ');
+                    let givenName = '';
+                    let surname = '';
+                    if (nameParts.length === 1) {
+                        givenName = nameParts[0];
+                    } else {
+                        givenName = nameParts.slice(0, -1).join(' ');
+                        surname = nameParts.slice(-1).join(' ');
+                    }
                     return {
-                        given_name: nidData.fullName_English,
-                        sur_name: '',
+                        given_name: givenName,
+                        sur_name: surname,
                         date_of_birth: data.birthdate ? data.birthdate.toISOString().substring(0, 10) : null,
                         gender: nidData.gender === 1 ? 'M' : nidData.gender === 2 ? 'F' : 'O',
                         nid: isNationalIdPresent ? data.nationalId : '',
