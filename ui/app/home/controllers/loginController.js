@@ -16,8 +16,7 @@ angular.module('bahmni.home')
             } else {
                 const userHeaders = new Headers();
                 userHeaders.append("Content-Type", "application/json");
-                userHeaders.append("Authorization", "Basic YXBpLWFkbWluOkRldkBDcnlzdGFsMzIx");
-                fetch(`https://${$window.location.hostname}/openmrs/ws/rest/v1/location?tags=Visit+Location&v=full`, {
+                fetch(`https://${$window.location.hostname}:6062/api/v1/openmrs-info/visit-location`, {
                     method: "GET",
                     headers: userHeaders
                 })
@@ -150,7 +149,6 @@ angular.module('bahmni.home')
                 var deferrable = $q.defer();
                 const userHeaders = new Headers();
                 userHeaders.append("Content-Type", "application/json");
-                userHeaders.append("Authorization", "Basic YXBpLWFkbWluOkRldkBDcnlzdGFsMzIx");
 
                 const headers = new Headers();
                 headers.append("Content-Type", "application/json");
@@ -177,7 +175,7 @@ angular.module('bahmni.home')
                 };
                 const updateUserPassword = async (userPayload, uuid) => {
                     return await fetch(
-                        `https://${$window.location.hostname}/openmrs/ws/rest/v1/password/${uuid}`,
+                        `https://${$window.location.hostname}:6062/api/v1/openmrs-info/change-password/${uuid}`,
                         {
                             method: "POST",
                             body: JSON.stringify(userPayload),
@@ -328,7 +326,7 @@ angular.module('bahmni.home')
                 };
                 const createUser = async (userPayload) => {
                     return await fetch(
-                        `https://${$window.location.hostname}/openmrs/ws/rest/v1/user`,
+                        `https://${$window.location.hostname}:6062/api/v1/openmrs-info/create-user`,
                         {
                             method: "POST",
                             body: JSON.stringify(userPayload),
@@ -341,7 +339,7 @@ angular.module('bahmni.home')
                 };
                 const getProvider = async (data) => {
                     return await fetch(
-                        `https://${$window.location.hostname}/openmrs/ws/rest/v1/provider?v=full&q=${data}`,
+                        `https://${$window.location.hostname}:6062/api/v1/openmrs-info/provider?data=${data}`,
                         {
                             method: "GET",
                             headers: userHeaders
@@ -353,7 +351,7 @@ angular.module('bahmni.home')
                 };
                 const getDesignationUuid = async () => {
                     return await fetch(
-                        `https://${$window.location.hostname}/openmrs/ws/rest/v1/providerattributetype?q=Designation`,
+                        `https://${$window.location.hostname}:6062/api/v1/openmrs-info/designation-attribute`,
                         {
                             method: "GET",
                             headers: userHeaders
@@ -365,7 +363,7 @@ angular.module('bahmni.home')
                 };
                 const getOrganizationUuid = async () => {
                     return await fetch(
-                        `https://${$window.location.hostname}/openmrs/ws/rest/v1/providerattributetype?q=Organization`,
+                        `https://${$window.location.hostname}:6062/api/v1/openmrs-info/organization-attribute`,
                         {
                             method: "GET",
                             headers: userHeaders
@@ -377,7 +375,7 @@ angular.module('bahmni.home')
                 };
                 const createProvider = async (providerData) => {
                     return await fetch(
-                        `https://${$window.location.hostname}/openmrs/ws/rest/v1/provider`,
+                        `https://${$window.location.hostname}:6062/api/v1/openmrs-info/create-provider`,
                         {
                             method: "POST",
                             body: JSON.stringify(providerData),
