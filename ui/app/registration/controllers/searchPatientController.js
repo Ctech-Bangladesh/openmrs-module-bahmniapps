@@ -229,7 +229,7 @@ angular.module('bahmni.registration')
             initialize();
 
             $scope.disableSearchButton = function () {
-                return !$scope.searchParameters.name && !$scope.searchParameters.addressFieldValue && !$scope.searchParameters.customAttribute && !$scope.searchParameters.programAttributeFieldValue;
+                return !$scope.searchParameters.fname && !$scope.searchParameters.addressFieldValue && !$scope.searchParameters.customAttribute && !$scope.searchParameters.programAttributeFieldValue;
             };
 
             $scope.$watch(function () {
@@ -310,8 +310,11 @@ angular.module('bahmni.registration')
                 }
                 var queryParams = {};
                 $scope.results = [];
-                if ($scope.searchParameters.name) {
-                    queryParams.name = $scope.searchParameters.name;
+                if ($scope.searchParameters.fname) {
+                    queryParams.name = $scope.searchParameters.fname;
+                }
+                if ($scope.searchParameters.id) {
+                    queryParams.name = $scope.searchParameters.id;
                 }
                 if ($scope.searchParameters.addressFieldValue) {
                     queryParams.addressFieldValue = $scope.searchParameters.addressFieldValue;
