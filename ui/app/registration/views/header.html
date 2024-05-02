@@ -1,28 +1,64 @@
+<style>
+    .eppointment {
+        width: 80px;
+        transition: width 0.3s ease-in-out;
+        background: linear-gradient(to bottom, #A1D030, #88af28);
+        background-color: #88af28;
+        border-radius: 3px;
+        padding: 5px;
+    }
+
+    .eppointment:hover {
+        background: linear-gradient(to bottom, #88af28, #A1D030);
+        background-color: #88af28;
+    }
+</style>
 <header class="reg-header" ng-controller="NavigationController">
-        <ul class="top-nav fl">
-            <a class="back-btn" accesskey="h" href="../home/index.html" ng-click="onHomeNavigate($event)"><i class="fa fa-home"></i></a>
-            <li ng-repeat="extension in ::extensions">
-                <a ng-click="goTo(extension.url)" accesskey="{{::extension.shortcutKey | translate}}"><i class="{{::extension.icon}} fa fa-white small"></i>
-                    <span class="nav-link" ng-bind-html="::extension | titleTranslate"></span></a>
+    <ul class="top-nav fl">
+        <a class="back-btn" accesskey="h" href="../home/index.html" ng-click="onHomeNavigate($event)"><i
+                class="fa fa-home"></i></a>
+        <li ng-repeat="extension in ::extensions">
+            <a ng-click="goTo(extension.url)" accesskey="{{::extension.shortcutKey | translate}}"><i
+                    class="{{::extension.icon}} fa fa-white small"></i>
+                <span class="nav-link" ng-bind-html="::extension | titleTranslate"></span></a>
+        </li>
+        <div style="position: absolute; top: 10px; right: 90px;">
+            <a ng-show="eAppointmentEnable" id="appointment-module" target="_blank"><img class="eppointment"
+                    ng-src="../images/eappointmentLogo.png" alt="Description of the image"></a>
+            <div style="position: relative; bottom: 10px;" ui-view="headerExtension" class="print-action-items fl">
+            </div>
+        </div>
+    </ul>
+    <div style="text-align:center;position: absolute;bottom: 20px;left:350px;color:white;">
+        <p><b>{{hospitalName}}</b></p>
+    </div>
+    <div class="reg-header-right fr">
+
+
+        <button class="btn-user-info fr">
+            <i class="fa fa-user-md fa-white small"></i>
+            <i class="fa fa-caret-down fa-white mini"></i>
+        </button>
+        <ul>
+            <li>
+                <a><i class="fa fa-user fa-white small"></i><span ng-bind="providerName"></span></a>
+            </li>
+            <li ng-if="providerFacility">
+                <a><i class="fa fa-home fa-white small"></i><span ng-bind="providerFacility"></span></a>
+            </li>
+            <li>
+                <i class="fa fa-map-marker fa-white small"></i><span>{{:: currentUser.currentLocation |
+                    translate}}</span>
+            </li>
+            <li>
+                <a log-out><i class="fa fa-power-off fa-white small"></i><span
+                        class="nav-link">{{::'REGISTRATION_LABEL_LOGOUT' | translate}}</span></a>
             </li>
         </ul>
-        <div class="reg-header-right fr">
-            <div ui-view="headerExtension" class="print-action-items fl"></div>
+    </div>
 
-            <button class="btn-user-info fr">
-                <i class="fa fa-user-md fa-white small"></i>
-                <i class="fa fa-caret-down fa-white mini"></i>
-            </button>
-            <ul>
-                <li>
-                    <a><i class="fa fa-user fa-white small"></i><span>{{:: currentUser.username}}</span></a>
-                </li>
-                <li>
-                    <i class="fa fa-map-marker fa-white small"></i><span>{{:: currentUser.currentLocation | translate}}</span>
-                </li>
-                <li>
-                    <a log-out><i class="fa fa-power-off fa-white small"></i><span class="nav-link">{{::'REGISTRATION_LABEL_LOGOUT' | translate}}</span></a>
-                </li>
-            </ul>
-        </div>
 </header>
+<script>
+    var a = document.getElementById('appointment-module');
+    a.href = `https://${window.location.hostname}/openmrs/module/dghs/e-appointments.form`;
+</script>
