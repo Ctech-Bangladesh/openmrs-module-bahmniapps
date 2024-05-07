@@ -231,10 +231,17 @@ angular.module('bahmni.registration')
                         });
                     }
                 });
+                $q.all([getUser(JSON.parse(user))]).then(function (response) {
+                    if (response[0].data.results.length > 0) {
+                        $q.all([getApiData(response[0].data.results[0].links[0].uri.split('/openmrs')[1])]).then(function (response) {
+                            $scope.observations.user = response[0].data.person.display;
+                        });
+                    }
+                });
                 $q.all([getCreator($stateParams.patientUuid)]).then(function (response) {
                     if (response[0].data.patient.auditInfo) {
-                        let auditInfoCreator = response[0].data.patient.auditInfo;
-                        $scope.patientCreator = auditInfoCreator.creator.display;
+                        let auditInfoCreator = response[0].data.patient.auditInfo.creator;
+                        $scope.patientCreator = auditInfoCreator.display;
                     }
                 });
                 var obs = {};
@@ -295,43 +302,6 @@ angular.module('bahmni.registration')
 
                     return result;
                 };
-                var getUserRelationship = function (id) {
-                    return $http.get(`/openmrs/ws/rest/v1/patientprofile/${id}?v=full`, {
-                        method: "GET",
-                        withCredentials: true
-                    });
-                };
-                $q.all([getUserRelationship($stateParams.patientUuid)]).then(function (response) {
-                    $scope.creator = response[0].data.patient.auditInfo.creator;
-                    if (response[0].data.relationships.length > 0) {
-                        if (response[0].data.relationships[0].personA.uuid === $stateParams.patientUuid) {
-                            $scope.observations.relationship = true;
-                            $scope.observations.relationshipStatus = response[0].data.relationships[0].display;
-                            $q.all([getUserRelationship(response[0].data.relationships[0].personB.uuid)]).then(function (response) {
-                                if (response[0].data) {
-                                    $scope.observations.mainPatient = response[0].data;
-                                    $scope.observations.mainPatientAge = getAge(response[0].data.patient.person.birthdate);
-                                    if (response[0].data.patient.person.attributes.length > 0) {
-                                        let attributes = response[0].data.patient.person.attributes;
-                                        let nid = attributes.filter(data => data.attributeType.display === "nationalId");
-                                        if (nid.length > 0) {
-                                            $scope.observations.mainPatientNid = nid[0].value;
-                                        }
-                                        let phoneNumber = attributes.filter(data => data.attributeType.display === "phoneNumber");
-                                        if (phoneNumber.length > 0) {
-                                            $scope.observations.mainPatientPhoneNumber = phoneNumber[0].value;
-                                        }
-                                    }
-                                }
-                            });
-                        }
-                        else {
-                            $scope.observations.relationship = false;
-                        }
-                    } else {
-                        $scope.observations.relationship = false;
-                    }
-                });
                 $scope.obs = obs;
                 registrationCardPrinter.print(reprint.templateUrl, $scope.patient, $scope.obs, $scope.encounterDateTime, $scope.observations);
             };
@@ -343,6 +313,13 @@ angular.module('bahmni.registration')
                 $scope.observations.dispositionNote = $scope.dispositionNote;
                 $scope.observations.providerName = $scope.providerName;
                 $scope.observations.providerDesignation = $scope.providerDesignation;
+                $q.all([getUser(JSON.parse(user))]).then(function (response) {
+                    if (response[0].data.results.length > 0) {
+                        $q.all([getApiData(response[0].data.results[0].links[0].uri.split('/openmrs')[1])]).then(function (response) {
+                            $scope.observations.user = response[0].data.person.display;
+                        });
+                    }
+                });
                 const ipdDoctor = $scope.observations.filter(data => data.conceptNameToDisplay === "IPD Assigned Doctor");
                 if (ipdDoctor.length > 0) {
                     $q.all([getProviderDesignation(ipdDoctor[0].complexData.data.uuid)]).then(function (response) {
