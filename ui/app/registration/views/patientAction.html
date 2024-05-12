@@ -33,5 +33,6 @@
     </button>
     <button accesskey="{{ ::'REGISTRATION_SAVE_ACCESS_KEY' | translate}}" class="left submit-btn"
             ng-bind-html="::'REPRINT_REGISTRATION_LABEL_REPRINTADMISSIONFORM' | translate" ng-click="reprintAdmissionForm()"
+            ng-show="allowRePrint === true"
             style="float: left; background: #a02c2c; color: white;"></button>
 </div>

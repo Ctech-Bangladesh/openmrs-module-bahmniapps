@@ -72,17 +72,7 @@ angular.module('bahmni.registration')
                             else {
                                 $scope.obsData = [...filterWithoutRoom, ...filterWithoutEmergency];
                             }
-                            $scope.allowRePrint = false;
-                            if (JSON.parse(value).name.toLowerCase().includes('emergency')) {
-                                if (filterEmergency.length > 0) {
-                                    $scope.allowRePrint = true;
-                                }
-                            }
-                            else {
-                                if (filterWithoutEmergency.length > 0) {
-                                    $scope.allowRePrint = true;
-                                }
-                            }
+                
                         });
                         let IPDFormValidateURL = "/openmrs/ws/rest/v1/obs?patient=" + uuid + "&concept=Visit%20Type";
                         $http({
@@ -231,17 +221,16 @@ angular.module('bahmni.registration')
                         });
                     }
                 });
-                $q.all([getUser(JSON.parse(user))]).then(function (response) {
-                    if (response[0].data.results.length > 0) {
-                        $q.all([getApiData(response[0].data.results[0].links[0].uri.split('/openmrs')[1])]).then(function (response) {
-                            $scope.observations.user = response[0].data.person.display;
-                        });
-                    }
-                });
                 $q.all([getCreator($stateParams.patientUuid)]).then(function (response) {
                     if (response[0].data.patient.auditInfo) {
                         let auditInfoCreator = response[0].data.patient.auditInfo.creator;
-                        $scope.patientCreator = auditInfoCreator.display;
+                        $q.all([getUser(auditInfoCreator.display)]).then(function (response) {
+                            if (response[0].data.results.length > 0) {
+                                $q.all([getApiData(response[0].data.results[0].links[0].uri.split('/openmrs')[1])]).then(function (response) {
+                                    $scope.observations.patientCreator = response[0].data.person.display;
+                                });
+                            }
+                        });
                     }
                 });
                 var obs = {};
@@ -305,6 +294,7 @@ angular.module('bahmni.registration')
                 $scope.obs = obs;
                 registrationCardPrinter.print(reprint.templateUrl, $scope.patient, $scope.obs, $scope.encounterDateTime, $scope.observations);
             };
+            $scope.reprintHide = true;
             $scope.reprintAdmissionForm = function () {
                 let reprint = appService.getAppDescriptor().getConfigValue("afterSavePrintIPD");
                 $scope.observations = $scope.obsData || $scope.observations;
@@ -318,6 +308,19 @@ angular.module('bahmni.registration')
                         $q.all([getApiData(response[0].data.results[0].links[0].uri.split('/openmrs')[1])]).then(function (response) {
                             $scope.observations.user = response[0].data.person.display;
                         });
+                    }
+                });
+                $q.all([getCreator($stateParams.patientUuid)]).then(function (response) {
+                    if (response[0].data.patient.auditInfo) {
+                        let auditInfoCreator = response[0].data.patient.auditInfo.creator;
+                        $q.all([getUser(auditInfoCreator.display)]).then(function (response) {
+                            if (response[0].data.results.length > 0) {
+                                $q.all([getApiData(response[0].data.results[0].links[0].uri.split('/openmrs')[1])]).then(function (response) {
+                                    $scope.observations.patientCreator = response[0].data.person.display;
+                                });
+                            }
+                        });
+
                     }
                 });
                 const ipdDoctor = $scope.observations.filter(data => data.conceptNameToDisplay === "IPD Assigned Doctor");
