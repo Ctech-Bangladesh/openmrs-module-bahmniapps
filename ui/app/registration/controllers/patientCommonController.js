@@ -9,6 +9,7 @@ angular.module('bahmni.registration')
             var caste;
             $scope.showMiddleName = appService.getAppDescriptor().getConfigValue("showMiddleName");
             $scope.showLastName = appService.getAppDescriptor().getConfigValue("showLastName");
+            $scope.phoneNumberRequired = appService.getAppDescriptor().getConfigValue("phoneNumberRequired");
             $scope.isLastNameMandatory = $scope.showLastName && appService.getAppDescriptor().getConfigValue("isLastNameMandatory");
             $scope.showBirthTime = appService.getAppDescriptor().getConfigValue("showBirthTime") != null
                 ? appService.getAppDescriptor().getConfigValue("showBirthTime") : true;  // show birth time by default

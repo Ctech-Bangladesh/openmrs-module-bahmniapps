@@ -119,8 +119,11 @@
                         </ul>
                     </div>-->
                 </div>
+
+                
             </article>
         </section>
+
         <section class="age-wrapper">
             <div ng-if="::!dobMandatory">
                 <ng-include src="'views/age.html'"></ng-include>
@@ -131,6 +134,16 @@
                 <ng-include src="'views/age.html'"></ng-include>
             </div>
         </section>
+        <section class="form-field" >
+            <div class="field-attribute">
+                <label for="patientName">Phone Number <span class="asterick" ng-show="phoneNumberRequired">*</span></label>
+            </div>
+            <div class="field-value" id="phoneNumber">
+                <input type="text" id="phoneNumber" ng-model="patient.phoneNumber" pattern-validate ng-required="phoneNumberRequired">
+            </div>
+        </section>
+
+
         <legend class="registraion_legend">
             <span class="mylegend"> {{ ::'REGISTRATION_LABEL_ADDRESS_INFO' | translate}}</span>
         </legend>
