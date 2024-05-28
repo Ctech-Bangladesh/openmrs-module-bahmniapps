@@ -84,6 +84,33 @@ angular.module('bahmni.registration')
                     return " " + str.toUpperCase() + "";
                 }).trim();
             };
+            $scope.searchVisitDate = function (patient) {
+                try {
+                    fetch(`https://${window.location.hostname}/openmrs/ws/rest/v1/bahmnicore/observations?concept=Opd+Consultation+Room&patientUuid=${patient.uuid}&scope=latest`)
+                        .then((response) => {
+                            if (!response.ok) {
+                                throw new Error(`Request failed with status: ${response.status}`);
+                            }
+                            return response.json();
+                        })
+                        .then((data) => {
+                            if (data.length > 0) {
+                                $timeout(function () {
+                                    patient.visitStartDateTime = data[0].observationDateTime;
+                                });
+                            } else {
+                                $timeout(function () {
+                                    patient.visitStartDateTime = 'No data found';
+                                });
+                            }
+                        })
+                        .catch((error) => {
+                            console.error("Error:", error);
+                        });
+                } catch (error) {
+                    console.error("Caught an exception:", error);
+                }
+            };
 
             $scope.getProgramAttributeValues = function (result) {
                 var attributeValues = result && result.patientProgramAttributeValue && result.patientProgramAttributeValue[$scope.programAttributesSearchConfig.field];
@@ -452,9 +479,9 @@ angular.module('bahmni.registration')
                         mapProgramAttributesSearchResults(response);
                         return response;
                     });
-                    searchPromise['finally'](function () {
-                        searching = false;
-                    });
+                    // searchPromise['finally'](function () {
+                    //     searching = false;
+                    // });
                     return searchPromise;
                 }
             };
