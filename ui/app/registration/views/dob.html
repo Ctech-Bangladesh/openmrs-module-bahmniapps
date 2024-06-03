@@ -4,7 +4,7 @@
                 ng-show="::dobMandatory">*</span></label>
     </div>
     <div class="field-value">
-        <input ng-disabled="patient.access" id="birthdate" type="date" ng-model="patient.birthdate" max="{{::today}}"
+        <input id="birthdate" type="date" ng-model="patient.birthdate" max="{{::today}}"
             ng-change="patient.calculateAge()" ng-blur="handleUpdate('birthdate')" ng-required="::dobMandatory">
     </div>
     <div class="showOn-desktop-registration">
