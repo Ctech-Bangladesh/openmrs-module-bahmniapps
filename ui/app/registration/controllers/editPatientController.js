@@ -7,6 +7,7 @@ angular.module('bahmni.registration')
             appService, messagingService, $rootScope, auditLogService, registrationCardPrinter) {
             var dateUtil = Bahmni.Common.Util.DateUtil;
             var uuid = $stateParams.patientUuid;
+            let systemDeveloper = false;
             $scope.patient = {};
             var getUserRole = function () {
                 var params = {
@@ -18,6 +19,7 @@ angular.module('bahmni.registration')
                     withCredentials: true
                 });
             };
+            
             $q.all([getUserRole()]).then(function (response) {
                 var result = response[0].data.results;
                 var providerUuid = $rootScope.currentUser.person.uuid;
@@ -26,6 +28,8 @@ angular.module('bahmni.registration')
                 );
                 var roles = filterUser[0].roles;
                 var verify = roles.filter(role => role.name === "System Developer");
+                var userVerify = roles.filter(role => role.name === "Registration-Write");
+
 
                 if (verify.length === 0) {
                     var refresh = $window.localStorage.getItem('refresh');
@@ -34,6 +38,144 @@ angular.module('bahmni.registration')
                         $window.localStorage.setItem('refresh', "1");
                     }
                     $scope.patient.access = true;
+                    $scope.allowRePrint = false;
+                } else
+                {
+                    $timeout(function () {
+                        systemDeveloper = true;
+                        let apiURL = "/openmrs/ws/rest/v1/bahmnicore/observations?" +
+                            "concept=Fee+Category&concept=Free+Type&" +
+                            "concept=Temporary+Categories&concept=Opd+Consultation+Room&" +
+                            "patientUuid=" +
+                            uuid +
+                            "&scope=latest";
+                        $http({
+                            method: "GET",
+                            url: apiURL
+                        }).then(function mySuccess (response) {
+                            let obsData = response.data;
+                            $scope.obsData = obsData;
+                            obsData.forEach(key => {
+                                $scope.allowRePrint = false;
+                                if (key.complexData != null) {
+                                    if (key.encounterDateTime != '') {
+                                        let reprint = appService.getAppDescriptor().getConfigValue("afterSavePrint");
+                                        if (reprint) {
+                                            $scope.allowRePrint = true;
+                                        }
+                                    }
+                                }
+                            });
+                            const value = $cookies.get("bahmni.user.location");
+                            let filterWithoutRoom = $scope.obsData.filter(data => data.conceptNameToDisplay !== 'Opd Consultation Room');
+                            let filterRoom = $scope.obsData.filter(data => data.conceptNameToDisplay === 'Opd Consultation Room');
+                            let filterEmergency = filterRoom.filter(data => data.formFieldPath.includes('Emergency'));
+                            let filterWithoutEmergency = filterRoom.filter(data => !data.formFieldPath.includes('Emergency'));
+                            if (JSON.parse(value).name.toLowerCase().includes('emergency')) {
+                                $scope.obsData = [...filterWithoutRoom, ...filterEmergency];
+                            }
+                            else {
+                                $scope.obsData = [...filterWithoutRoom, ...filterWithoutEmergency];
+                            }
+                
+                        });
+                        let IPDFormValidateURL = "/openmrs/ws/rest/v1/obs?patient=" + uuid + "&concept=Visit%20Type";
+                        $http({
+                            method: "GET",
+                            url: IPDFormValidateURL
+                        }).then(function mySuccess(response) {
+                            if (response.data.results.length > 0) {
+                                $scope.allowRePrintIPD = true;
+                            }
+                            else {
+                                $scope.allowRePrintIPD = false;
+                            }
+                        });
+                        var getApiData = function (url) {
+                            return $http.get(`/openmrs${url}`, {
+                                method: "GET",
+                                withCredentials: true
+                            });
+                        };
+                        var getProviderDesignation = function (providerUuid) {
+                            var params = {
+                                q: "bahmni.sqlGet.providerDesignation2",
+                                v: "full",
+                                providerUuid: providerUuid
+                            };
+                            return $http.get('/openmrs/ws/rest/v1/bahmnicore/sql', {
+                                method: "GET",
+                                params: params,
+                                withCredentials: true
+                            });
+                        };
+                        var getVisitType = function () {
+                            return $http.get(`/openmrs/ws/rest/v1/obs?concepts=Visit%20Type%2C%20IPD%20Admission&patient=${$stateParams.patientUuid}`, {
+                                method: "GET",
+                                withCredentials: true
+                            });
+                        };
+                        $q.all([getVisitType()]).then(function (response) {
+                            if (response[0].data.results.length > 0) {
+                                $q.all([getApiData(response[0].data.results[0].links[0].uri.split('/openmrs')[1])]).then(function (response) {
+                                    $q.all([getApiData(response[0].data.encounter.links[0].uri.split('/openmrs')[1])]).then(function (response) {
+                                        $scope.preVisitDate = response[0].data.encounterDatetime;
+                                    });
+                                });
+                            }
+                        });
+                        var getDispositionNote = function () {
+                            return $http.get(`/openmrs/ws/rest/v1/obs?limit=1&patient=${$stateParams.patientUuid}&concept=Disposition%20Set`, {
+                                method: "GET",
+                                withCredentials: true
+                            });
+                        };
+                        $q.all([getDispositionNote()]).then(function (response) {
+                            if (response[0].data.results.length > 0) {
+                                $q.all([getApiData(response[0].data.results[0].links[0].uri.split('/openmrs')[1])]).then(function (response) {
+                                    $scope.dispositionSet = response[0].data.groupMembers.filter(data => data.concept.display === 'Disposition');
+                                    $scope.dispositionNote = response[0].data.groupMembers.filter(data => data.concept.display === 'Disposition Note');
+                                });
+                            }
+                        });
+                        
+                        var getDispositionProvider = function () {
+                            return $http.get(`/openmrs/ws/rest/v1/obs?limit=1&concepts=Disposition&patient=${$stateParams.patientUuid}`, {
+                                method: "GET",
+                                withCredentials: true
+                            });
+                        };
+                        $q.all([getDispositionProvider()]).then(function (response) {
+                            if (response[0].data.results.length > 0) {
+                                $q.all([getApiData(response[0].data.results[0].links[0].uri.split('/openmrs')[1])]).then(function (response) {
+                                    $q.all([getApiData(response[0].data.encounter.links[0].uri.split('/openmrs')[1])]).then(function (response) {
+                                        $q.all([getApiData(response[0].data.encounterProviders[0].links[0].uri.split('/openmrs')[1])]).then(function (response) {
+                                            $q.all([getApiData(response[0].data.provider.links[0].uri.split('/openmrs')[1])]).then(function (response) {
+                                                $scope.providerName = response[0].data.person.display;
+                                            });
+                                            $q.all([getProviderDesignation(response[0].data.provider.uuid)]).then(function (response) {
+                                                if (response[0].data.length > 0) {
+                                                    for (var i = 0; i < response[0].data.length; i++) {
+                                                        if (response[0].data[i].name == 'Designation') {
+                                                            $scope.providerDesignation = response[0].data[i].value_reference;
+                                                        }
+                                                    }
+                                                }
+                                            });
+                                        });
+                                    });
+                                });
+                            }
+                        });
+                    }, 500);
+                    $scope.patient.access = false;
+                };
+                if (userVerify.length === 0) {
+                    var refresh = $window.localStorage.getItem('refresh');
+                    if (refresh === null) {
+                        location.reload();
+                        $window.localStorage.setItem('refresh', "1");
+                    }
                     $scope.allowRePrint = false;
                 } else
                 {
@@ -163,8 +305,8 @@ angular.module('bahmni.registration')
                             }
                         });
                     }, 500);
-                    $scope.patient.access = false;
                 }
+                
             });
 
             $scope.actions = {};
@@ -212,6 +354,11 @@ angular.module('bahmni.registration')
             };
             $scope.reprintHide = true;
             $scope.reprint = function () {
+                if(!systemDeveloper){
+                    $timeout(function () {
+                        $scope.patient.access = true;
+                    }, 500);
+                }
                 let reprint = appService.getAppDescriptor().getConfigValue("afterSavePrint");
                 $scope.observations = $scope.obsData || $scope.observations;
                 $q.all([getUser(JSON.parse(user))]).then(function (response) {
@@ -247,55 +394,17 @@ angular.module('bahmni.registration')
                 else {
                     $scope.observations.room = 'opd';
                 }
-                var getAge = function (dateString) {
-                    var today = new Date();
-                    var birthDate = new Date(dateString);
-                    let by = Number.parseFloat(birthDate.getFullYear()),
-                        bm = Number.parseFloat(birthDate.getMonth()),
-                        bd = Number.parseFloat(birthDate.getDate()),
-                        ty = Number.parseFloat(today.getFullYear()),
-                        tm = Number.parseFloat(today.getMonth()),
-                        td = Number.parseFloat(today.getDate());
-                    let years = 0, months = 0, days = 0;
-                    if (td < bd) {
-                        tm = tm - 1;
-                        if (tm < 0) {
-                            ty = ty - 1;
-                            tm = 11;
-                        }
-                        td = td + new Date(ty, tm + 1, 0).getDate();
-                    }
-                    if (tm < bm) {
-                        ty = ty - 1;
-                        tm = tm + 12;
-                    }
-                    years = ty - by;
-                    months = tm - bm;
-                    days = td - bd;
-                    if (months < 0) {
-                        years = years - 1;
-                        months = months + 12;
-                    }
-                    let result = '';
-                    if (years > 0) {
-                        result += years + ' Y ';
-                    }
-                    else {
-                        if (months > 0) {
-                            result += months + ' M ';
-                        }
-                        if (days > 0) {
-                            result += days + ' D';
-                        }
-                    }
-
-                    return result;
-                };
                 $scope.obs = obs;
                 registrationCardPrinter.print(reprint.templateUrl, $scope.patient, $scope.obs, $scope.encounterDateTime, $scope.observations);
             };
             $scope.reprintHide = true;
             $scope.reprintAdmissionForm = function () {
+                if(!systemDeveloper){
+                    $timeout(function () {
+                        $scope.patient.access = true;
+                    }, 500);
+                }
+         
                 let reprint = appService.getAppDescriptor().getConfigValue("afterSavePrintIPD");
                 $scope.observations = $scope.obsData || $scope.observations;
                 $scope.observations.preVisitDate = $scope.preVisitDate;
