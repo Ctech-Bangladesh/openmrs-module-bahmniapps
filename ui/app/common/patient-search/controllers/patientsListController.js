@@ -203,7 +203,12 @@ angular.module('bahmni.common.patientSearch')
                     link = _.find($scope.search.searchType.links, { linkColumn: heading }) || link;
                 }
                 if (link.url && link.url !== null) {
-                    $window.open(appService.getAppDescriptor().formatUrl(link.url, options, true), link.newTab ? "_blank" : "_self");
+                    if (link.url === "#/default/patient/{{patientUuid}}/dashboard?encounterUuid=active") {
+                        $window.location.href = (`https://${$window.location.hostname}:5555/public/to-patient-clinical-dashboard/${patient.uuid}`);
+                    }
+                    else {
+                        $window.open(appService.getAppDescriptor().formatUrl(link.url, options, true), link.newTab ? "_blank" : "_self");
+                    }
                 }
             };
             var getPatientCountSeriallyBySearchIndex = function (index) {
