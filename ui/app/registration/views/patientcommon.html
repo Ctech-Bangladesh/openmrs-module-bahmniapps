@@ -98,6 +98,21 @@
                 </div>
             </article>
         </section>
+        <section>
+            <article>
+                <section class="age-wrapper">
+                    <div style="display: flex;position: relative;left:133px;" ng-if="::!dobMandatory">
+                        <div>
+                            <ng-include src="'views/age.html'"></ng-include>
+                        </div>
+            
+                    </div>
+                    <div ng-if="::dobMandatory">
+                        <ng-include src="'views/age.html'"></ng-include>
+                    </div>
+                </section>
+            </article>
+        </section>
         <section class="form-field form-field-gender">
             <article class="form-field">
                 <div class="field-attribute">
@@ -121,7 +136,7 @@
                     </div>-->
                 </div>
             </article>
-
+           
 
         </section>
         

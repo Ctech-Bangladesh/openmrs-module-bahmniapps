@@ -248,6 +248,7 @@ angular.module('bahmni.registration')
                 };
 
                 $scope.print = function (option) {
+                    window.location.href = "/bahmni/registration/#/patient/new";
                     return registrationCardPrinter.print(option.templateUrl, $scope.patient, mapRegistrationObservations(), $scope.encounterDateTime, $scope.observations);
                 };
 
