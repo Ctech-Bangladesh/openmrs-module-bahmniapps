@@ -46,6 +46,12 @@ angular.module('bahmni.registration')
                     withCredentials: true
                 });
             };
+            var getCreator = function (id) {
+                return $http.get(`/openmrs/ws/rest/v1/patientprofile/${id}?v=full`, {
+                    method: "GET",
+                    withCredentials: true
+                });
+            };
             $scope.reprintHide = true;
             $scope.reprint = function () {
                 let reprint = appService.getAppDescriptor().getConfigValue("afterSavePrint");
@@ -54,6 +60,18 @@ angular.module('bahmni.registration')
                     if (response[0].data.results.length > 0) {
                         $q.all([getApiData(response[0].data.results[0].links[0].uri.split('/openmrs')[1])]).then(function (response) {
                             $scope.observations.user = response[0].data.person.display;
+                        });
+                    }
+                });
+                $q.all([getCreator($stateParams.patientUuid)]).then(function (response) {
+                    if (response[0].data.patient.auditInfo) {
+                        let auditInfoCreator = response[0].data.patient.auditInfo.creator;
+                        $q.all([getUser(auditInfoCreator.display)]).then(function (response) {
+                            if (response[0].data.results.length > 0) {
+                                $q.all([getApiData(response[0].data.results[0].links[0].uri.split('/openmrs')[1])]).then(function (response) {
+                                    $scope.observations.patientCreator = response[0].data.person.display;
+                                });
+                            }
                         });
                     }
                 });
