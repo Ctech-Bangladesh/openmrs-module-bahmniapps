@@ -542,23 +542,12 @@ angular.module('bahmni.registration')
                 $scope.actions.followUpAction(patientProfileData);
             };
 
-            $scope.generateHealthId = function (jumpAccepted) {
+            $scope.generateHealthId = function (jumpAccepted, spinnerToken) {
                 const districtName = $scope.patient.address.countyDistrict;
                 const upazilaName = $scope.patient.address.address5;
                 let divisionId = "";
                 let districtId = "";
                 let upazilaId = "";
-                const transformNIDData = (data) => {
-                    return {
-                        performer: $rootScope.currentUser.uuid,
-                        nidOrBrn: data.nationalId ? data.nationalId : data.birthRegistrationId,
-                        type: data.nationalId ? "nid" : "brn",
-                        name: data.familyName ? `${data.givenName} ${data.familyName}` : `${data.givenName}`,
-                        mobile: data.phoneNumber,
-                        dob: convertToYYYYMMDD(data.birthdate)
-
-                    };
-                };
                 const transformNidVerifyData = (data, nidInformation) => {
                     const nidData = nidInformation.citizenData;
                     // const userUuid = $rootScope.currentUser.uuid;
@@ -627,6 +616,9 @@ angular.module('bahmni.registration')
                 const patientCreate = (patientData, jumpAccepted) => {
                     return patientService.create(patientData, jumpAccepted).then(
                         function (response) {
+                            $timeout(function () {
+                                spinner.hide(spinnerToken);
+                            });
                             copyPatientProfileDataToScope(response);
                         },
                         function (response) {
@@ -915,12 +907,8 @@ angular.module('bahmni.registration')
 
             var createPatient = function (jumpAccepted) {
                 if (healthIDEnable) {
-                    $scope.generateHealthId(jumpAccepted);
-                    return new Promise(function (resolve, reject) {
-                        $timeout(function () {
-                            resolve({});
-                        }, 3000);
-                    });
+                    const spinnerToken = spinner.show();
+                    $scope.generateHealthId(jumpAccepted, spinnerToken);
                 } else {
                     return patientService
                         .create($scope.patient, jumpAccepted)
