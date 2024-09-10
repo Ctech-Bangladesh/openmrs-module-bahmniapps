@@ -542,7 +542,7 @@ angular.module('bahmni.registration')
                 $scope.actions.followUpAction(patientProfileData);
             };
 
-            $scope.generateHealthId = function (jumpAccepted, spinnerToken) {
+            var generateHealthId = function (jumpAccepted, resolve) {
                 const districtName = $scope.patient.address.countyDistrict;
                 const upazilaName = $scope.patient.address.address5;
                 let divisionId = "";
@@ -614,11 +614,11 @@ angular.module('bahmni.registration')
                     };
                 };
                 const patientCreate = (patientData, jumpAccepted) => {
+                    $timeout(function () {
+                        resolve({});
+                    });
                     return patientService.create(patientData, jumpAccepted).then(
                         function (response) {
-                            $timeout(function () {
-                                spinner.hide(spinnerToken);
-                            });
                             copyPatientProfileDataToScope(response);
                         },
                         function (response) {
@@ -907,8 +907,9 @@ angular.module('bahmni.registration')
 
             var createPatient = function (jumpAccepted) {
                 if (healthIDEnable) {
-                    const spinnerToken = spinner.show();
-                    $scope.generateHealthId(jumpAccepted, spinnerToken);
+                    return new Promise(function (resolve, reject) {
+                        generateHealthId(jumpAccepted, resolve);
+                    });
                 } else {
                     return patientService
                         .create($scope.patient, jumpAccepted)
