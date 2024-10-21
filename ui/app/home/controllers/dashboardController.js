@@ -26,7 +26,7 @@ angular.module('bahmni.home')
                             return response.json();
                         })
                         .then(res => {
-                            if (res?.content?.object) {
+                            if (res && res.content && res.content.object) {
                                 const userProviderData = JSON.parse(res.content.object);
                                 $timeout(function () {
                                     $scope.providerFacility = userProviderData.organization.display;
