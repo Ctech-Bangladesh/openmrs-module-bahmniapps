@@ -19,7 +19,7 @@ angular.module('bahmni.registration')
                     withCredentials: true
                 });
             };
-            
+
             $q.all([getUserRole()]).then(function (response) {
                 var result = response[0].data.results;
                 var providerUuid = $rootScope.currentUser.person.uuid;
@@ -30,7 +30,6 @@ angular.module('bahmni.registration')
                 var verify = roles.filter(role => role.name === "System Developer");
                 var userVerify = roles.filter(role => role.name === "Registration-Write");
 
-
                 if (verify.length === 0) {
                     var refresh = $window.localStorage.getItem('refresh');
                     if (refresh === null) {
@@ -39,8 +38,7 @@ angular.module('bahmni.registration')
                     }
                     $scope.patient.access = true;
                     $scope.allowRePrint = false;
-                } else
-                {
+                } else {
                     $timeout(function () {
                         systemDeveloper = true;
                         let apiURL = "/openmrs/ws/rest/v1/bahmnicore/observations?" +
@@ -69,21 +67,20 @@ angular.module('bahmni.registration')
                             const value = $cookies.get("bahmni.user.location");
                             let filterWithoutRoom = $scope.obsData.filter(data => data.conceptNameToDisplay !== 'Opd Consultation Room');
                             let filterRoom = $scope.obsData.filter(data => data.conceptNameToDisplay === 'Opd Consultation Room');
-                            let filterEmergency = filterRoom.filter(data => data.formFieldPath.includes('Emergency'));
-                            let filterWithoutEmergency = filterRoom.filter(data => !data.formFieldPath.includes('Emergency'));
+                            let filterEmergency = filterRoom.filter(data => data?.formFieldPath?.includes('Emergency'));
+                            let filterWithoutEmergency = filterRoom.filter(data => !data?.formFieldPath?.includes('Emergency'));
                             if (JSON.parse(value).name.toLowerCase().includes('emergency')) {
                                 $scope.obsData = [...filterWithoutRoom, ...filterEmergency];
                             }
                             else {
                                 $scope.obsData = [...filterWithoutRoom, ...filterWithoutEmergency];
                             }
-                
                         });
                         let IPDFormValidateURL = "/openmrs/ws/rest/v1/obs?patient=" + uuid + "&concept=Visit%20Type";
                         $http({
                             method: "GET",
                             url: IPDFormValidateURL
-                        }).then(function mySuccess(response) {
+                        }).then(function mySuccess (response) {
                             if (response.data.results.length > 0) {
                                 $scope.allowRePrintIPD = true;
                             }
@@ -138,7 +135,7 @@ angular.module('bahmni.registration')
                                 });
                             }
                         });
-                        
+
                         var getDispositionProvider = function () {
                             return $http.get(`/openmrs/ws/rest/v1/obs?limit=1&concepts=Disposition&patient=${$stateParams.patientUuid}`, {
                                 method: "GET",
@@ -169,7 +166,7 @@ angular.module('bahmni.registration')
                         });
                     }, 500);
                     $scope.patient.access = false;
-                };
+                }
                 if (userVerify.length === 0) {
                     var refresh = $window.localStorage.getItem('refresh');
                     if (refresh === null) {
@@ -177,8 +174,7 @@ angular.module('bahmni.registration')
                         $window.localStorage.setItem('refresh', "1");
                     }
                     $scope.allowRePrint = false;
-                } else
-                {
+                } else {
                     $timeout(function () {
                         let apiURL = "/openmrs/ws/rest/v1/bahmnicore/observations?" +
                             "concept=Fee+Category&concept=Free+Type&" +
@@ -206,21 +202,20 @@ angular.module('bahmni.registration')
                             const value = $cookies.get("bahmni.user.location");
                             let filterWithoutRoom = $scope.obsData.filter(data => data.conceptNameToDisplay !== 'Opd Consultation Room');
                             let filterRoom = $scope.obsData.filter(data => data.conceptNameToDisplay === 'Opd Consultation Room');
-                            let filterEmergency = filterRoom.filter(data => data.formFieldPath.includes('Emergency'));
-                            let filterWithoutEmergency = filterRoom.filter(data => !data.formFieldPath.includes('Emergency'));
+                            let filterEmergency = filterRoom.filter(data => data?.formFieldPath?.includes('Emergency'));
+                            let filterWithoutEmergency = filterRoom.filter(data => !data?.formFieldPath?.includes('Emergency'));
                             if (JSON.parse(value).name.toLowerCase().includes('emergency')) {
                                 $scope.obsData = [...filterWithoutRoom, ...filterEmergency];
                             }
                             else {
                                 $scope.obsData = [...filterWithoutRoom, ...filterWithoutEmergency];
                             }
-                
                         });
                         let IPDFormValidateURL = "/openmrs/ws/rest/v1/obs?patient=" + uuid + "&concept=Visit%20Type";
                         $http({
                             method: "GET",
                             url: IPDFormValidateURL
-                        }).then(function mySuccess(response) {
+                        }).then(function mySuccess (response) {
                             if (response.data.results.length > 0) {
                                 $scope.allowRePrintIPD = true;
                             }
@@ -275,7 +270,7 @@ angular.module('bahmni.registration')
                                 });
                             }
                         });
-                        
+
                         var getDispositionProvider = function () {
                             return $http.get(`/openmrs/ws/rest/v1/obs?limit=1&concepts=Disposition&patient=${$stateParams.patientUuid}`, {
                                 method: "GET",
@@ -306,7 +301,6 @@ angular.module('bahmni.registration')
                         });
                     }, 500);
                 }
-                
             });
 
             $scope.actions = {};
@@ -344,7 +338,7 @@ angular.module('bahmni.registration')
                     withCredentials: true
                 });
             };
-            
+
             var user = $cookies.get("bahmni.user");
             var getUser = function (data) {
                 return $http.get(`/openmrs/ws/rest/v1/user?username=${data}`, {
@@ -354,7 +348,7 @@ angular.module('bahmni.registration')
             };
             $scope.reprintHide = true;
             $scope.reprint = function () {
-                if(!systemDeveloper){
+                if (!systemDeveloper) {
                     $timeout(function () {
                         $scope.patient.access = true;
                     }, 500);
@@ -399,12 +393,12 @@ angular.module('bahmni.registration')
             };
             $scope.reprintHide = true;
             $scope.reprintAdmissionForm = function () {
-                if(!systemDeveloper){
+                if (!systemDeveloper) {
                     $timeout(function () {
                         $scope.patient.access = true;
                     }, 500);
                 }
-         
+
                 let reprint = appService.getAppDescriptor().getConfigValue("afterSavePrintIPD");
                 $scope.observations = $scope.obsData || $scope.observations;
                 $scope.observations.preVisitDate = $scope.preVisitDate;
@@ -429,9 +423,20 @@ angular.module('bahmni.registration')
                                 });
                             }
                         });
-
                     }
                 });
+                var getProviderDesignation = function (providerUuid) {
+                    var params = {
+                        q: "bahmni.sqlGet.providerDesignation2",
+                        v: "full",
+                        providerUuid: providerUuid
+                    };
+                    return $http.get('/openmrs/ws/rest/v1/bahmnicore/sql', {
+                        method: "GET",
+                        params: params,
+                        withCredentials: true
+                    });
+                };
                 const ipdDoctor = $scope.observations.filter(data => data.conceptNameToDisplay === "IPD Assigned Doctor");
                 if (ipdDoctor.length > 0) {
                     $q.all([getProviderDesignation(ipdDoctor[0].complexData.data.uuid)]).then(function (response) {
