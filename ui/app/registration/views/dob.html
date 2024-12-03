@@ -5,15 +5,16 @@
     <div class="field-value">
         <input ng-disabled="patient.access" id="birthdate" type="date" ng-model="patient.birthdate"  max="{{::today}}"
                ng-change="patient.calculateAge()" ng-blur="handleUpdate('birthdate')" ng-required="::dobMandatory">
+               <div class="field-value">
+                <input type="checkbox" ng-model="patient.birthdateEstimated" ng-blur="handleUpdate('birthdateEstimated')"
+                       class="estimate-check">
+            </div>
+            <div class="field-attribute estimated-label">
+                <label for="birthdate">{{ ::'REGISTRATION_LABEL_ESTIMATE' | translate}}</label>
+            </div>
     </div>
     <!-- <div class="showOn-desktop-registration">
-        <div class="field-value">
-            <input type="checkbox" ng-model="patient.birthdateEstimated" ng-blur="handleUpdate('birthdateEstimated')"
-                   class="estimate-check">
-        </div>
-        <div class="field-attribute estimated-label">
-            <label for="birthdate">{{ ::'REGISTRATION_LABEL_ESTIMATE' | translate}}</label>
-        </div>
+        
     </div> -->
     <!-- <div class="showOn-small-screen-registration clearfix">
         <div class="field-attribute estimated-label">
