@@ -184,7 +184,7 @@ angular.module('bahmni.home')
                     );
                 };
 
-                const loginBahmni = (hrisLoggedIn, uuid) => {
+                const loginBahmni = (hrisLoggedIn, uuid, hrisRes) => {
                     sessionService.loginUser($scope.loginInfo.username, checkAndFormatPassword($scope.loginInfo.password), $scope.loginInfo.currentLocation, $scope.loginInfo.otp).then(
                         function (data) {
                             ensureNoSessionIdInRoot();
@@ -216,7 +216,7 @@ angular.module('bahmni.home')
                             );
                         },
                         function (error) {
-                            if (error === 'LOGIN_LABEL_LOGIN_ERROR_MESSAGE_KEY' && hrisLoggedIn) {
+                            if (error === 'LOGIN_LABEL_LOGIN_ERROR_MESSAGE_KEY' && hrisLoggedIn && hrisRes?.access_token) {
                                 // check if user exists in the system, if exists already and is not able to login,
                                 const userData = {
                                     "newPassword": checkAndFormatPassword($scope.loginInfo.password)
