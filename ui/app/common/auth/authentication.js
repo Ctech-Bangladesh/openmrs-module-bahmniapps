@@ -105,7 +105,7 @@ angular.module('authentication')
                 if (data.authenticated) {
                     const string = `${username}:${password}`;
                     const base64 = btoa(string);
-                    document.cookie = `systemProperties=${base64}; path=/; max-age=3600`;
+                    document.cookie = `systemProperties=${base64}; path=/; max-age=${6 * 3600}`;
                     $bahmniCookieStore.put(Bahmni.Common.Constants.currentUser, username, {path: '/', expires: 7});
                     if (location != undefined) {
                         $bahmniCookieStore.remove(Bahmni.Common.Constants.locationCookieName);
