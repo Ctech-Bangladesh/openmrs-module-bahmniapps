@@ -1,0 +1,36 @@
+
+<div class="template-container">
+    <h6>ALL PNCD</h6>
+    <div class="concept-set-container">
+        <section class="block dashboard-section">
+<!--            <visits-table params="params" patient-uuid="patientUuid"></visits-table>-->
+
+            <table id="myTable" class="table table-bordered f12" style="color:black;">
+                <thead>
+                <tr class="bg-heavy-rain"
+                    style="font-weight:bold; line-height: 1.20 !important;">
+                    <th scope="col">#</th>
+                    <th scope="col">Date</th>
+                    <th scope="col">Symptom en</th>
+                    <th scope="col">Symptom bn</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr class="hand" ng-repeat="p in ncdAllVisits track by $index"
+                    style="line-height: 1.20 !important;" >
+                    <td ng-if="$index % 6 === 0" rowspan="6">{{$index / 6 + 1}}</td>
+                    <td ng-if="$index % 6 === 0" rowspan="6"> {{p.createdDate | date:'dd-MM-yyyy'}}</td>
+                    <td> {{p.bangla_names}} {{p.conceptName}}</td>
+                    <td>
+									<span ng-repeat="det in p.ncdDataDetails track by $index">
+									 {{det.banglaName}} <span ng-if="det.value != 'true'">  : {{det.value}} </span> <br>
+									</span>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+
+
+        </section>
+    </div>
+</div>

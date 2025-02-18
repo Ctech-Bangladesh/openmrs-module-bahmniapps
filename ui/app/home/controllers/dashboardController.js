@@ -35,7 +35,6 @@ angular.module('bahmni.home')
                             } else {
                                 localStorage.removeItem('providerFacility');
                             }
-
                         });
                 }
             });
