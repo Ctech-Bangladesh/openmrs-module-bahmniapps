@@ -182,14 +182,7 @@ angular.module('bahmni.common.patientSearch')
                 }
 
                 var redirect = function () {
-                    if (link.url && link.url !== null) {
-                        if (link.url === "#/default/patient/{{patientUuid}}/dashboard?encounterUuid=active") {
-                            $window.location.href = (`https://${$window.location.hostname}:5555/public/to-patient-clinical-dashboard/${patient.uuid}`);
-                        }
-                        else {
-                            $window.open(appService.getAppDescriptor().formatUrl(link.url, options, true), link.newTab ? "_blank" : "_self");
-                        }
-                    }
+                    $window.open(appService.getAppDescriptor().formatUrl(link.url, options, true), link.newTab ? "_blank" : "_self");
                 };
 
                 fetch(`https://${$window.location.hostname}/openmrs/ws/rest/v1/patient/${patient.uuid}?v=full`)
