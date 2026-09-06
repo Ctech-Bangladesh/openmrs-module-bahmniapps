@@ -540,7 +540,18 @@ module.exports = function (grunt) {
     grunt.registerTask('build', [
         'npm-install',
         'bower-install',
-        'bundle'
+        'bundle',
+        // 'bundle' ends at usemin, leaving <module>.min.<hash>.js/css at the dist
+        // ROOT, while each dist/<module>/index.html references './<module>.min.<hash>.css'
+        // i.e. INSIDE the module directory. 'rename:minified' moves them there.
+        // Without it every module 404s and Angular reports [$injector:nomod].
+        // It previously lived only in 'uglify-and-rename', which 'build' never called.
+        //
+        // Only 'rename:minified' is added, NOT the whole 'uglify-and-rename': the
+        // 'uglify' step uses an ES5-only uglify-js that aborts on the ES6 (template
+        // literals, arrow functions, spread) in this customised source. uglify runs
+        // with mangle:false, so it only strips whitespace and skipping it costs little.
+        'rename:minified'
     ]);
 
     grunt.registerTask('uglify-and-rename', [
