@@ -1,0 +1,250 @@
+/* eAppointment (DGHS / NICVD) screen.
+   Uses the shared Bahmni palette from bahmni-helper/_variables so the page sits inside the
+   existing application instead of looking like a separate product. */
+
+.eapp-page {
+  padding: 15px 20px 40px;
+  font-size: 13px;
+  color: $darkGray;
+
+  .eapp-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    border-bottom: 1px solid $lighterGray;
+    padding-bottom: 8px;
+    margin-bottom: 15px;
+
+    h2 {
+      margin: 0;
+      font-size: 20px;
+      color: $bahmniPrimaryColor;
+
+      small {
+        font-size: 12px;
+        color: $mediumGray;
+        margin-left: 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+    }
+
+    .eapp-count {
+      color: $mediumGray;
+      font-size: 12px;
+    }
+  }
+
+  /* --- filter bar --- */
+  .eapp-filter {
+    background: $lightestGray;
+    border: 1px solid $lighterGray;
+    border-radius: 3px;
+    padding: 12px 15px;
+    margin-bottom: 15px;
+
+    form {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-end;
+    }
+
+    .eapp-field {
+      display: flex;
+      flex-direction: column;
+      margin-right: 18px;
+      margin-bottom: 5px;
+
+      label {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        color: $mediumGray;
+        margin-bottom: 4px;
+      }
+
+      input[type="date"] {
+        height: 30px;
+        padding: 2px 6px;
+        border: 1px solid $lightGray;
+        border-radius: 2px;
+        font-size: 13px;
+      }
+    }
+
+    .eapp-actions {
+      flex-direction: row;
+      align-items: center;
+
+      button {
+        margin-right: 8px;
+      }
+    }
+  }
+
+  /* --- buttons --- */
+  .eapp-btn-secondary {
+    background: $white;
+    border: 1px solid $lightGray;
+    color: $darkGray;
+    border-radius: 2px;
+    height: 30px;
+    padding: 0 14px;
+    cursor: pointer;
+
+    &:hover:not(:disabled) {
+      background: $lightestGray;
+      border-color: $darkerGrey;
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+
+  .eapp-btn-sm {
+    height: 26px;
+    padding: 0 10px;
+    font-size: 12px;
+  }
+
+  /* --- messages --- */
+  .eapp-message {
+    padding: 9px 12px;
+    border-radius: 3px;
+    margin-bottom: 12px;
+    border-left: 3px solid;
+
+    i {
+      margin-right: 6px;
+    }
+  }
+
+  .eapp-message-error {
+    background: $clinicalFormInvalid;
+    border-left-color: $clinicalRemoveBtn;
+    color: $clinicalRemoveBtn;
+  }
+
+  .eapp-message-ok {
+    background: #eaf7ec;
+    border-left-color: $bahmniSectionHeaderColor;
+    color: $bahmniPrimaryColor;
+  }
+
+  .eapp-message-info {
+    background: $clinicalInfoMessageBg;
+    border-left-color: $bahmniTertiaryColor;
+    color: $bahmniPrimaryColor;
+  }
+
+  .eapp-empty {
+    text-align: center;
+    padding: 45px 15px;
+    color: $mediumGray;
+
+    i {
+      font-size: 34px;
+      display: block;
+      margin-bottom: 10px;
+      opacity: 0.5;
+    }
+
+    p {
+      margin: 0;
+    }
+  }
+
+  /* --- table: many columns, so it scrolls horizontally instead of breaking layout --- */
+  .eapp-table-wrap {
+    overflow-x: auto;
+    border: 1px solid $lighterGray;
+    border-radius: 3px;
+    background: $white;
+  }
+
+  .eapp-table {
+    width: 100%;
+    border-collapse: collapse;
+    white-space: nowrap;
+
+    th {
+      background: $bahmniTableHeaderBg;
+      text-align: left;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      color: $mediumGray;
+      padding: 9px 10px;
+      border-bottom: 1px solid $lighterGray;
+    }
+
+    td {
+      padding: 8px 10px;
+      border-bottom: 1px solid $lightestGray;
+      vertical-align: middle;
+    }
+
+    tbody tr:hover {
+      background: $clinicalNotesColor;
+    }
+
+    .eapp-strong {
+      font-weight: 600;
+      color: $darkGray;
+    }
+
+    .eapp-nowrap {
+      white-space: nowrap;
+    }
+  }
+
+  .eapp-muted {
+    color: $mediumGray;
+    font-size: 12px;
+  }
+
+  /* --- status badges --- */
+  .eapp-badge {
+    display: inline-block;
+    padding: 2px 9px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    white-space: nowrap;
+  }
+
+  .eapp-badge-booked  { background: $clinicalHighlight; color: #1f5c74; }
+  .eapp-badge-visited { background: #e2f3e7; color: $bahmniPrimaryColor; }
+  .eapp-badge-warn    { background: $clinicalFormWarning; color: #8a5a12; }
+  .eapp-badge-error   { background: $clinicalFormInvalid; color: $clinicalRemoveBtn; }
+  .eapp-badge-busy    { background: $lightestGray; color: $mediumGray; }
+  .eapp-badge-paid    { background: #e2f3e7; color: $bahmniPrimaryColor; }
+  .eapp-badge-unpaid  { background: $lightestGray; color: $mediumGray; }
+
+  /* --- pager --- */
+  .eapp-pager {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    margin-top: 12px;
+
+    span {
+      margin: 0 12px;
+    }
+  }
+}
+
+/* Narrow screens: stack the filter fields rather than squeezing them. */
+@media (max-width: 768px) {
+  .eapp-page .eapp-filter form {
+    flex-direction: column;
+    align-items: stretch;
+
+    .eapp-field {
+      margin-right: 0;
+    }
+  }
+}

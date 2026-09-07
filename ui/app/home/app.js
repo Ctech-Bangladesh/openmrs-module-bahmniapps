@@ -41,6 +41,16 @@ angular.module('bahmni.home', ['ui.router', 'httpErrorInterceptor', 'bahmni.comm
                         }
                     }
                 })
+            .state('eAppointment', {
+                url: '/eAppointment',
+                controller: 'EAppointmentController',
+                templateUrl: 'views/eAppointment.html',
+                data: {
+                    backLinks: [
+                        {label: 'Home', state: 'dashboard', accessKey: 'h', icon: 'fa-home'}
+                    ]
+                }
+            })
             .state('errorLog', {
                 url: '/errorLog',
                 controller: 'ErrorLogController',
