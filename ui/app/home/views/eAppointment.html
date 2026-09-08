@@ -73,7 +73,6 @@
                 <th class="eapp-col-date">Date</th>
                 <th class="eapp-col-slot">Slot</th>
                 <th class="eapp-col-patient">Patient</th>
-                <th class="eapp-col-room">Assigned Room</th>
                 <th>নাম</th>
                 <th>Phone</th>
                 <th>Health ID</th>
@@ -84,6 +83,7 @@
                 <th>Unit</th>
                 <th>Payment</th>
                 <th>Status</th>
+                <th class="eapp-col-room">Assigned Room</th>
                 <th class="eapp-col-action">Action</th>
             </tr>
             </thead>
@@ -93,8 +93,6 @@
                 <td class="eapp-col-date">{{appointment.appointmentDate}}</td>
                 <td class="eapp-nowrap eapp-col-slot">{{appointment.slot}}</td>
                 <td class="eapp-strong eapp-col-patient">{{appointment.patientName}}</td>
-                <td class="eapp-col-room" title="{{roomName(appointment)}}"
-                    ng-class="{'eapp-muted': !hasRoom(appointment)}">{{roomName(appointment)}}</td>
                 <td>{{appointment.patientNameBn}}</td>
                 <td class="eapp-nowrap">{{appointment.patientPhone}}</td>
                 <td>{{appointment.patientHealthId}}</td>
@@ -112,6 +110,8 @@
                     </span>
                 </td>
                 <td><span ng-class="statusClass(appointment)">{{statusLabel(appointment)}}</span></td>
+                <td class="eapp-col-room" title="{{roomName(appointment)}}"
+                    ng-class="{'eapp-muted': !hasRoom(appointment)}">{{roomName(appointment)}}</td>
                 <td class="eapp-nowrap eapp-col-action">
                     <button class="confirm eapp-btn-sm"
                             ng-if="canMarkVisited(appointment)"
