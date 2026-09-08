@@ -1,6 +1,6 @@
 <div class="eapp-page">
     <div class="eapp-header">
-        <h2>eAppointment <small>DGHS / NICVD</small></h2>
+        <h2>eAppointment</h2>
         <span class="eapp-count" ng-if="!loading && searched">
             {{filtered.length}} appointment<span ng-if="filtered.length !== 1">s</span><span
                 ng-if="patientFilter.text.trim()"> of {{appointments.length}}</span>
@@ -73,6 +73,7 @@
                 <th class="eapp-col-date">Date</th>
                 <th class="eapp-col-slot">Slot</th>
                 <th class="eapp-col-patient">Patient</th>
+                <th class="eapp-col-room">Assigned Room</th>
                 <th>নাম</th>
                 <th>Phone</th>
                 <th>Health ID</th>
@@ -92,6 +93,8 @@
                 <td class="eapp-col-date">{{appointment.appointmentDate}}</td>
                 <td class="eapp-nowrap eapp-col-slot">{{appointment.slot}}</td>
                 <td class="eapp-strong eapp-col-patient">{{appointment.patientName}}</td>
+                <td class="eapp-col-room" title="{{roomName(appointment)}}"
+                    ng-class="{'eapp-muted': !hasRoom(appointment)}">{{roomName(appointment)}}</td>
                 <td>{{appointment.patientNameBn}}</td>
                 <td class="eapp-nowrap">{{appointment.patientPhone}}</td>
                 <td>{{appointment.patientHealthId}}</td>
@@ -112,7 +115,7 @@
                 <td class="eapp-nowrap eapp-col-action">
                     <button class="confirm eapp-btn-sm"
                             ng-if="canMarkVisited(appointment)"
-                            ng-click="openRoomModal(appointment)">Visited</button>
+                            ng-click="openRoomModal(appointment)">Assign to Room</button>
 
                     <button class="eapp-btn-secondary eapp-btn-sm"
                             ng-if="canRetryCallback(appointment)"

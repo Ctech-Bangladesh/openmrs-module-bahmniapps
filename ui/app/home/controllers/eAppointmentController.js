@@ -63,6 +63,48 @@ angular.module('bahmni.home')
                 submitting: false
             };
 
+            // Assigned-room display. The backend already persists the chosen room on the
+            // appointment as opdRoomLocationId (DghsAppointment.opdRoomLocationId, set by the
+            // Assign to Room workflow), so the assignment survives a page refresh. Only the NAME
+            // has to be resolved, and it is resolved from the very same room list the modal uses -
+            // no hard-coded names, no second source of room data.
+            var roomNames = {};        // location id -> room name
+            var roomsLoaded = false;
+
+            var cacheRooms = function (rooms) {
+                (rooms || []).forEach(function (room) {
+                    roomNames[room.id] = room.name;
+                });
+                roomsLoaded = true;
+            };
+
+            var loadRoomNames = function () {
+                $http.get(ROOM_LIST_URL, {withCredentials: true}).then(function (response) {
+                    cacheRooms((response.data && response.data.results) || []);
+                }).catch(function () {
+                    roomsLoaded = true;   // give up quietly; the id is still shown below
+                });
+            };
+
+            $scope.roomName = function (appointment) {
+                var id = appointment && appointment.opdRoomLocationId;
+                if (id === null || id === undefined || id === '') {
+                    return 'Not Assigned';
+                }
+                if (roomNames[id]) {
+                    return roomNames[id];
+                }
+                // Assigned, but the name is not available: either the list is still in flight, or
+                // the room has since been retired/renamed. Never claim "Not Assigned" - that would
+                // misreport a real assignment.
+                return roomsLoaded ? 'Room ' + id : '\u2026';
+            };
+
+            $scope.hasRoom = function (appointment) {
+                var id = appointment && appointment.opdRoomLocationId;
+                return id !== null && id !== undefined && id !== '';
+            };
+
             // Provider uuid of the logged-in doctor. The encounter must be attributed to them,
             // not to a service account, or the provider-keyed search
             // (emrapi.sqlSearch.activePatientsByProvider, filtering pr.uuid = ${provider_uuid})
@@ -130,6 +172,7 @@ angular.module('bahmni.home')
 
                 $http.get(ROOM_LIST_URL, {withCredentials: true}).then(function (response) {
                     m.rooms = (response.data && response.data.results) || [];
+                    cacheRooms(m.rooms);   // keeps the row labels in step with the dropdown
                     if (m.rooms.length === 0) {
                         m.error = 'No OPD Consultation Room is configured for this location.';
                     }
@@ -395,5 +438,6 @@ angular.module('bahmni.home')
             };
 
             resolveProviderUuid();   // resolve the logged-in doctor up front
+            loadRoomNames();         // so assigned rooms are named on first paint
             $scope.search();
         }]);

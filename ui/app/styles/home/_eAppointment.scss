@@ -1,4 +1,4 @@
-/* eAppointment (DGHS / NICVD) screen.
+/* eAppointment screen.
    Uses the shared Bahmni palette from bahmni-helper/_variables so the page sits inside the
    existing application instead of looking like a separate product. */
 
@@ -281,17 +281,11 @@
     .eapp-col-slot    { left: 165px; width: 160px; min-width: 160px; max-width: 160px; }
     .eapp-col-patient { left: 325px; width: 235px; min-width: 235px; max-width: 235px; }
 
-    /* Separator on the last pinned column only, mirroring the Action column's. A box-shadow is
-       used rather than a border because `border-collapse: collapse` drops borders on sticky
-       cells in several browsers. */
-    .eapp-col-patient {
-      box-shadow: 4px 0 6px -4px rgba(0, 0, 0, 0.18);
-    }
-
     th.eapp-col-serial,
     th.eapp-col-date,
     th.eapp-col-slot,
-    th.eapp-col-patient {
+    th.eapp-col-patient,
+    th.eapp-col-room {
       z-index: 3;
       background: $bahmniTableHeaderBg;
     }
@@ -299,13 +293,53 @@
     tbody tr:hover .eapp-col-serial,
     tbody tr:hover .eapp-col-date,
     tbody tr:hover .eapp-col-slot,
-    tbody tr:hover .eapp-col-patient {
+    tbody tr:hover .eapp-col-patient,
+    tbody tr:hover .eapp-col-room {
+      background: $clinicalNotesColor;
+    }
+
+
+    /* --- sticky Assigned Room column ---
+       Pinned as the LAST member of the left-hand group (after Patient at 325px + its 235px), so
+       the room a patient was assigned to is on screen at all times, whatever the horizontal
+       scroll position.
+
+       It lives on the left rather than beside Action for a concrete reason: a right-pinned column
+       has to declare its offset as the width of everything to its right, and `table-layout: auto`
+       treats width/max-width on a cell as advisory - the Action column measured 171px against a
+       declared 150px, so the last 21px of a room name sat underneath it. On the left the offset
+       is the sum of the four columns BEFORE it, which are already pinned to exact widths, and
+       this column's own width constrains nothing. That lets it size itself to its content under
+       `white-space: nowrap`, which is what keeps long names uncut, and a table gives the header
+       cell the same width as the body cells, so alignment holds for free.
+
+       min-width stops the "Assigned Room" heading being squeezed when every row reads
+       "Not Assigned"; max-width is only a sanity stop for an absurd location name and sits well
+       above the longest real one. No overflow/ellipsis: clipping is what this removes. */
+    .eapp-col-room {
+      position: sticky;
+      left: 560px;
+      z-index: 2;
+      background: $white;
+      min-width: 140px;
+      max-width: 360px;
+      padding-right: 14px;
+      /* End-of-group separator, previously carried by Patient. */
+      box-shadow: 4px 0 6px -4px rgba(0, 0, 0, 0.18);
+    }
+
+    th.eapp-col-room {
+      z-index: 3;
+      background: $bahmniTableHeaderBg;
+    }
+
+    tbody tr:hover .eapp-col-room {
       background: $clinicalNotesColor;
     }
 
     /* --- sticky Action column ---
-       The table has 15 columns and scrolls horizontally inside .eapp-table-wrap. Pinning the
-       last column to the right edge keeps the Visited button reachable without scrolling.
+       The table has 16 columns and scrolls horizontally inside .eapp-table-wrap. Pinning the
+       last column to the right edge keeps the Assign to Room button reachable without scrolling.
        An opaque background is essential: sticky cells sit above the scrolling content, so a
        transparent one would let the other columns show through. The header cell needs a higher
        z-index than the body cells so it stays above them where they meet.
@@ -462,15 +496,18 @@
   }
 }
 
-/* The four leading pinned columns occupy 515px. Below roughly 1100px that plus the pinned
-   Action column would leave too little room to scroll the remaining columns, so unpin the
-   leading ones there and keep only Action fixed - the behaviour before this change. */
-@media (max-width: 1100px) {
+/* The five leading pinned columns occupy 560px plus whatever Assigned Room needs (about 230px for
+   the longest real room name). Below about 1280px that frozen block plus the pinned Action column
+   would leave too little room to scroll the rest, so unpin the leading group there and keep only
+   Action fixed. Assigned Room then scrolls with the table - still uncut - rather than eating the
+   viewport. */
+@media (max-width: 1280px) {
   .eapp-page .eapp-table {
     .eapp-col-serial,
     .eapp-col-date,
     .eapp-col-slot,
-    .eapp-col-patient {
+    .eapp-col-patient,
+    .eapp-col-room {
       position: static;
       max-width: none;
       box-shadow: none;
