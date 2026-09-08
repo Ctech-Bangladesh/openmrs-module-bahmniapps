@@ -39,6 +39,15 @@ angular.module('bahmni.home')
             // and shadows the parent, so the controller never sees what the user typed. Binding
             // to search.text writes through the prototype chain to this same object.
             $scope.patientFilter = {text: ''};
+            // Same object-wrapper reason as patientFilter: these controls live inside the same
+            // ng-if, so binding ng-model to a bare primitive would write to the child scope and
+            // the controller would never see the selection. Empty string means "no restriction",
+            // which is what the placeholder <option value=""> in each select binds to.
+            $scope.listFilter = {department: '', status: ''};
+            // Department options, derived from the appointments actually loaded - never a
+            // hard-coded list. Rebuilt on every search, so a changed API response changes the
+            // dropdown.
+            $scope.departments = [];
             $scope.loading = false;
             $scope.searched = false;
             $scope.error = null;
@@ -260,17 +269,66 @@ angular.module('bahmni.home')
                 return false;
             };
 
+            // Department options come straight from the records on screen: distinct, non-blank
+            // departmentName values (the field the Department column already renders), sorted.
+            // If the range returns three departments the dropdown offers exactly those three;
+            // five returns five.
+            var rebuildDepartments = function () {
+                var seen = {};
+                var names = [];
+                $scope.appointments.forEach(function (appointment) {
+                    var name = (appointment.departmentName || '').trim();
+                    if (name && !seen[name]) {
+                        seen[name] = true;
+                        names.push(name);
+                    }
+                });
+                names.sort();
+                $scope.departments = names;
+                // A department that is no longer present must not stay selected, or the list
+                // would silently show nothing with no obvious way back.
+                if ($scope.listFilter.department && !seen[$scope.listFilter.department]) {
+                    $scope.listFilter.department = '';
+                }
+            };
+
+            // Status reuses the backend's own syncStatus through the existing isVisited() helper -
+            // no separate frontend status field. "Booked" is everything not yet visited, which is
+            // exactly the set that still offers the Assign to Room action.
+            var matchesStatus = function (appointment) {
+                if (!$scope.listFilter.status) {
+                    return true;
+                }
+                return $scope.listFilter.status === 'VISITED'
+                    ? $scope.isVisited(appointment)
+                    : !$scope.isVisited(appointment);
+            };
+
+            var matchesDepartment = function (appointment) {
+                return !$scope.listFilter.department
+                    || (appointment.departmentName || '').trim() === $scope.listFilter.department;
+            };
+
             // Search runs over every record loaded for the date range, not just the visible page,
             // because the backend returns the whole range in one response and paging is local.
+            // All three filters are applied in one pass, so Search + Department + Status compose
+            // rather than override each other.
             var applyFilter = function () {
                 var term = ($scope.patientFilter.text || '').trim();
-                if (!term) {
+                if (!term && !$scope.listFilter.department && !$scope.listFilter.status) {
                     $scope.filtered = $scope.appointments;
-                } else {
-                    $scope.filtered = $scope.appointments.filter(function (appointment) {
-                        return matches(appointment, term);
-                    });
+                    return;
                 }
+                $scope.filtered = $scope.appointments.filter(function (appointment) {
+                    return matchesDepartment(appointment)
+                        && matchesStatus(appointment)
+                        && (!term || matches(appointment, term));
+                });
+            };
+
+            $scope.hasListFilters = function () {
+                return !!($scope.patientFilter.text || $scope.listFilter.department
+                    || $scope.listFilter.status);
             };
 
             var applyPaging = function () {
@@ -283,17 +341,28 @@ angular.module('bahmni.home')
                 $scope.pagedAppointments = $scope.filtered.slice(start, start + PAGE_SIZE);
             };
 
-            // Called on every keystroke; filtering resets to page 1 so results are never hidden
-            // behind a page number left over from the previous result set.
-            $scope.onSearchChanged = function () {
+            // Called on every keystroke and on every dropdown change; filtering resets to page 1
+            // so results are never hidden behind a page number left over from the previous set.
+            $scope.onFilterChanged = function () {
                 applyFilter();
                 $scope.currentPage = 1;
                 applyPaging();
             };
 
+            $scope.onSearchChanged = $scope.onFilterChanged;   // the search box binds to this name
+
             $scope.clearSearch = function () {
                 $scope.patientFilter.text = '';
-                $scope.onSearchChanged();
+                $scope.onFilterChanged();
+            };
+
+            // Clears the list filters only. The date range and the loaded data are untouched, so
+            // nothing is re-fetched.
+            $scope.clearListFilters = function () {
+                $scope.patientFilter.text = '';
+                $scope.listFilter.department = '';
+                $scope.listFilter.status = '';
+                $scope.onFilterChanged();
             };
 
             $scope.goToPage = function (page) {
@@ -329,10 +398,12 @@ angular.module('bahmni.home')
                 }).then(function (response) {
                     $scope.appointments = (response.data && response.data.content) || [];
                     $scope.currentPage = 1;
-                    applyFilter();   // keep any active patient search applied to the new results
+                    rebuildDepartments();
+                    applyFilter();   // keep any active filters applied to the new results
                     applyPaging();
                 }).catch(function (response) {
                     $scope.appointments = [];
+                    rebuildDepartments();
                     applyFilter();
                     applyPaging();
                     $scope.error = errorText(response, 'Could not load appointments.');
@@ -345,7 +416,10 @@ angular.module('bahmni.home')
             $scope.reset = function () {
                 $scope.fromDate = startOfToday();
                 $scope.toDate = startOfToday();
-                $scope.patientFilter.text = '';   // Reset returns the full list, not a filtered one
+                // Reset returns the full list, not a filtered one.
+                $scope.patientFilter.text = '';
+                $scope.listFilter.department = '';
+                $scope.listFilter.status = '';
                 $scope.error = null;
                 $scope.notice = null;
                 $scope.search();

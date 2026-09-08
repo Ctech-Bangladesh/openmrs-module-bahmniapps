@@ -3,7 +3,7 @@
         <h2>eAppointment</h2>
         <span class="eapp-count" ng-if="!loading && searched">
             {{filtered.length}} appointment<span ng-if="filtered.length !== 1">s</span><span
-                ng-if="patientFilter.text.trim()"> of {{appointments.length}}</span>
+                ng-if="hasListFilters()"> of {{appointments.length}}</span>
         </span>
     </div>
 
@@ -30,14 +30,42 @@
     </div>
 
     <div class="eapp-search" ng-if="!loading && appointments.length">
-        <label for="eapp-patient-search">Search by Name / Mobile Number / Health ID</label>
-        <div class="eapp-search-box">
-            <i class="fa fa-search"></i>
-            <input id="eapp-patient-search" type="text" ng-model="patientFilter.text"
-                   ng-change="onSearchChanged()"
-                   placeholder="Type a patient name, mobile number or Health ID…"/>
-            <button type="button" class="eapp-search-clear" ng-if="patientFilter.text"
-                    ng-click="clearSearch()" title="Clear search">&times;</button>
+        <div class="eapp-search-field">
+            <label for="eapp-patient-search">Search by Name / Mobile Number / Health ID</label>
+            <div class="eapp-search-box">
+                <i class="fa fa-search"></i>
+                <input id="eapp-patient-search" type="text" ng-model="patientFilter.text"
+                       ng-change="onSearchChanged()"
+                       placeholder="Type a patient name, mobile number or Health ID…"/>
+                <button type="button" class="eapp-search-clear" ng-if="patientFilter.text"
+                        ng-click="clearSearch()" title="Clear search">&times;</button>
+            </div>
+        </div>
+
+        <!-- Options come from scope.departments, which the controller derives from the
+             departmentName values in the loaded appointments. Nothing here is hard-coded. -->
+        <div class="eapp-search-field eapp-search-select">
+            <label for="eapp-department">Department</label>
+            <select id="eapp-department" ng-model="listFilter.department"
+                    ng-change="onFilterChanged()"
+                    ng-options="department as department for department in departments">
+                <option value="">All Departments</option>
+            </select>
+        </div>
+
+        <!-- Values map onto the backend's syncStatus via the controller's isVisited(). -->
+        <div class="eapp-search-field eapp-search-select">
+            <label for="eapp-status">Status</label>
+            <select id="eapp-status" ng-model="listFilter.status" ng-change="onFilterChanged()">
+                <option value="">All</option>
+                <option value="BOOKED">Booked</option>
+                <option value="VISITED">Visited</option>
+            </select>
+        </div>
+
+        <div class="eapp-search-field eapp-search-clear-all" ng-if="hasListFilters()">
+            <button type="button" class="eapp-btn-secondary eapp-btn-sm"
+                    ng-click="clearListFilters()">Clear filters</button>
         </div>
     </div>
 
@@ -60,9 +88,12 @@
     <div class="eapp-empty"
          ng-if="!loading && appointments.length && filtered.length === 0 && !error">
         <i class="fa fa-search"></i>
-        <p>No appointment matches &ldquo;{{patientFilter.text}}&rdquo;.</p>
+        <p ng-if="patientFilter.text.trim()">No appointment matches
+            &ldquo;{{patientFilter.text}}&rdquo;<span ng-if="listFilter.department || listFilter.status">
+            with the selected filters</span>.</p>
+        <p ng-if="!patientFilter.text.trim()">No appointment matches the selected filters.</p>
         <p><button type="button" class="eapp-btn-secondary eapp-btn-sm"
-                   ng-click="clearSearch()">Clear search</button></p>
+                   ng-click="clearListFilters()">Clear filters</button></p>
     </div>
 
     <div class="eapp-table-wrap" ng-if="!loading && pagedAppointments.length">
