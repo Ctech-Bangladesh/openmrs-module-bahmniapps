@@ -1,8 +1,8 @@
 'use strict';
 
 angular.module('bahmni.home')
-    .controller('EAppointmentController', ['$scope', '$http', '$window',
-        function ($scope, $http, $window) {
+    .controller('EAppointmentController', ['$scope', '$http', '$window', '$rootScope',
+        function ($scope, $http, $window, $rootScope) {
             // Same-origin path, reverse-proxied by Apache to support-util on loopback:6061.
             // Using the existing 443 listener means no extra firewall port, no CORS, and the
             // backend stays unreachable from the network. The DGHS base URLs, the HRIS access
@@ -46,6 +46,137 @@ angular.module('bahmni.home')
             $scope.busyAppointment = null;
             $scope.currentPage = 1;
             $scope.totalPages = 1;
+
+            // OPD Consultation Room selection. The room list comes from the SAME endpoint the
+            // Registration "Room To Assign" form uses to populate its dropdown, so eAppointment
+            // shows exactly the same rooms. No separate room-management implementation.
+            var ROOM_LIST_URL = '/openmrs/module/bahmnicustomutil/getLocationBylocationTagNameAndLoginLocation.form'
+                + '?locationTagName=OpdConsultationRoom&loginLocation=OPD';
+
+            $scope.roomModal = {
+                open: false,
+                appointment: null,
+                rooms: [],
+                selectedId: null,
+                loading: false,
+                error: null,
+                submitting: false
+            };
+
+            // Provider uuid of the logged-in doctor. The encounter must be attributed to them,
+            // not to a service account, or the provider-keyed search
+            // (emrapi.sqlSearch.activePatientsByProvider, filtering pr.uuid = ${provider_uuid})
+            // will never return the patient for that doctor - and every doctor would otherwise
+            // see everyone's patients. Resolved exactly as Bahmni's own auth does, via
+            // /openmrs/ws/rest/v1/provider?user=<userUuid>.
+            var providerUuid = null;
+
+            var resolveProviderUuid = function () {
+                if (providerUuid) {
+                    return;
+                }
+                // Fast path: the app framework resolved it at login (appService.initApp ->
+                // sessionService.loadProviders), exactly as Registration and Clinical rely on.
+                if ($rootScope.currentProvider && $rootScope.currentProvider.uuid) {
+                    providerUuid = $rootScope.currentProvider.uuid;
+                    return;
+                }
+                // Slow path, for a direct hit on #/eAppointment before the framework has run:
+                // ask OpenMRS who the session belongs to, then look their provider up the same
+                // way sessionService.loadProviders does.
+                var fromUser = function (userUuid) {
+                    return $http.get(Bahmni.Common.Constants.providerUrl, {
+                        method: 'GET',
+                        params: {user: userUuid},
+                        cache: false
+                    }).then(function (response) {
+                        var results = (response.data && response.data.results) || [];
+                        if (results.length) {
+                            providerUuid = results[0].uuid;
+                            $rootScope.currentProvider = {uuid: providerUuid};
+                        }
+                    });
+                };
+
+                if ($rootScope.currentUser && $rootScope.currentUser.uuid) {
+                    fromUser($rootScope.currentUser.uuid).catch(angular.noop);
+                    return;
+                }
+
+                $http.get(Bahmni.Common.Constants.RESTWS_V1 + '/session', {cache: false})
+                    .then(function (response) {
+                        var user = response.data && response.data.user;
+                        if (user && user.uuid) {
+                            return fromUser(user.uuid);
+                        }
+                    }).catch(angular.noop);
+                // Left null on failure: the backend then falls back to its configured service
+                // provider, so the room assignment still succeeds - just not attributed to this
+                // doctor, and the UI surfaces nothing misleading.
+            };
+
+            $scope.openRoomModal = function (appointment) {
+                if ($scope.busyAppointment) { return; }
+                $scope.error = null;
+                $scope.notice = null;
+                resolveProviderUuid();   // refresh in case login completed after page load
+                var m = $scope.roomModal;
+                m.open = true;
+                m.appointment = appointment;
+                m.selectedId = null;
+                m.error = null;
+                m.submitting = false;
+                m.loading = true;
+
+                $http.get(ROOM_LIST_URL, {withCredentials: true}).then(function (response) {
+                    m.rooms = (response.data && response.data.results) || [];
+                    if (m.rooms.length === 0) {
+                        m.error = 'No OPD Consultation Room is configured for this location.';
+                    }
+                }).catch(function () {
+                    m.rooms = [];
+                    m.error = 'Could not load the OPD Consultation Room list.';
+                }).finally(function () {
+                    m.loading = false;
+                });
+            };
+
+            $scope.closeRoomModal = function () {
+                $scope.roomModal.open = false;
+                $scope.roomModal.appointment = null;
+            };
+
+            // Submit completes the Visited workflow. Nothing is submitted until a room is chosen.
+            $scope.submitRoom = function () {
+                var m = $scope.roomModal;
+                if (m.submitting) {
+                    return;
+                }
+                if (!m.selectedId) {
+                    m.error = 'Please select an OPD Consultation Room.';
+                    return;
+                }
+                m.error = null;
+                m.submitting = true;
+                var appointment = m.appointment;
+                var suffix = '/visited?roomLocationId=' + encodeURIComponent(m.selectedId);
+                if (providerUuid) {
+                    suffix += '&providerUuid=' + encodeURIComponent(providerUuid);
+                }
+                post(appointment, suffix,
+                    function (updated) {
+                        $scope.closeRoomModal();
+                        if (updated.callbackStatus === 'FAILED') {
+                            $scope.error = 'Appointment marked as Visited locally, but DGHS '
+                                + 'synchronization failed. Please retry synchronization.';
+                        } else {
+                            $scope.notice = 'Visited successfully.';
+                        }
+                    },
+                    function () {
+                        m.submitting = false;
+                    });
+            };
 
             var errorText = function (response, fallback) {
                 if (response && response.data && response.data.message) {
@@ -215,7 +346,7 @@ angular.module('bahmni.home')
                     && !$scope.busyAppointment;
             };
 
-            var post = function (appointment, suffix, onDone) {
+            var post = function (appointment, suffix, onDone, onError) {
                 if ($scope.busyAppointment) {   // guards against double submission
                     return;
                 }
@@ -233,6 +364,9 @@ angular.module('bahmni.home')
                         onDone(appointment);
                     }).catch(function (response) {
                         $scope.error = errorText(response, 'The operation could not be completed.');
+                        if (onError) {
+                            onError(response);   // lets the room modal re-enable its Submit button
+                        }
                     }).finally(function () {
                         $scope.busyAppointment = null;
                     });
@@ -260,5 +394,6 @@ angular.module('bahmni.home')
                 });
             };
 
+            resolveProviderUuid();   // resolve the logged-in doctor up front
             $scope.search();
         }]);

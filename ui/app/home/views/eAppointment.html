@@ -112,7 +112,7 @@
                 <td class="eapp-nowrap eapp-col-action">
                     <button class="confirm eapp-btn-sm"
                             ng-if="canMarkVisited(appointment)"
-                            ng-click="markVisited(appointment)">Visited</button>
+                            ng-click="openRoomModal(appointment)">Visited</button>
 
                     <button class="eapp-btn-secondary eapp-btn-sm"
                             ng-if="canRetryCallback(appointment)"
@@ -136,6 +136,54 @@
             </tr>
             </tbody>
         </table>
+    </div>
+
+    <!-- OPD Consultation Room selection. Nothing is submitted until a room is chosen; the
+         Visited workflow only runs on Submit. Rooms come from the same endpoint the
+         Registration "Room To Assign" form uses. -->
+    <div class="eapp-modal-backdrop" ng-if="roomModal.open" ng-click="closeRoomModal()"></div>
+    <div class="eapp-modal" ng-if="roomModal.open">
+        <div class="eapp-modal-head">
+            <h3>OPD Consultation Room</h3>
+            <button type="button" class="eapp-modal-close" ng-click="closeRoomModal()"
+                    title="Cancel">&times;</button>
+        </div>
+
+        <div class="eapp-modal-body">
+            <p class="eapp-muted" ng-if="roomModal.appointment">
+                {{roomModal.appointment.patientName}}
+                <span ng-if="roomModal.appointment.patientHealthId">
+                    &middot; Health ID {{roomModal.appointment.patientHealthId}}</span>
+            </p>
+
+            <div class="eapp-message eapp-message-info" ng-if="roomModal.loading">
+                <i class="fa fa-spinner fa-spin"></i> Loading rooms…
+            </div>
+
+            <div class="eapp-message eapp-message-error" ng-if="roomModal.error">
+                <i class="fa fa-exclamation-triangle"></i> {{roomModal.error}}
+            </div>
+
+            <div class="eapp-field" ng-if="!roomModal.loading && roomModal.rooms.length">
+                <label for="eapp-room">Select Room</label>
+                <select id="eapp-room" ng-model="roomModal.selectedId"
+                        ng-options="room.id as room.name for room in roomModal.rooms"
+                        ng-disabled="roomModal.submitting">
+                    <option value="">-- Select an OPD Consultation Room --</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="eapp-modal-foot">
+            <button type="button" class="eapp-btn-secondary" ng-click="closeRoomModal()"
+                    ng-disabled="roomModal.submitting">Cancel</button>
+            <button type="button" class="confirm" ng-click="submitRoom()"
+                    ng-disabled="roomModal.submitting || roomModal.loading">
+                <span ng-if="!roomModal.submitting">Submit</span>
+                <span ng-if="roomModal.submitting">
+                    <i class="fa fa-spinner fa-spin"></i> Processing…</span>
+            </button>
+        </div>
     </div>
 
     <div class="eapp-pager" ng-if="!loading && totalPages > 1">
