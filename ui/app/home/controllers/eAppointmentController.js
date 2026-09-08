@@ -31,8 +31,14 @@ angular.module('bahmni.home')
 
             $scope.fromDate = startOfToday();
             $scope.toDate = startOfToday();
-            $scope.appointments = [];
-            $scope.pagedAppointments = [];
+            $scope.appointments = [];      // everything returned for the date range
+            $scope.filtered = [];          // after the patient search
+            $scope.pagedAppointments = []; // the page currently rendered
+            // Object wrapper, not a primitive: the search input lives inside an ng-if, which
+            // creates a CHILD SCOPE. Binding ng-model to a primitive there writes to the child
+            // and shadows the parent, so the controller never sees what the user typed. Binding
+            // to search.text writes through the prototype chain to this same object.
+            $scope.patientFilter = {text: ''};
             $scope.loading = false;
             $scope.searched = false;
             $scope.error = null;
@@ -55,14 +61,65 @@ angular.module('bahmni.home')
                 return fallback;
             };
 
+            // Phone numbers arrive in varying shapes (spaces, dashes, +88 prefix), so both the
+            // query and the stored value are reduced to digits before comparing.
+            var digitsOnly = function (value) {
+                return (value || '').replace(/\D/g, '');
+            };
+
+            var matches = function (appointment, term) {
+                var lower = term.toLowerCase();
+                var name = (appointment.patientName || '').toLowerCase();
+                var nameBn = (appointment.patientNameBn || '');
+                var healthId = (appointment.patientHealthId || '').toLowerCase();
+                var nid = (appointment.patientNidBrn || '').toLowerCase();
+
+                if (name.indexOf(lower) !== -1) { return true; }
+                if (nameBn.indexOf(term) !== -1) { return true; }   // Bangla: no case folding
+                if (healthId.indexOf(lower) !== -1) { return true; }
+                if (nid.indexOf(lower) !== -1) { return true; }
+
+                var queryDigits = digitsOnly(term);
+                if (queryDigits && digitsOnly(appointment.patientPhone).indexOf(queryDigits) !== -1) {
+                    return true;
+                }
+                return false;
+            };
+
+            // Search runs over every record loaded for the date range, not just the visible page,
+            // because the backend returns the whole range in one response and paging is local.
+            var applyFilter = function () {
+                var term = ($scope.patientFilter.text || '').trim();
+                if (!term) {
+                    $scope.filtered = $scope.appointments;
+                } else {
+                    $scope.filtered = $scope.appointments.filter(function (appointment) {
+                        return matches(appointment, term);
+                    });
+                }
+            };
+
             var applyPaging = function () {
                 $scope.totalPages =
-                    Math.max(1, Math.ceil($scope.appointments.length / PAGE_SIZE));
+                    Math.max(1, Math.ceil($scope.filtered.length / PAGE_SIZE));
                 if ($scope.currentPage > $scope.totalPages) {
                     $scope.currentPage = $scope.totalPages;
                 }
                 var start = ($scope.currentPage - 1) * PAGE_SIZE;
-                $scope.pagedAppointments = $scope.appointments.slice(start, start + PAGE_SIZE);
+                $scope.pagedAppointments = $scope.filtered.slice(start, start + PAGE_SIZE);
+            };
+
+            // Called on every keystroke; filtering resets to page 1 so results are never hidden
+            // behind a page number left over from the previous result set.
+            $scope.onSearchChanged = function () {
+                applyFilter();
+                $scope.currentPage = 1;
+                applyPaging();
+            };
+
+            $scope.clearSearch = function () {
+                $scope.patientFilter.text = '';
+                $scope.onSearchChanged();
             };
 
             $scope.goToPage = function (page) {
@@ -98,9 +155,11 @@ angular.module('bahmni.home')
                 }).then(function (response) {
                     $scope.appointments = (response.data && response.data.content) || [];
                     $scope.currentPage = 1;
+                    applyFilter();   // keep any active patient search applied to the new results
                     applyPaging();
                 }).catch(function (response) {
                     $scope.appointments = [];
+                    applyFilter();
                     applyPaging();
                     $scope.error = errorText(response, 'Could not load appointments.');
                 }).finally(function () {
@@ -112,6 +171,7 @@ angular.module('bahmni.home')
             $scope.reset = function () {
                 $scope.fromDate = startOfToday();
                 $scope.toDate = startOfToday();
+                $scope.patientFilter.text = '';   // Reset returns the full list, not a filtered one
                 $scope.error = null;
                 $scope.notice = null;
                 $scope.search();

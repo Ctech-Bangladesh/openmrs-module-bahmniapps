@@ -2,7 +2,8 @@
     <div class="eapp-header">
         <h2>eAppointment <small>DGHS / NICVD</small></h2>
         <span class="eapp-count" ng-if="!loading && searched">
-            {{appointments.length}} appointment<span ng-if="appointments.length !== 1">s</span>
+            {{filtered.length}} appointment<span ng-if="filtered.length !== 1">s</span><span
+                ng-if="patientFilter.text.trim()"> of {{appointments.length}}</span>
         </span>
     </div>
 
@@ -28,6 +29,18 @@
         </form>
     </div>
 
+    <div class="eapp-search" ng-if="!loading && appointments.length">
+        <label for="eapp-patient-search">Search by Name / Mobile Number / Health ID</label>
+        <div class="eapp-search-box">
+            <i class="fa fa-search"></i>
+            <input id="eapp-patient-search" type="text" ng-model="patientFilter.text"
+                   ng-change="onSearchChanged()"
+                   placeholder="Type a patient name, mobile number or Health ID…"/>
+            <button type="button" class="eapp-search-clear" ng-if="patientFilter.text"
+                    ng-click="clearSearch()" title="Clear search">&times;</button>
+        </div>
+    </div>
+
     <div class="eapp-message eapp-message-error" ng-if="error">
         <i class="fa fa-exclamation-triangle"></i> {{error}}
     </div>
@@ -44,14 +57,22 @@
         <p>No appointments found for the selected date range.</p>
     </div>
 
+    <div class="eapp-empty"
+         ng-if="!loading && appointments.length && filtered.length === 0 && !error">
+        <i class="fa fa-search"></i>
+        <p>No appointment matches &ldquo;{{patientFilter.text}}&rdquo;.</p>
+        <p><button type="button" class="eapp-btn-secondary eapp-btn-sm"
+                   ng-click="clearSearch()">Clear search</button></p>
+    </div>
+
     <div class="eapp-table-wrap" ng-if="!loading && pagedAppointments.length">
         <table class="eapp-table">
             <thead>
             <tr>
-                <th>Serial</th>
-                <th>Date</th>
-                <th>Slot</th>
-                <th>Patient</th>
+                <th class="eapp-col-serial">Serial</th>
+                <th class="eapp-col-date">Date</th>
+                <th class="eapp-col-slot">Slot</th>
+                <th class="eapp-col-patient">Patient</th>
                 <th>নাম</th>
                 <th>Phone</th>
                 <th>Health ID</th>
@@ -62,15 +83,15 @@
                 <th>Unit</th>
                 <th>Payment</th>
                 <th>Status</th>
-                <th>Action</th>
+                <th class="eapp-col-action">Action</th>
             </tr>
             </thead>
             <tbody>
             <tr ng-repeat="appointment in pagedAppointments">
-                <td>{{appointment.serial}}</td>
-                <td>{{appointment.appointmentDate}}</td>
-                <td class="eapp-nowrap">{{appointment.slot}}</td>
-                <td class="eapp-strong">{{appointment.patientName}}</td>
+                <td class="eapp-col-serial">{{appointment.serial}}</td>
+                <td class="eapp-col-date">{{appointment.appointmentDate}}</td>
+                <td class="eapp-nowrap eapp-col-slot">{{appointment.slot}}</td>
+                <td class="eapp-strong eapp-col-patient">{{appointment.patientName}}</td>
                 <td>{{appointment.patientNameBn}}</td>
                 <td class="eapp-nowrap">{{appointment.patientPhone}}</td>
                 <td>{{appointment.patientHealthId}}</td>
@@ -88,7 +109,7 @@
                     </span>
                 </td>
                 <td><span ng-class="statusClass(appointment)">{{statusLabel(appointment)}}</span></td>
-                <td class="eapp-nowrap">
+                <td class="eapp-nowrap eapp-col-action">
                     <button class="confirm eapp-btn-sm"
                             ng-if="canMarkVisited(appointment)"
                             ng-click="markVisited(appointment)">Visited</button>
