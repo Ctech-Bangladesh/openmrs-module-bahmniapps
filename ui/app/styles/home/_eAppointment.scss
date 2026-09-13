@@ -388,6 +388,23 @@
       box-shadow: -4px 0 6px -4px rgba(0, 0, 0, 0.18);
     }
 
+    /* Every state the Action cell can be in - the button, the spinner, the tick - is given
+       one identical footprint. Without this the cell swaps a ~105px button for a ~85px
+       "Assigning…" label and the sticky column resizes mid-request, which reads as the whole
+       table twitching. */
+    .eapp-action-slot {
+      display: inline-block;
+      box-sizing: border-box;
+      min-width: 118px;
+      /* Height too, not just width: the busy state is a <span> while the idle state is a
+         <button>, and a span is ~6px shorter. That difference shortened the row and pulled
+         every row beneath it upward mid-request. 26px matches .eapp-btn-sm exactly. */
+      height: 26px;
+      line-height: 26px;
+      text-align: center;
+      vertical-align: middle;
+    }
+
     th.eapp-col-action {
       z-index: 3;
       background: $bahmniTableHeaderBg;

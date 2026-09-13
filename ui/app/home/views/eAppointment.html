@@ -147,26 +147,28 @@
                 <td class="eapp-col-room" title="{{roomName(appointment)}}"
                     ng-class="{'eapp-muted': !hasRoom(appointment)}">{{roomName(appointment)}}</td>
                 <td class="eapp-nowrap eapp-col-action">
-                    <button class="confirm eapp-btn-sm"
+                    <button class="confirm eapp-btn-sm eapp-action-slot"
                             ng-if="canMarkVisited(appointment)"
                             ng-click="openRoomModal(appointment)">Assign to Room</button>
 
-                    <button class="eapp-btn-secondary eapp-btn-sm"
+                    <button class="eapp-btn-secondary eapp-btn-sm eapp-action-slot"
                             ng-if="canRetryCallback(appointment)"
                             ng-click="retryCallback(appointment)"
                             title="Local visit succeeded; retry DGHS synchronization.">
                         Retry sync
                     </button>
 
-                    <span class="eapp-muted"
-                          ng-if="busyAppointment === appointment.externalAppointmentId">
-                        <i class="fa fa-spinner fa-spin"></i> Processing…
+                    <!-- Shown only for the row being processed. Other rows keep their own
+                         button, unchanged and in place. fa-spin is the Font Awesome animation
+                         already bundled with this Bahmni build - no new dependency. -->
+                    <span class="eapp-muted eapp-action-slot" ng-if="isBusy(appointment)">
+                        <i class="fa fa-spinner fa-spin"></i> Assigning…
                     </span>
 
-                    <span class="eapp-muted"
+                    <span class="eapp-muted eapp-action-slot"
                           ng-if="isVisited(appointment)
                                  && appointment.callbackStatus !== 'FAILED'
-                                 && busyAppointment !== appointment.externalAppointmentId">
+                                 && !isBusy(appointment)">
                         <i class="fa fa-check"></i> Done
                     </span>
                 </td>

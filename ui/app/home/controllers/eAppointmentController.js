@@ -1,8 +1,8 @@
 'use strict';
 
 angular.module('bahmni.home')
-    .controller('EAppointmentController', ['$scope', '$http', '$window', '$rootScope',
-        function ($scope, $http, $window, $rootScope) {
+    .controller('EAppointmentController', ['$scope', '$http', '$window', '$rootScope', '$timeout',
+        function ($scope, $http, $window, $rootScope, $timeout) {
             // Same-origin path, reverse-proxied by Apache to support-util on loopback:6061.
             // Using the existing 443 listener means no extra firewall port, no CORS, and the
             // backend stays unreachable from the network. The DGHS base URLs, the HRIS access
@@ -52,7 +52,41 @@ angular.module('bahmni.home')
             $scope.searched = false;
             $scope.error = null;
             $scope.notice = null;
-            $scope.busyAppointment = null;
+            $scope.busyAppointment = null;   // id of the row currently being processed
+
+            // True only for the row actually being processed. Every predicate below asks this
+            // instead of testing busyAppointment for truthiness, which is what previously made
+            // one click blank out the Action cell of every other row.
+            $scope.isBusy = function (appointment) {
+                return !!appointment
+                    && $scope.busyAppointment === appointment.externalAppointmentId;
+            };
+
+            // Success notices are transient: they announce something that already finished, so
+            // leaving them on screen just accumulates stale text. Errors are deliberately NOT
+            // routed through here - those stay until the user acts on them.
+            var noticeTimer = null;
+            var NOTICE_MS = 5000;
+
+            var clearNotice = function () {
+                if (noticeTimer) {
+                    $timeout.cancel(noticeTimer);
+                    noticeTimer = null;
+                }
+                $scope.notice = null;
+            };
+
+            // Cancelling the previous timer first is what stops an older assignment's timer from
+            // wiping a newer assignment's message part-way through its own five seconds.
+            var setNotice = function (text) {
+                clearNotice();
+                $scope.notice = text;
+                noticeTimer = $timeout(function () {
+                    noticeTimer = null;
+                    $scope.notice = null;
+                }, NOTICE_MS);
+            };
+
             $scope.currentPage = 1;
             $scope.totalPages = 1;
 
@@ -201,7 +235,7 @@ angular.module('bahmni.home')
             $scope.openRoomModal = function (appointment) {
                 if ($scope.busyAppointment) { return; }
                 $scope.error = null;
-                $scope.notice = null;
+                clearNotice();
                 resolveProviderUuid();   // refresh in case login completed after page load
                 var m = $scope.roomModal;
                 m.open = true;
@@ -254,7 +288,7 @@ angular.module('bahmni.home')
                             $scope.error = 'Appointment marked as Visited locally, but DGHS '
                                 + 'synchronization failed. Please retry synchronization.';
                         } else {
-                            $scope.notice = 'Visited successfully.';
+                            setNotice('Visited successfully.');
                         }
                     },
                     function () {
@@ -419,7 +453,7 @@ angular.module('bahmni.home')
 
             $scope.search = function () {
                 $scope.error = null;
-                $scope.notice = null;
+                clearNotice();
                 if (!validRange()) {
                     return;
                 }
@@ -453,14 +487,14 @@ angular.module('bahmni.home')
                 $scope.listFilter.department = '';
                 $scope.listFilter.status = '';
                 $scope.error = null;
-                $scope.notice = null;
+                clearNotice();
                 $scope.search();
             };
 
             // The authoritative status is the backend's syncStatus/callbackStatus, never a
             // frontend-only flag.
             $scope.statusLabel = function (appointment) {
-                if ($scope.busyAppointment === appointment.externalAppointmentId) {
+                if ($scope.isBusy(appointment)) {
                     return 'Processing...';
                 }
                 if (appointment.syncStatus === 'VISITED') {
@@ -485,14 +519,18 @@ angular.module('bahmni.home')
                 return appointment.syncStatus === 'VISITED';
             };
 
+            // Only this row's own state decides whether its button shows. Previously both of
+            // these ended in "&& !$scope.busyAppointment" - a single global slot - so as soon as
+            // any row was processing, ng-if removed the button from EVERY row and the Action
+            // column collapsed and reflowed.
             $scope.canMarkVisited = function (appointment) {
-                return !$scope.isVisited(appointment) && !$scope.busyAppointment;
+                return !$scope.isVisited(appointment) && !$scope.isBusy(appointment);
             };
 
             $scope.canRetryCallback = function (appointment) {
                 return $scope.isVisited(appointment)
                     && appointment.callbackStatus === 'FAILED'
-                    && !$scope.busyAppointment;
+                    && !$scope.isBusy(appointment);
             };
 
             var post = function (appointment, suffix, onDone, onError) {
@@ -500,7 +538,7 @@ angular.module('bahmni.home')
                     return;
                 }
                 $scope.error = null;
-                $scope.notice = null;
+                clearNotice();
                 $scope.busyAppointment = appointment.externalAppointmentId;
 
                 $http.post(baseUrl + '/' + appointment.externalAppointmentId + suffix, {},
@@ -527,7 +565,7 @@ angular.module('bahmni.home')
                         $scope.error = 'Appointment marked as Visited locally, but DGHS '
                             + 'synchronization failed. Please retry synchronization.';
                     } else {
-                        $scope.notice = 'Visited successfully.';
+                        setNotice('Visited successfully.');
                     }
                 });
             };
@@ -538,7 +576,7 @@ angular.module('bahmni.home')
                         $scope.error = 'DGHS synchronization still failing. '
                             + 'The local Visited state is kept; you can retry again.';
                     } else {
-                        $scope.notice = 'DGHS synchronization completed.';
+                        setNotice('DGHS synchronization completed.');
                     }
                 });
             };
