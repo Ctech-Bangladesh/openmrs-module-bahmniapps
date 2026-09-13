@@ -95,6 +95,38 @@ angular.module('bahmni.home')
                 });
             };
 
+            // "Room Name" column. This is the room designation as it arrives on the
+            // appointment record itself (DGHS field room_name) - distinct from the OPD
+            // Consultation Room this facility later assigns, which is rendered by
+            // roomName() below from opdRoomLocationId.
+            //
+            // Both spellings are read because the two layers disagree on convention: the
+            // upstream DGHS payload is snake_case (patient_name, department_name, unit_name)
+            // while support-util re-serialises its own records in camelCase (patientName,
+            // departmentName, unitName). Whichever layer eventually carries the field, the
+            // column picks it up without another frontend change.
+            var rawRoomName = function (appointment) {
+                if (!appointment) {
+                    return null;
+                }
+                var value = appointment.room_name;
+                if (value === null || value === undefined || value === '') {
+                    value = appointment.roomName;
+                }
+                return value === null || value === undefined || value === '' ? null : value;
+            };
+
+            $scope.hasSourceRoomName = function (appointment) {
+                return rawRoomName(appointment) !== null;
+            };
+
+            // Displayed verbatim - no formatting, no derivation. An em dash marks a genuinely
+            // absent value so an empty cell never reads as a rendering fault.
+            $scope.sourceRoomName = function (appointment) {
+                var value = rawRoomName(appointment);
+                return value === null ? '\u2014' : String(value);
+            };
+
             $scope.roomName = function (appointment) {
                 var id = appointment && appointment.opdRoomLocationId;
                 if (id === null || id === undefined || id === '') {

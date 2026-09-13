@@ -349,6 +349,15 @@
        keeps the room name on one line, and with no width cap the column sizes itself to the
        longest name on the page - so no ellipsis and no clipping. Header and body widths match
        automatically because they are cells of the same table column. */
+    /* --- Room Name column ---
+       The room designation carried on the appointment record itself, shown immediately before
+       Assigned Room. An ordinary scrolling column, styled to match its neighbour; min-width keeps
+       the "Room Name" heading legible when the field is absent on every row. */
+    .eapp-col-roomname {
+      min-width: 110px;
+      padding-right: 14px;
+    }
+
     .eapp-col-room {
       min-width: 140px;   /* keeps the "Assigned Room" heading legible when every row is empty */
       padding-right: 14px;

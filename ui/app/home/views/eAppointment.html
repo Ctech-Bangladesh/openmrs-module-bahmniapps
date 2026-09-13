@@ -114,6 +114,7 @@
                 <th>Unit</th>
                 <th>Payment</th>
                 <th>Status</th>
+                <th class="eapp-col-roomname">Room Name</th>
                 <th class="eapp-col-room">Assigned Room</th>
                 <th class="eapp-col-action">Action</th>
             </tr>
@@ -141,6 +142,8 @@
                     </span>
                 </td>
                 <td><span ng-class="statusClass(appointment)">{{statusLabel(appointment)}}</span></td>
+                <td class="eapp-col-roomname" title="{{sourceRoomName(appointment)}}"
+                    ng-class="{'eapp-muted': !hasSourceRoomName(appointment)}">{{sourceRoomName(appointment)}}</td>
                 <td class="eapp-col-room" title="{{roomName(appointment)}}"
                     ng-class="{'eapp-muted': !hasRoom(appointment)}">{{roomName(appointment)}}</td>
                 <td class="eapp-nowrap eapp-col-action">
