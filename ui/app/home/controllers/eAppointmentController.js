@@ -3,11 +3,14 @@
 angular.module('bahmni.home')
     .controller('EAppointmentController', ['$scope', '$http', '$window', '$rootScope', '$timeout',
         function ($scope, $http, $window, $rootScope, $timeout) {
-            // Same-origin path, reverse-proxied by Apache to support-util on loopback:6061.
-            // Using the existing 443 listener means no extra firewall port, no CORS, and the
-            // backend stays unreachable from the network. The DGHS base URLs, the HRIS access
-            // token and the HRIS password all remain server-side.
-            var baseUrl = '/support-util/api/v1/dghs/appointments';
+            // Relative API path. The support-util host and port are NOT hard-coded here: they come
+            // from the build configuration (ui/environment.json -> Bahmni.Common.Constants), so
+            // requests go to <configured host> + baseUrl, e.g.
+            // https://192.168.4.202:6061/api/v1/dghs/appointments. An empty value means same
+            // origin. The DGHS credentials and tokens all remain server-side.
+            // var baseUrl = '/support-util/api/v1/dghs/appointments';
+            var baseUrl = '/api/v1/dghs/appointments';
+            var apiBaseUrl = Bahmni.Common.Constants.dghsApiBaseUrl + baseUrl;
 
             var PAGE_SIZE = 20;
 
@@ -458,9 +461,11 @@ angular.module('bahmni.home')
                     return;
                 }
                 $scope.loading = true;
-                $http.get(baseUrl, {
-                    params: {fromDate: toIso($scope.fromDate), toDate: toIso($scope.toDate)},
-                    withCredentials: true
+                // No withCredentials: support-util is a different origin (its own port) and answers
+                // Access-Control-Allow-Origin: *, which browsers reject for credentialed requests.
+                // It uses no cookies or session, so nothing is lost.
+                $http.get(apiBaseUrl, {
+                    params: {fromDate: toIso($scope.fromDate), toDate: toIso($scope.toDate)}
                 }).then(function (response) {
                     $scope.appointments = (response.data && response.data.content) || [];
                     $scope.currentPage = 1;
@@ -541,8 +546,8 @@ angular.module('bahmni.home')
                 clearNotice();
                 $scope.busyAppointment = appointment.externalAppointmentId;
 
-                $http.post(baseUrl + '/' + appointment.externalAppointmentId + suffix, {},
-                    {withCredentials: true})
+                // Same cross-origin reasoning as the search request: no withCredentials.
+                $http.post(apiBaseUrl + '/' + appointment.externalAppointmentId + suffix, {})
                     .then(function (response) {
                         var updated = response.data && response.data.content;
                         if (updated) {

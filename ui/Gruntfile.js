@@ -13,6 +13,17 @@ module.exports = function (grunt) {
         nodeModules: 'node_modules'
     };
 
+    // Build-time environment values, injected into the bundles by the existing 'preprocess' task
+    // through /* @echo NAME */ directives. Defaults live in environment.json; a same-named OS
+    // environment variable overrides the file for a one-off build, e.g.
+    //     DGHS_API_BASE_URL=https://10.0.0.5:6061 grunt build
+    var environmentFile = 'environment.json';
+    var environment = grunt.file.exists(environmentFile) ? grunt.file.readJSON(environmentFile) : {};
+    // Host (and port) of the support-util DGHS eAppointment API, with no path and no trailing slash,
+    // since the controller appends its own relative path. Empty means same origin.
+    var dghsApiBaseUrl = (process.env.DGHS_API_BASE_URL || environment.DGHS_API_BASE_URL || '').replace(/\/+$/, '');
+    grunt.log.writeln('DGHS_API_BASE_URL = ' + (dghsApiBaseUrl || '(empty: same origin)'));
+
     var libraryCSSFiles = [
         'components/select2/select2.css',
         'components/ngDialog/css/ngDialog.min.css',
@@ -486,7 +497,8 @@ module.exports = function (grunt) {
         preprocess: {
             options: {
                 context: {
-                    DEBUG: 'production'
+                    DEBUG: 'production',
+                    DGHS_API_BASE_URL: dghsApiBaseUrl
                 }
             },
             multifile: {

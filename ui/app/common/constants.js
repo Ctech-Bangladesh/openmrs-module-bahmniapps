@@ -13,6 +13,14 @@ Bahmni.Common = Bahmni.Common || {};
     var BACTERIOLOGY = RESTWS_V1;
     var BASE_URL = hostUrl + "/bahmni_config/openmrs/apps/";
     var CUSTOM_URL = hostUrl + "/implementation_config/openmrs/apps/";
+    // Host (and port) of the support-util DGHS eAppointment API, e.g. "https://192.168.4.202:6061".
+    // Written in at build time by grunt-preprocess from ui/environment.json (see Gruntfile.js).
+    // Source that has not been through the build - dev mode at /bahmni-dev - still holds the
+    // literal directive, which is detected here and treated as same origin.
+    var DGHS_API_BASE_URL = '/* @echo DGHS_API_BASE_URL */';
+    if (DGHS_API_BASE_URL.indexOf('/*') === 0) {
+        DGHS_API_BASE_URL = "";
+    }
 
     var serverErrorMessages = [
         {
@@ -63,6 +71,7 @@ Bahmni.Common = Bahmni.Common || {};
 
     Bahmni.Common.Constants = {
         hostURL: hostUrl,
+        dghsApiBaseUrl: DGHS_API_BASE_URL,
         dateFormat: "dd/mm/yyyy",
         dateDisplayFormat: "DD-MMM-YYYY",
         timeDisplayFormat: "hh:mm",
