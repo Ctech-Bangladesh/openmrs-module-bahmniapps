@@ -6,7 +6,7 @@ angular.module('bahmni.home')
             // Relative API path. The support-util host and port are NOT hard-coded here: they come
             // from the build configuration (ui/environment.json -> Bahmni.Common.Constants), so
             // requests go to <configured host> + baseUrl, e.g.
-            // https://192.168.4.202:6061/api/v1/dghs/appointments. An empty value means same
+            // https://192.168.4.202:6062/api/v1/dghs/appointments. An empty value means same
             // origin. The DGHS credentials and tokens all remain server-side.
             // var baseUrl = '/support-util/api/v1/dghs/appointments';
             var baseUrl = '/api/v1/dghs/appointments';
