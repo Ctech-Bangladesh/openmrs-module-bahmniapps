@@ -16,7 +16,7 @@ module.exports = function (grunt) {
     // Build-time environment values, injected into the bundles by the existing 'preprocess' task
     // through /* @echo NAME */ directives. Defaults live in environment.json; a same-named OS
     // environment variable overrides the file for a one-off build, e.g.
-    //     DGHS_API_BASE_URL=https://10.0.0.5:6062 grunt build
+    //     DGHS_API_BASE_URL=https://10.0.0.5:6064 grunt build
     var environmentFile = 'environment.json';
     var environment = grunt.file.exists(environmentFile) ? grunt.file.readJSON(environmentFile) : {};
     // Host (and port) of the support-util DGHS eAppointment API, with no path and no trailing slash,

@@ -21,7 +21,7 @@ angular.module('bahmni.home')
                 // const createBahmniHRIS = createBahmniHRISUser(bahmniUserPayload);
                 if (response[0].data.results.length > 0) {
                     const userData = response[0].data.results[0];
-                    fetch(`https://${$window.location.hostname}:6062/api/v1/hris-user/${userData.person.uuid}`)
+                    fetch(`https://${$window.location.hostname}:6064/api/v1/hris-user/${userData.person.uuid}`)
                         .then((response) => {
                             return response.json();
                         })
@@ -44,7 +44,7 @@ angular.module('bahmni.home')
             const healthIDEnable = appService.getAppDescriptor().getConfigValue("healthIDEnable");
             $scope.isVisibleExtension = function (extension) {
                 if (extension.id === "bahmni.registration" && healthIDEnable) {
-                    extension.url = `https://${$window.location.hostname}:6062/health-id/`;
+                    extension.url = `https://${$window.location.hostname}:6064/health-id/`;
                 }
                 return extension.exclusiveOnlineModule ? isOnline() : extension.exclusiveOfflineModule ? !isOnline() : true;
             };

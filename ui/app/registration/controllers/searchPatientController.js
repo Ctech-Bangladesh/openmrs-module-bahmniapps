@@ -170,7 +170,7 @@ angular.module('bahmni.registration')
             };
             $scope.hidRedirect = function (data) {
                 const spinnerToken = spinner.show();
-                fetch(`https://${$window.location.hostname}:6062/api/v1/health-id/${data.hid}`)
+                fetch(`https://${$window.location.hostname}:6064/api/v1/health-id/${data.hid}`)
                     .then((response) => {
                         if (!response.ok) {
                             throw new Error(`Request failed with status: ${response.status}`);
@@ -203,7 +203,7 @@ angular.module('bahmni.registration')
                                 $scope.noResultsMessage = null;
                                 searching = true;
                                 try {
-                                    fetch(`https://${window.location.hostname}:6062/api/v1/health-id/nid/${nid}`)
+                                    fetch(`https://${window.location.hostname}:6064/api/v1/health-id/nid/${nid}`)
                                         .then((response) => {
                                             if (!response.ok) {
                                                 throw new Error(`Request failed with status: ${response.status}`);
@@ -214,7 +214,7 @@ angular.module('bahmni.registration')
                                             searching = false;
                                             if (patient.results.length > 0) {
                                                 let patientData = patient.results[0];
-                                                fetch(`https://${$window.location.hostname}:6062/api/v1/health-id/${patientData.hid}`)
+                                                fetch(`https://${$window.location.hostname}:6064/api/v1/health-id/${patientData.hid}`)
                                                     .then((response) => {
                                                         if (!response.ok) {
                                                             throw new Error(`Request failed with status: ${response.status}`);
@@ -261,7 +261,7 @@ angular.module('bahmni.registration')
                                 $scope.noResultsMessage = null;
                                 searching = true;
                                 try {
-                                    fetch(`https://${window.location.hostname}:6062/api/v1/health-id/brn/${brn}`)
+                                    fetch(`https://${window.location.hostname}:6064/api/v1/health-id/brn/${brn}`)
                                         .then((response) => {
                                             if (!response.ok) {
                                                 throw new Error(`Request failed with status: ${response.status}`);
@@ -271,7 +271,7 @@ angular.module('bahmni.registration')
                                         .then((patient) => {
                                             if (patient.results.length > 0) {
                                                 let patientData = patient.results[0];
-                                                fetch(`https://${$window.location.hostname}:6062/api/v1/health-id/${patientData.hid}`)
+                                                fetch(`https://${$window.location.hostname}:6064/api/v1/health-id/${patientData.hid}`)
                                                     .then((response) => {
                                                         if (!response.ok) {
                                                             throw new Error(`Request failed with status: ${response.status}`);
@@ -318,7 +318,7 @@ angular.module('bahmni.registration')
                                 $scope.noResultsMessage = null;
                                 searching = true;
                                 try {
-                                    fetch(`https://${window.location.hostname}:6062/api/v1/health-id/mobile/${phoneNumber}`)
+                                    fetch(`https://${window.location.hostname}:6064/api/v1/health-id/mobile/${phoneNumber}`)
                                         .then((response) => {
                                             if (!response.ok) {
                                                 throw new Error(`Request failed with status: ${response.status}`);
@@ -590,7 +590,7 @@ angular.module('bahmni.registration')
                                         searching = true;
                                         $scope.noResultsMessage = null;
                                         try {
-                                            fetch(`https://${window.location.hostname}:6062/api/v1/health-id/${healthId}`)
+                                            fetch(`https://${window.location.hostname}:6064/api/v1/health-id/${healthId}`)
                                                 .then((response) => {
                                                     if (!response.ok) {
                                                         throw new Error(`Request failed with status: ${response.status}`);

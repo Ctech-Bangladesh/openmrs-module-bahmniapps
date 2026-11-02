@@ -106,7 +106,7 @@ angular.module('bahmni.registration')
                 $scope.patient.extraIdentifiers[0].registrationNumber = '';
             };
             const checkInternet = async (spinnerToken) => {
-                return await fetch(`https://${$window.location.hostname}:6062/check-internet`)
+                return await fetch(`https://${$window.location.hostname}:6064/check-internet`)
                     .then((response) => {
                         if (!response.ok) {
                             $timeout(function () {
@@ -120,7 +120,7 @@ angular.module('bahmni.registration')
                     });
             };
             const checkHealthID = (spinnerToken, endPoint) => {
-                return fetch(`https://${$window.location.hostname}:6062/api/v1/health-id/${endPoint}`)
+                return fetch(`https://${$window.location.hostname}:6064/api/v1/health-id/${endPoint}`)
                     .then((response) => {
                         if (!response.ok) {
                             $timeout(function () {
@@ -147,7 +147,7 @@ angular.module('bahmni.registration')
                         checkHealthID(spinnerToken, endPoint).then((healthIdCheck) => {
                             if (healthIdCheck.results && healthIdCheck.results.length > 0) {
                                 const patientData = healthIdCheck.results[0];
-                                fetch(`https://${$window.location.hostname}:6062/api/v1/health-id/geo-code?upazillaCode=${patientData.present_address.upazila_id}&districtCode=${patientData.present_address.district_id}&divisionCode=${patientData.present_address.division_id}`)
+                                fetch(`https://${$window.location.hostname}:6064/api/v1/geo-code?upazillaCode=${patientData.present_address.upazila_id}&districtCode=${patientData.present_address.district_id}&divisionCode=${patientData.present_address.division_id}`)
                                     .then((response) => {
                                         if (!response.ok) {
                                             throw new Error(`Request failed with status: ${response.status}`);
@@ -204,7 +204,7 @@ angular.module('bahmni.registration')
                                                 $scope.patient.address.stateProvince = stateProvince;
                                                 $scope.patient.address.countyDistrict = countyDistrict;
                                                 $scope.patient.address.address5 = upazila;
-                                                fetch(`https://${$window.location.hostname}:6062/api/v1/health-id/${patientData.hid}`)
+                                                fetch(`https://${$window.location.hostname}:6064/api/v1/health-id/${patientData.hid}`)
                                                     .then((response) => {
                                                         if (!response.ok) {
                                                             throw new Error(`Request failed with status: ${response.status}`);
@@ -249,7 +249,7 @@ angular.module('bahmni.registration')
                                     messagingService.showMessage("error", "Invalid BRN/NID");
                                 });
                             } else if (healthIdCheck.status !== 500) {
-                                fetch(`https://${$window.location.hostname}:6062/api/v1/health-id/nid-verify`,
+                                fetch(`https://${$window.location.hostname}:6064/api/v1/health-id/nid-verify`,
                                     {
                                         method: "POST",
                                         body: JSON.stringify(patientNIDData($scope.patient)),
@@ -658,7 +658,7 @@ angular.module('bahmni.registration')
                     return patientCreate($scope.patient, jumpAccepted);
                 } else {
                     fetch(
-                        `https://${$window.location.hostname}:6062/api/v1/health-id/geo-code/${districtName}/${upazilaName}`,
+                        `https://${$window.location.hostname}:6064/api/v1/health-id/geo-code/${districtName}/${upazilaName}`,
                         {
                             method: "GET",
                             headers: {
@@ -681,7 +681,7 @@ angular.module('bahmni.registration')
                             if ($scope.patient.nationalId || $scope.patient.birthRegistrationId) {
                                 const isNationalIdPresent = $scope.patient.nationalId;
                                 const endPoint = isNationalIdPresent ? `nid/${$scope.patient.nationalId}` : `brn/${$scope.patient.birthRegistrationId}`;
-                                fetch(`https://${$window.location.hostname}:6062/api/v1/health-id/${endPoint}`)
+                                fetch(`https://${$window.location.hostname}:6064/api/v1/health-id/${endPoint}`)
                                     .then((response) => {
                                         if (!response.ok) {
                                             return patientCreate($scope.patient, jumpAccepted);
@@ -692,7 +692,7 @@ angular.module('bahmni.registration')
                                     .then((res) => {
                                         if (res.results.length > 0) {
                                             const patientData = res.results[0];
-                                            fetch(`https://${$window.location.hostname}:6062/api/v1/health-id/geo-code?upazillaCode=${patientData.present_address.upazila_id}&districtCode=${patientData.present_address.district_id}&divisionCode=${patientData.present_address.division_id}`)
+                                            fetch(`https://${$window.location.hostname}:6064/api/v1/geo-code?upazillaCode=${patientData.present_address.upazila_id}&districtCode=${patientData.present_address.district_id}&divisionCode=${patientData.present_address.division_id}`)
                                                 .then((response) => {
                                                     if (!response.ok) {
                                                         throw new Error(`Request failed with status: ${response.status}`);
@@ -751,7 +751,7 @@ angular.module('bahmni.registration')
                                                     }
                                                 });
                                         } else {
-                                            fetch(`https://${$window.location.hostname}:6062/api/v1/health-id/nid-verify`,
+                                            fetch(`https://${$window.location.hostname}:6064/api/v1/health-id/nid-verify`,
                                                 {
                                                     method: "POST",
                                                     body: JSON.stringify(transformNIDData($scope.patient)),
@@ -772,7 +772,7 @@ angular.module('bahmni.registration')
                                                     if (res.verifyToken) {
                                                         const nidData = res;
                                                         const HIDPayloadData = transformNidVerifyData($scope.patient, nidData);
-                                                        fetch(`https://${$window.location.hostname}:6062/api/v1/health-id`,
+                                                        fetch(`https://${$window.location.hostname}:6064/api/v1/health-id`,
                                                             {
                                                                 method: "POST",
                                                                 body: JSON.stringify(HIDPayloadData),
@@ -791,7 +791,7 @@ angular.module('bahmni.registration')
                                                                 if (res.statusCode === 201) {
                                                                     $scope.patient.extraIdentifiers[0].identifier = res.content.id;
                                                                     $scope.patient.extraIdentifiers[0].registrationNumber = res.content.id;
-                                                                    fetch(`https://${$window.location.hostname}:6062/api/v1/health-id/${res.content.id}`)
+                                                                    fetch(`https://${$window.location.hostname}:6064/api/v1/health-id/${res.content.id}`)
                                                                         .then((response) => {
                                                                             if (!response.ok) {
                                                                                 throw new Error(`Request failed with status: ${response.status}`);

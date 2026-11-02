@@ -16,7 +16,7 @@ angular.module('bahmni.home')
             } else {
                 const userHeaders = new Headers();
                 userHeaders.append("Content-Type", "application/json");
-                fetch(`https://${$window.location.hostname}:6062/api/v1/openmrs-info/visit-location`, {
+                fetch(`https://${$window.location.hostname}:6064/api/v1/openmrs-info/visit-location`, {
                     method: "GET",
                     headers: userHeaders
                 })
@@ -175,7 +175,7 @@ angular.module('bahmni.home')
                 };
                 const updateUserPassword = async (userPayload, uuid) => {
                     return await fetch(
-                        `https://${$window.location.hostname}:6062/api/v1/openmrs-info/change-password/${uuid}`,
+                        `https://${$window.location.hostname}:6064/api/v1/openmrs-info/change-password/${uuid}`,
                         {
                             method: "POST",
                             body: JSON.stringify(userPayload),
@@ -270,7 +270,7 @@ angular.module('bahmni.home')
                     }
                 );
                 const checkInternet = async () => {
-                    return await fetch(`https://${$window.location.hostname}:6062/check-internet`)
+                    return await fetch(`https://${$window.location.hostname}:6064/check-internet`)
                         .then((response) => {
                             return response.json();
                         });
@@ -326,7 +326,7 @@ angular.module('bahmni.home')
                 };
                 const createUser = async (userPayload) => {
                     return await fetch(
-                        `https://${$window.location.hostname}:6062/api/v1/openmrs-info/create-user`,
+                        `https://${$window.location.hostname}:6064/api/v1/openmrs-info/create-user`,
                         {
                             method: "POST",
                             body: JSON.stringify(userPayload),
@@ -339,7 +339,7 @@ angular.module('bahmni.home')
                 };
                 const getProvider = async (data) => {
                     return await fetch(
-                        `https://${$window.location.hostname}:6062/api/v1/openmrs-info/provider?data=${data}`,
+                        `https://${$window.location.hostname}:6064/api/v1/openmrs-info/provider?data=${data}`,
                         {
                             method: "GET",
                             headers: userHeaders
@@ -351,7 +351,7 @@ angular.module('bahmni.home')
                 };
                 const getDesignationUuid = async () => {
                     return await fetch(
-                        `https://${$window.location.hostname}:6062/api/v1/openmrs-info/designation-attribute`,
+                        `https://${$window.location.hostname}:6064/api/v1/openmrs-info/designation-attribute`,
                         {
                             method: "GET",
                             headers: userHeaders
@@ -363,7 +363,7 @@ angular.module('bahmni.home')
                 };
                 const getOrganizationUuid = async () => {
                     return await fetch(
-                        `https://${$window.location.hostname}:6062/api/v1/openmrs-info/organization-attribute`,
+                        `https://${$window.location.hostname}:6064/api/v1/openmrs-info/organization-attribute`,
                         {
                             method: "GET",
                             headers: userHeaders
@@ -375,7 +375,7 @@ angular.module('bahmni.home')
                 };
                 const createProvider = async (providerData) => {
                     return await fetch(
-                        `https://${$window.location.hostname}:6062/api/v1/openmrs-info/create-provider`,
+                        `https://${$window.location.hostname}:6064/api/v1/openmrs-info/create-provider`,
                         {
                             method: "POST",
                             body: JSON.stringify(providerData),
@@ -388,7 +388,7 @@ angular.module('bahmni.home')
                 };
                 const createBahmniHRISUser = async (userPayload) => {
                     return await fetch(
-                        `https://${$window.location.hostname}:6062/api/v1/hris-user`,
+                        `https://${$window.location.hostname}:6064/api/v1/hris-user`,
                         {
                             method: "POST",
                             body: JSON.stringify(userPayload),
@@ -401,7 +401,7 @@ angular.module('bahmni.home')
                 };
                 const hrisLogin = async (dataBody) => {
                     return await fetch(
-                        `https://${$window.location.hostname}:6062/api/v1/hris/signin`,
+                        `https://${$window.location.hostname}:6064/api/v1/hris/signin`,
                         {
                             method: "POST",
                             body: JSON.stringify(dataBody),
@@ -413,7 +413,7 @@ angular.module('bahmni.home')
                         });
                 };
                 const getUserRolesUuid = async (roles) => {
-                    return await fetch(`https://${$window.location.hostname}:6062/api/v1/hris/bahmni-roles`, {
+                    return await fetch(`https://${$window.location.hostname}:6064/api/v1/hris/bahmni-roles`, {
                         method: "POST",
                         body: JSON.stringify(roles),
                         headers: headers
@@ -423,20 +423,20 @@ angular.module('bahmni.home')
                         });
                 };
                 const checkUserName = async (username) => {
-                    return await fetch(`https://${$window.location.hostname}:6062/api/v1/hris/bahmni-user/${username}`)
+                    return await fetch(`https://${$window.location.hostname}:6064/api/v1/hris/bahmni-user/${username}`)
                         .then((response) => {
                             return response.json();
                         });
                 };
 
                 const getProviderFromHRIS = async (token) => {
-                    return await fetch(`https://${$window.location.hostname}:6062/api/v1/hris/token/${token}`)
+                    return await fetch(`https://${$window.location.hostname}:6064/api/v1/hris/token/${token}`)
                         .then((response) => {
                             return response.json();
                         });
                 };
                 const getProviderDataFromHRIS = async (id) => {
-                    return await fetch(`https://${$window.location.hostname}:6062/api/v1/hris/provider/${id}`)
+                    return await fetch(`https://${$window.location.hostname}:6064/api/v1/hris/provider/${id}`)
                         .then((response) => {
                             return response.json();
                         });

@@ -36,7 +36,7 @@ angular.module('bahmni.clinical').controller('ConsultationController',
                 $scope.singlePagePrescriptionHide = true;
             }
             $scope.singlePagePrescription = function () {
-                $window.location.href = `https://${$window.location.hostname}:6062/prescription/${$scope.patient.uuid}`;
+                $window.location.href = `https://${$window.location.hostname}:6064/prescription/${$scope.patient.uuid}`;
             };
 
             $scope.toggleDashboardMenu = function () {
