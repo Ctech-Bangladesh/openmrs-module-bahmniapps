@@ -1,30 +1,90 @@
 <div class="reg-body-wrapper">
-<div class="edit-patient simple-form-ui">
-    <form name="myForm"  single-submit="update()">
-        <div class="box-container box-container-default">
-            <legend class="registraion_legend first-registraion_legend" ng-class="{'removeLegend': patient.primaryIdentifier == undefined}">
-                <span class="mylegend"><strong>{{patient.primaryIdentifier.identifierType.name}}: <span id="patientIdentifierValue">{{patient.primaryIdentifier.identifier}}</span></strong></span>
-                <span ng-show= "isDigitized" class="right"><strong>{{::'REGISTRATION_LABEL_SCANNED' | translate}}</strong></span>
-            </legend>
-            <div class="photo-container-wrapper" ng-if="!disablePhotoCapture">
+    
+    <div class="edit-patient simple-form-ui">
+        <form name="myForm" single-submit="update()">
+            <div class="box-container box-container-default">
+                <legend class="registraion_legend first-registraion_legend"
+                        ng-class="{'removeLegend': patient.primaryIdentifier == undefined}">
+                    <span class="mylegend"><strong>{{patient.primaryIdentifier.identifierType.name}}: <span
+                            id="patientIdentifierValue">{{patient.primaryIdentifier.identifier}}</span></strong></span>
+                    <span class="right"
+                          ng-show="isDigitized"><strong>{{::'REGISTRATION_LABEL_SCANNED' | translate}}</strong></span>
+                </legend>
+                <div class="photo-container-wrapper" ng-if="!disablePhotoCapture">
                 <span class="photo-container">
                         <img class="patient-image" ng-src="{{patient.image}}" fallback-src="../images/blank-user.gif">
                         <div ng-model="patient.image" capture-photo class="capture-photo-btn"></div>
                  </span>
-            </div>
-            <article class="form-field">
+                </div>
+             
+                <article class="form-field">
                     <div class="field-attribute">
-                    <label class="control-label">{{::'REGISTRATION_LABEL_REGISTRATION_DATE' | translate}}</label>
+                        <label class="control-label">{{::'REGISTRATION_LABEL_REGISTRATION_DATE' | translate}}</label>
                     </div>
 
                     <div class="field-value">
                         <span class="uneditable-input text-only">{{patient.registrationDate | bahmniDate}}</span>
-                   </div>
-            </article>
-        </div>
-        <ng-include src="'views/patientcommon.html'"></ng-include>
-        <patient-action></patient-action>
-    </form>
-    <br>
-</div>
+                    </div>
+                </article>
+                <section>
+                    <article class="form-field patient-name-wrapper">
+                        <div class="field-attribute">
+                            <label for="patientName">National ID</label>
+                        </div>
+                        <div class="field-value" id="nationalId">
+                            <input type="text" id="nationalId" ng-model="patient.nationalId" pattern-validate>
+                        </div>
+                        <div class="field-attribute">
+                            <label for="patientName">Birth Registration Number</label>
+                        </div>
+                        <div class="field-value" id="birthRegistrationId">
+                            <input type="text" id="birthRegistrationId" ng-model="patient.birthRegistrationId" pattern-validate>
+                        </div>
+                      
+                    </article>
+                    <section class="age-wrapper">
+                        <div style="display: flex;" ng-if="::!dobMandatory">
+                            <div>
+                                <ng-include src="'views/dob.html'"></ng-include>
+                            </div>
+                           <div>
+                            <ng-include src="'views/age.html'"></ng-include>
+                           </div>
+                            
+                        </div>
+                        <div ng-if="::dobMandatory">
+                            <ng-include src="'views/age.html'"></ng-include>
+                            <ng-include src="'views/dob.html'"></ng-include>
+                        </div>
+                    </section>
+                    <!-- <span style="position: relative;left: 220px; margin: 5px 0px;" ng-click="getPatientInfo()" class="getPatientBtn">Get Patient Info</span> -->
+                    <article class="form-field existing-patient">
+                        <div class="field-value field-value-has-identifier">
+                            <input type="text" id="registrationNumber"
+                                   ng-model="patient.primaryIdentifier.registrationNumber"
+                                   placeholder="{{:: patient.primaryIdentifier.identifierType.description}}"
+                                   non-blank="patient.primaryIdentifier.isIdentifierRequired()" pattern-validate
+                                   ng-change="patient.primaryIdentifier.generate()"
+                                   focus-on="patient.primaryIdentifier.hasOldIdentifier"
+                                   ng-show="patient.primaryIdentifier.hasOldIdentifier || !patient.primaryIdentifier.hasIdentifierSources()">
+                            <div ng-show="::patient.primaryIdentifier.hasIdentifierSources() && showEnterID" class="fl">
+                                <div class="field-attribute hasOldIdentifier-field-attribute">
+                                    <label for="hasOldIdentifier" class="control-label">{{::'REGISTRATION_LABEL_ENTER_ID'
+                                        | translate}}</label>
+                                </div>
+                                <div class="field-value">
+                                    <input class="input-label-inline" ng-show="::showEnterID" type="checkbox"
+                                           id="hasOldIdentifier" ng-model="patient.primaryIdentifier.hasOldIdentifier"
+                                           ng-change="patient.primaryIdentifier.clearRegistrationNumber()">
+                                </div>
+                            </div>
+                        </div>
+                    </article>
+                </section>
+            </div>
+            <ng-include src="'views/patientcommon.html'"></ng-include>
+            <patient-action></patient-action>
+        </form>
+        <br>
+    </div>
 </div>

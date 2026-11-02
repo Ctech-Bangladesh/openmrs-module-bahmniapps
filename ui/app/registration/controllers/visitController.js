@@ -8,14 +8,17 @@ angular.module('bahmni.registration')
             var patientUuid = $stateParams.patientUuid;
             var extensions = appService.getAppDescriptor().getExtensions("org.bahmni.registration.conceptSetGroup.observations", "config");
             var formExtensions = appService.getAppDescriptor().getExtensions("org.bahmni.registration.conceptSetGroup.observations", "forms");
+            const tokenEnable = appService.getAppDescriptor().getConfigValue("tokenEnable");
             var locationUuid = sessionService.getLoginLocationUuid();
             var selectedProvider = $rootScope.currentProvider;
             var regEncounterTypeUuid = $rootScope.regEncounterConfiguration.encounterTypes[Bahmni.Registration.Constants.registrationEncounterType];
             var visitLocationUuid = $rootScope.visitLocation;
 
+            $scope.providerName = localStorage.getItem('providerName');
+            $scope.providerFacility = localStorage.getItem('providerFacility');
+            $window.localStorage.removeItem('healthId');
             var getPatient = function () {
                 var deferred = $q.defer();
-                $window.localStorage.removeItem('refresh');
                 patientService.get(patientUuid).then(function (openMRSPatient) {
                     deferred.resolve(openMRSPatient);
                     $scope.patient = openmrsPatientMapper.map(openMRSPatient);
@@ -338,10 +341,15 @@ angular.module('bahmni.registration')
                     method: 'POST',
                     url: '/openmrs/module/queuemanagement/generate.form',
                     data: JSON.stringify(queueData),
-                    headers: {'Content-Type': 'application/json'}
+                    headers: { 'Content-Type': 'application/json' }
                 });
             };
-
+            const closeRegistrationToken = () => {
+                var storedCounter = JSON.parse(localStorage.getItem('selectedCounter'));
+                if (storedCounter) {
+                    fetch(`https://${$window.location.hostname}/openmrs/module/tokenqueue/reg/done/removeRegToken.htm?counter=${storedCounter.id}&patientUuid=${patientUuid}`);
+                }
+            };
             var afterSave = function () {
                 var forwardUrl = appService.getAppDescriptor().getConfigValue("afterVisitSaveForwardUrl");
                 var queueManagement = appService.getAppDescriptor().getConfigValue("queueManagement");
@@ -376,7 +384,7 @@ angular.module('bahmni.registration')
                                         roomId: roomId,
                                         dateCreated: formatDate[0]
                                     };
-                                    if (queueManagement.willUse == true) {
+                                    if (queueManagement.willUse === true) {
                                         generateQueue(queue);
                                         console.log("Queue Management Started... Queue Submitted :: " + queue);
                                     } else {
@@ -385,6 +393,9 @@ angular.module('bahmni.registration')
                                 }
                             });
                         });
+                        if (tokenEnable) {
+                            closeRegistrationToken();
+                        }
                     });
                 }, 500);
             };
